@@ -1,74 +1,77 @@
-# GTM Engine by nRev
+# nrv — Agent-Native GTM Execution Platform
 
-AI-native go-to-market toolkit. Makes Claude Code your GTM co-pilot with secure API key management, multi-provider enrichment, and compound intelligence.
+AI-native go-to-market platform. Makes Claude Code your GTM co-pilot with multi-provider enrichment, OAuth app connections, credit billing, and workflow tracking.
 
 ## Quick Start
 
 ```bash
-pip3 install git+https://github.com/nrev-ai/gtm-engine.git
-gtm init
-export GTM_PASSPHRASE="your-passphrase"
-gtm setup-claude
+# Install the CLI
+pip install nrv
+
+# Authenticate with Google
+nrv auth login
+
+# Set up Claude Code integration
+nrv setup claude
+
 # Restart Claude Code — done.
 ```
 
-## What It Does
-
-**GTM Engine** turns Claude Code into a GTM powerhouse:
-
-1. **Persistent Intelligence** — Remembers which providers work best for YOUR ICP across sessions. After 30 days: *"Your best waterfall is Apollo → RocketReach (89% hit rate, $0.05/contact)."*
-
-2. **Cost Transparency** — Shows estimates before every call, receipts after. *"This will cost ~$3. Done: 50 contacts for $2.87 (92% hit rate)."*
-
-3. **Secure Key Vault** — API keys are encrypted (AES-256, PBKDF2 600K) and never appear in conversation. Claude only sees fingerprints.
-
-## Commands
-
-| Command | What It Does |
-|---------|-------------|
-| `gtm init` | Discovery-first onboarding: understands your GTM goals, recommends workflows |
-| `gtm add-key <provider>` | Store a BYOK API key (encrypted, never retrievable) |
-| `gtm status` | Vault health + intelligence stats (hit rates, costs, best waterfalls) |
-| `gtm enrich -p <provider>` | Enrichment with cost estimate + receipt |
-| `gtm dashboard` | Launch web UI at localhost:5555 |
-| `gtm connect <app>` | OAuth connect tools (Slack, Sheets, HubSpot, etc.) |
-| `gtm setup-claude` | Auto-configure Claude Code (MCP server, skills, rules) |
-
-## Supported Providers
-
-| Provider | What It Does |
-|----------|-------------|
-| Apollo | People search, enrichment, org data |
-| RocketReach | Contact info, email/phone finding |
-| RapidAPI Google | Google search for company research |
-| Parallel AI | AI-powered web research |
-| PDL | Person + company enrichment |
-| Hunter | Email finding + verification |
-| ZeroBounce | Email validation |
-| Apify | Web scraping actors |
-| Firecrawl | Web crawling + scraping |
-| Instantly | Email sequences |
-| Crustdata | Company data enrichment |
-| Composio | OAuth tool connections |
-| LeadMagic | B2B data enrichment |
+See [QUICKSTART.md](QUICKSTART.md) for detailed setup and [HANDOVER.md](HANDOVER.md) for deployment instructions.
 
 ## Architecture
 
 ```
-vault/       → Encrypted multi-tenant API key vault
-cli/         → Click-based CLI (gtm command)
-dashboard/   → FastAPI web UI
-.vault/      → Encrypted key storage (never commit)
+src/nrv/         → CLI + MCP server (published to PyPI, installed by users)
+server/          → FastAPI API server (deployed to cloud)
+migrations/      → PostgreSQL schema + RLS migrations
 ```
+
+**Split design:** The CLI is a thin client that authenticates and talks to the server. The server handles provider routing, credit billing, key encryption, and data persistence.
+
+## CLI Commands
+
+| Command | What It Does |
+|---------|-------------|
+| `nrv auth login` | Authenticate with Google OAuth |
+| `nrv enrich person` | Person enrichment (email, name, LinkedIn) |
+| `nrv enrich company` | Company enrichment (domain, name) |
+| `nrv search people` | Search for people with filters |
+| `nrv tables list` | List available data tables |
+| `nrv keys list` | List BYOK API keys |
+| `nrv credits` | Check credit balance |
+| `nrv status` | Auth, server, and credit status |
+| `nrv setup claude` | Auto-configure Claude Code MCP integration |
+| `nrv dashboard` | Open the tenant dashboard |
+
+## MCP Tools (15 tools for Claude Code)
+
+| Tool | Purpose |
+|------|---------|
+| `nrv_health` | Health check |
+| `nrv_google_search` | Advanced Google SERP with operators and bulk queries |
+| `nrv_search_patterns` | Platform-specific search query patterns |
+| `nrv_enrich_person` | Person enrichment |
+| `nrv_enrich_company` | Company enrichment |
+| `nrv_query_table` | Query stored data |
+| `nrv_list_tables` | List available tables |
+| `nrv_credit_balance` | Check credits |
+| `nrv_provider_status` | Provider availability |
+| `nrv_list_connections` | OAuth-connected apps |
+| `nrv_execute_action` | Execute actions on connected apps |
+
+## Supported Providers
+
+Apollo, RocketReach, RapidAPI Google, Parallel AI, PredictLeads, Composio (OAuth connections), and more.
 
 ## Security
 
-- API keys are encrypted with AES-256 + PBKDF2 (600K iterations)
-- Keys never appear in Claude Code conversation context
-- Proxy pattern: keys go IN but never come OUT
-- Only fingerprints are ever returned
-- `.vault/` and `.env` are gitignored
+- Multi-tenant isolation via PostgreSQL Row-Level Security
+- BYOK keys encrypted at rest (Fernet in dev, KMS in production)
+- Platform API keys stored as environment variables, never exposed
+- JWT authentication with short-lived tokens
+- `.env` and all secrets are gitignored
 
 ## License
 
-Proprietary — nRev, Inc.
+MIT — nRev, Inc.

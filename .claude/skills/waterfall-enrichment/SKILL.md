@@ -3,7 +3,7 @@
 ## Concept
 Try multiple providers in sequence. Stop when you get the data you need.
 Minimizes cost while maximizing coverage.
-Check ~/.gtm/intelligence.json for YOUR specific hit rates to optimize the order.
+Use nrv_provider_status to check which providers are available and optimize the order.
 
 ## Recommended Waterfall Orders
 
@@ -37,5 +37,5 @@ for provider in providers:
 
 ## Cost Optimization
 - Always start with cheapest provider if quality is similar
-- Track hit rates in intelligence.json to optimize over time
+- Track hit rates across providers to optimize over time
 - Verify emails before sending campaigns (ZeroBounce or Hunter)
