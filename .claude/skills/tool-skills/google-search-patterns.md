@@ -1,0 +1,182 @@
+# Google Search Patterns — Site Operators & URL Structures
+
+## Always call nrv_search_patterns() first
+Before constructing any Google query, call `nrv_search_patterns()` to get the latest platform-specific URL patterns. The patterns below are reference — the server-side patterns are the source of truth and may be updated without a CLI release.
+
+## Core Site: Operators by Platform
+
+### LinkedIn
+```
+# People profiles
+site:linkedin.com/in [name] [title] [company]
+
+# Company pages
+site:linkedin.com/company [company name]
+
+# Posts (engagement monitoring)
+site:linkedin.com/posts [person OR company] [topic]
+
+# Job postings
+site:linkedin.com/jobs/view [role] [location]
+
+# Job search results
+site:linkedin.com/jobs/search [keywords]
+```
+
+### Instagram
+```
+# Profiles (businesses, influencers)
+site:instagram.com [business name] [location]
+
+# Posts specifically (use /p path)
+site:instagram.com/p [keyword] [location]
+
+# Reels
+site:instagram.com/reel [keyword]
+```
+**Quirk:** Adding `/p` after instagram.com targets posts only, giving you content where businesses actively market themselves. Without `/p` you get profile pages.
+
+### Twitter/X
+```
+site:twitter.com [person] [topic]
+site:x.com [person] [topic]
+```
+**Note:** Both domains work. x.com is newer but twitter.com often has better historical indexing.
+
+### Job Boards (Hiring Signal Discovery)
+```
+# Greenhouse (most common for tech)
+site:boards.greenhouse.io [company]
+site:boards.greenhouse.io/[company_slug]
+
+# Lever
+site:jobs.lever.co [company]
+site:jobs.lever.co/[company_slug]
+
+# Ashby (growing fast in startups)
+site:jobs.ashbyhq.com [company]
+
+# Workday (enterprise)
+site:[company].wd5.myworkdayjobs.com
+
+# General job boards
+site:indeed.com [role] [company]
+site:glassdoor.com [company] jobs
+```
+
+### Software Review & Tech Discovery
+```
+# G2 (software research intent)
+site:g2.com/products [software category]
+site:g2.com/compare [product1] vs [product2]
+
+# Capterra
+site:capterra.com [category]
+
+# TrustRadius
+site:trustradius.com/products [category]
+
+# ProductHunt (startups and new products)
+site:producthunt.com [category OR product]
+
+# BuiltWith (tech stack)
+site:builtwith.com [technology]
+```
+
+### Startup & Funding Intelligence
+```
+# Crunchbase
+site:crunchbase.com/organization [company]
+site:crunchbase.com/funding_round [company]
+
+# AngelList / Wellfound
+site:wellfound.com/company [company]
+site:angel.co/company [company]
+
+# PitchBook (limited public data)
+site:pitchbook.com [company]
+```
+
+### Developer & Technical
+```
+# GitHub (find developers, open source projects)
+site:github.com [technology] [keyword]
+site:github.com/[org_name]
+
+# Stack Overflow (find technical discussions)
+site:stackoverflow.com [technology] [problem]
+
+# Dev.to / Hashnode (developer content)
+site:dev.to [topic]
+site:hashnode.dev [topic]
+```
+
+### Local Business Discovery
+```
+# Google Maps
+[business type] [location] site:google.com/maps
+
+# Yelp
+site:yelp.com [business type] [location]
+
+# TripAdvisor (hospitality)
+site:tripadvisor.com [business type] [location]
+
+# Healthgrades (medical)
+site:healthgrades.com [specialty] [location]
+
+# Clutch.co (agencies/consultancies)
+site:clutch.co [service type] [location]
+
+# BBB (general businesses)
+site:bbb.org [business type] [location]
+```
+
+### Professional Communities
+```
+# Reddit (high intent B2B discussions)
+site:reddit.com/r/sales [topic]
+site:reddit.com/r/SaaS [topic]
+site:reddit.com/r/startups [topic]
+site:reddit.com/r/devops [technology]
+site:reddit.com/r/sysadmin [product category]
+
+# Quora
+site:quora.com [question topic]
+```
+
+## Advanced Operators
+
+```
+# Combine site: with other operators
+site:linkedin.com/in "VP Sales" AND ("Series B" OR "Series C") fintech
+
+# Exclude results
+site:linkedin.com/in CTO -recruiter -consultant
+
+# Time-restricted (use tbs parameter in nrv_google_search)
+# tbs=qdr:d  → past 24 hours
+# tbs=qdr:w  → past week
+# tbs=qdr:m  → past month
+# tbs=qdr:y  → past year
+
+# Exact phrase matching
+site:linkedin.com/posts "just raised" "Series B"
+
+# OR grouping
+site:linkedin.com/in (CTO OR "VP Engineering" OR "Head of Engineering") (fintech OR "financial technology")
+```
+
+## Platform-by-Use-Case Quick Reference
+
+| I need to find... | Use this pattern |
+|-------------------|-----------------|
+| People at a company | `site:linkedin.com/in [title] [company]` |
+| Companies hiring | `site:boards.greenhouse.io [keyword]` |
+| Local businesses | `site:yelp.com [type] [city]` + `site:instagram.com [type] [city]` |
+| Software buyers (in evaluation) | `site:g2.com/compare [category]` |
+| Startup funding | `site:crunchbase.com/funding_round [company]` |
+| Competitor prospects | `site:linkedin.com/posts [competitor rep name]` |
+| Technical decision makers | `site:github.com [org]` + enrich via Apollo |
+| Industry conversations | `site:reddit.com/r/[subreddit] [topic]` |
+| Content engagement | `site:linkedin.com/posts [your name] commented` |
