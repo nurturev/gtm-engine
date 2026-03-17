@@ -39,26 +39,47 @@ Is the target in B2B databases?
 
 ## Creative Enrichment Pipeline
 
-### Step 1: Discover (find the business)
+### Step 1: Discover (find businesses via Google site: operators)
 ```python
-# Example: bakeries in San Jose
-nrv_google_search("site:instagram.com bakeries San Jose")
+# Search MULTIPLE platforms — cross-referencing gives better coverage
+# Yelp and Instagram are well-indexed; Google Maps site: does NOT work
 nrv_google_search("site:yelp.com bakeries San Jose")
-nrv_google_search("bakeries San Jose site:google.com/maps")
+nrv_google_search("site:instagram.com bakery San Jose California")
+# This gives you: business names + Yelp/Instagram URLs
+```
+**IMPORTANT:** `site:google.com/maps` does NOT work — Maps pages are not indexed in web search. Use Yelp + Instagram as primary discovery platforms.
+
+### Step 2: Extract structured data (TWO approaches)
+
+**Approach A — Parallel Web Extract (preferred when server available):**
+```python
+# Batch all Yelp URLs into one Parallel Web Extract call
+# Yelp and Instagram BLOCK basic HTTP scraping (403 errors)
+# Parallel Web handles anti-bot pages that basic fetch tools can't
+nrv_scrape_page(url="https://www.yelp.com/biz/peters-bakery-san-jose-2",
+                objective="Extract business name, full address, phone, website, email, hours, rating, specialties")
 ```
 
-### Step 2: Extract (get structured data from discovery)
+**Approach B — Web search per business (fallback, always works):**
 ```python
-# Scrape the profile/listing for business details
-nrv_scrape_page(url="https://www.yelp.com/biz/some-bakery-san-jose")
-nrv_scrape_page(url="https://www.instagram.com/somebakery/")
+# Search each business by name for contact details
+# This pulls from multiple directory listings (Yelp, Yellow Pages, Facebook, etc.)
+nrv_google_search("[Business Name] [City] phone website email contact")
 ```
+**Real-world test results (10 bakeries in San Jose):**
+- Phone: 100% hit rate
+- Website: 80% hit rate
+- Email: 50% hit rate (email is the hardest field for local businesses)
+- Instagram: 70% hit rate
 
-### Step 3: Enrich (fill in contact details)
+### Step 3: Enrich missing fields
 ```python
-# Parallel Web excels at enriching non-standard businesses
-# Returns: website, email, phone, address, social profiles
-nrv_parallel_research("Find contact information, website, and owner details for [Business Name] in San Jose, CA")
+# For businesses missing email/website, use Parallel Web Task API
+# Task API does AI-powered research across multiple sources
+nrv_parallel_research("Find contact email, website, and owner name for [Business Name] at [Address] in [City]")
+
+# For persistent gaps, try Facebook pages (often have email)
+nrv_google_search("site:facebook.com [Business Name] [City]")
 ```
 
 ### Step 4: Find the decision maker
@@ -66,9 +87,21 @@ nrv_parallel_research("Find contact information, website, and owner details for 
 # For local businesses, the owner IS the decision maker
 # Try LinkedIn search for the owner
 nrv_google_search("site:linkedin.com/in [owner name] [business name] [city]")
-# Or search Apollo if the company exists
+# Or search Apollo if the company has a website domain
 nrv_search_people(company_domains=["businessdomain.com"], provider="apollo")
 ```
+
+### Step 5: Always output structured data
+Every workflow MUST end with structured output (table or JSON) — never just prose. This enables downstream automation (Sheets export, CRM push, email sequences).
+
+```
+| # | Business | Address | Phone | Website | Email | Source URL | Specialty |
+|---|----------|---------|-------|---------|-------|------------|-----------|
+| 1 | ...      | ...     | ...   | ...     | ...   | [Yelp](...)| ...       |
+```
+**CRITICAL: Always include source URLs** (Yelp listing, Instagram profile, Google Maps link, etc.) — without the URL the user can't verify or take action on the data.
+
+**Set expectations on hit rates:** For local/SMB businesses, expect ~100% phone, ~80% website, ~50% email. Suggest fallbacks for missing email: contact form URL, Facebook Messenger, Instagram DM, or phone.
 
 ## Hiring Signal Discovery Patterns
 

@@ -246,30 +246,25 @@ async def google_callback(
         })
         return RedirectResponse(url=f"{cli_redirect}?{params}")
 
-    # Browser-based console login — set HttpOnly cookie and redirect to console
-    is_console_login = pending.get("console_login") if isinstance(pending, dict) else False
-    if is_console_login:
-        response = RedirectResponse(
-            url=f"/console/{user.tenant_id}",
-            status_code=302,
-        )
-        response.set_cookie(
-            key=_COOKIE_NAME,
-            value=tokens["access_token"],
-            max_age=_COOKIE_MAX_AGE,
-            httponly=True,
-            secure=_COOKIE_SECURE,
-            samesite="lax",
-            path="/",
-        )
-        return response
-
-    # No CLI redirect, not console — return JSON (for direct API use)
-    return TokenResponse(
-        access_token=tokens["access_token"],
-        refresh_token=tokens["refresh_token"],
-        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    # No CLI redirect → this is a browser-based console login.
+    # Always set cookie and redirect to dashboard.
+    # Logic: CLI flow always has cli_redirect (handled above). If we reach here,
+    # it's a browser login. No need to check _pending_auth state which is lost
+    # on server reload anyway.
+    response = RedirectResponse(
+        url=f"/console/{user.tenant_id}",
+        status_code=302,
     )
+    response.set_cookie(
+        key=_COOKIE_NAME,
+        value=tokens["access_token"],
+        max_age=_COOKIE_MAX_AGE,
+        httponly=True,
+        secure=_COOKIE_SECURE,
+        samesite="lax",
+        path="/",
+    )
+    return response
 
 
 @router.post("/refresh", response_model=TokenResponse)

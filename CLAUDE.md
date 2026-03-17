@@ -55,15 +55,17 @@ nrv auth login
 nrv enrich person --email test@example.com
 ```
 
-## MCP Tools (15 tools)
+## MCP Tools (17 tools)
 
 | Tool | What It Does |
 |------|-------------|
 | `nrv_health` | Quick health check — verifies server + auth are working |
+| `nrv_new_workflow` | Start a new workflow within the session (for run log grouping) |
 | `nrv_search_web` | Google web search via RapidAPI |
 | `nrv_scrape_page` | Extract content from URLs via Parallel Web |
 | `nrv_google_search` | Google SERP with all operators, tbs, site, bulk queries |
 | `nrv_search_patterns` | **Call BEFORE Google search** — get platform-specific query patterns |
+| `nrv_search_people` | People search via Apollo/RocketReach (titles, companies, alumni) |
 | `nrv_enrich_person` | Person enrichment (email/name/LinkedIn) |
 | `nrv_enrich_company` | Company enrichment (domain/name) |
 | `nrv_query_table` | Query data tables with filters |

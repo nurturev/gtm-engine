@@ -43,14 +43,16 @@ These are battle-tested workflows that have delivered real pipeline for real com
 **Execution:**
 1. **Find high-engagement relevant posts** — search for trending content in your niche
    ```
-   nrv_google_search("site:linkedin.com/posts [industry keyword] [pain point]")
+   nrv_google_search("site:linkedin.com/posts [industry keyword] [pain point]", tbs="qdr:w")
    ```
+   **IMPORTANT:** Use `tbs=qdr:w` (past week) minimum — NOT `qdr:h` or `qdr:d`. Google indexes LinkedIn posts with hours-to-days lag, so `qdr:h2` returns 0 results. `qdr:d` works but misses recent posts. `qdr:w` is the reliable minimum.
 2. **Identify post authors and key commenters** — these are active, engaged professionals
-3. **Surface and prioritize posts** — rank by engagement count and relevance to your ICP
-4. **Write relevant comments** — provide genuine value, not pitches
+3. **Surface and prioritize posts** — rank by engagement count and relevance to your ICP. **Always include the LinkedIn post URL** in the output — without it the user can't take action.
+4. **Score each post** for relevance to the user's business and suggest a draft comment. Present as a structured table with columns: Score, Author, Post URL, Topic, Why Relevant, Suggested Comment.
+5. **Write relevant comments** — provide genuine value, not pitches
    - IMPORTANT: Comment writing is recommended human-led. AI voice is recognizable and often shunned on social media. nrv can DRAFT comments but humans should review/personalize before posting.
-5. **Track who engages back** — likes on your comments, replies, profile views = warm leads
-6. **Enrich responders** — build a lead list from engagement
+6. **Track who engages back** — likes on your comments, replies, profile views = warm leads
+7. **Enrich responders** — build a lead list from engagement
    ```
    nrv_enrich_person(linkedin_url="...", provider="apollo")
    ```

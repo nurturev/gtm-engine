@@ -103,6 +103,7 @@ async def list_workflows(
     stmt = (
         select(
             RunStep.workflow_id,
+            func.max(RunStep.workflow_label).label("workflow_label"),
             func.count(RunStep.id).label("step_count"),
             func.sum(RunStep.credits_charged).label("total_credits"),
             func.sum(RunStep.duration_ms).label("total_duration_ms"),
@@ -138,6 +139,7 @@ async def list_workflows(
 
         workflows.append({
             "workflow_id": row.workflow_id,
+            "workflow_label": row.workflow_label or None,
             "step_count": total,
             "success_count": success,
             "failed_count": failed,

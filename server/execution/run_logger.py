@@ -156,6 +156,8 @@ class RunStepMiddleware(BaseHTTPMiddleware):
         if not workflow_id:
             return await call_next(request)
 
+        workflow_label = request.headers.get("X-Workflow-Label", "")
+
         path = request.url.path
         method = request.method
 
@@ -242,6 +244,7 @@ class RunStepMiddleware(BaseHTTPMiddleware):
                 step = RunStep(
                     tenant_id=tenant_id,
                     workflow_id=workflow_id,
+                    workflow_label=workflow_label or None,
                     tool_name=tool_name,
                     operation=operation,
                     provider=provider,

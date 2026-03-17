@@ -43,6 +43,13 @@ site:x.com [person] [topic]
 ```
 **Note:** Both domains work. x.com is newer but twitter.com often has better historical indexing.
 
+### LinkedIn Indexing Lag — Critical
+Google indexes LinkedIn posts with a **significant delay** (hours to days). Time-based search (`tbs`) implications:
+- `qdr:h2` (2 hours) → **will return 0 results** for LinkedIn posts. Too aggressive.
+- `qdr:d` (24 hours) → **practical minimum** for LinkedIn. Works but may miss recent posts.
+- `qdr:w` (1 week) → **most reliable** for comprehensive LinkedIn post discovery.
+- This lag does NOT affect other platforms (Reddit, Twitter, news sites are indexed near-real-time).
+
 ### Job Boards (Hiring Signal Discovery)
 ```
 # Greenhouse (most common for tech)
@@ -113,11 +120,12 @@ site:hashnode.dev [topic]
 
 ### Local Business Discovery
 ```
-# Google Maps
-[business type] [location] site:google.com/maps
-
-# Yelp
+# Yelp (best for local — individual biz pages are rich with phone, address, hours)
+site:yelp.com/biz [business type] [location]
 site:yelp.com [business type] [location]
+
+# Instagram (find businesses with social presence)
+site:instagram.com [business type] [location]
 
 # TripAdvisor (hospitality)
 site:tripadvisor.com [business type] [location]
@@ -131,6 +139,10 @@ site:clutch.co [service type] [location]
 # BBB (general businesses)
 site:bbb.org [business type] [location]
 ```
+**IMPORTANT — Google Maps `site:` does NOT work.** Maps pages are not indexed in web search. Instead:
+- Search `site:yelp.com` + `site:instagram.com` (both well-indexed) to discover businesses
+- Then use Parallel Web Extract to scrape individual Yelp/Instagram pages for structured data
+- Or search each business name directly for contact details (website, phone, email)
 
 ### Professional Communities
 ```
@@ -173,7 +185,7 @@ site:linkedin.com/in (CTO OR "VP Engineering" OR "Head of Engineering") (fintech
 |-------------------|-----------------|
 | People at a company | `site:linkedin.com/in [title] [company]` |
 | Companies hiring | `site:boards.greenhouse.io [keyword]` |
-| Local businesses | `site:yelp.com [type] [city]` + `site:instagram.com [type] [city]` |
+| Local businesses | `site:yelp.com [type] [city]` + `site:instagram.com [type] [city]` (NOT google.com/maps — not indexed) |
 | Software buyers (in evaluation) | `site:g2.com/compare [category]` |
 | Startup funding | `site:crunchbase.com/funding_round [company]` |
 | Competitor prospects | `site:linkedin.com/posts [competitor rep name]` |

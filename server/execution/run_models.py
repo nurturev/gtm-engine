@@ -24,6 +24,7 @@ class RunStep(Base):
     )
     tenant_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)
     workflow_id: Mapped[str] = mapped_column(Text, nullable=False)
+    workflow_label: Mapped[str | None] = mapped_column(Text)
     tool_name: Mapped[str] = mapped_column(Text, nullable=False)
     operation: Mapped[str | None] = mapped_column(Text)
     provider: Mapped[str | None] = mapped_column(Text)

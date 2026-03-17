@@ -3,15 +3,9 @@
   "configurations": [
     {
       "name": "nrv-server",
-      "runtimeExecutable": "uvicorn",
-      "runtimeArgs": ["server.app:app", "--reload", "--port", "8000"],
-      "port": 8000
-    },
-    {
-      "name": "dashboard",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["dashboard/app.py"],
-      "port": 5555
+      "runtimeArgs": ["-m", "uvicorn", "server.app:app", "--reload", "--env-file", "../.env"],
+      "port": 8000
     }
   ]
 }

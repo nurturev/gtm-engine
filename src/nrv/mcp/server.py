@@ -54,8 +54,10 @@ SERVER_NAME = "nrv"
 SERVER_VERSION = "0.1.0"
 PROTOCOL_VERSION = "2024-11-05"
 
-# Unique ID for this MCP server session — groups all tool calls into one workflow
+# Unique ID for this MCP server session — groups all tool calls into one workflow.
+# Can be reset mid-session via nrv_new_workflow to start a separate workflow.
 WORKFLOW_ID = str(uuid.uuid4())
+WORKFLOW_LABEL: str = ""  # Optional human-readable label for the current workflow
 
 # ---------------------------------------------------------------------------
 # HTTP helpers — thin wrapper around the nrv server API
@@ -99,6 +101,8 @@ def _api_request(
 
     # Add workflow tracking headers
     headers["X-Workflow-Id"] = WORKFLOW_ID
+    if WORKFLOW_LABEL:
+        headers["X-Workflow-Label"] = WORKFLOW_LABEL
     if _current_tool_name:
         headers["X-Tool-Name"] = _current_tool_name
 
@@ -523,6 +527,108 @@ TOOLS: list[dict[str, Any]] = [
             "required": [],
         },
     },
+    # ---- Workflow Management ----
+    {
+        "name": "nrv_new_workflow",
+        "description": (
+            "Start a new workflow within the current session. Call this when beginning "
+            "a new use case, a new data set, or a new prospecting task. This creates a "
+            "fresh workflow ID so that run logs are grouped separately in the dashboard. "
+            "Every session starts with one workflow automatically — only call this when "
+            "switching to a genuinely different task."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string",
+                    "description": (
+                        "Human-readable label for this workflow "
+                        "(e.g. 'Bakeries in San Jose', 'Competitor Deal Snatch — Acme Corp'). "
+                        "Shows in the dashboard run logs."
+                    ),
+                },
+            },
+            "required": [],
+        },
+    },
+    # ---- People Search ----
+    {
+        "name": "nrv_search_people",
+        "description": (
+            "Search for people/contacts using B2B databases (Apollo, RocketReach). "
+            "Returns matching profiles with name, title, company, location. "
+            "Does NOT return contact info directly — use nrv_enrich_person to get emails/phones. "
+            "IMPORTANT: Check tool-skills for provider-specific quirks BEFORE calling."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "titles": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Job titles to search for (e.g. ['VP Sales', 'Director Marketing']).",
+                },
+                "company_domains": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "Company domains to search within. "
+                        "Apollo quirk: this is a NEWLINE-SEPARATED STRING in the API, "
+                        "but nrv handles the conversion automatically."
+                    ),
+                },
+                "company_names": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Company names (free-text matching). Use for companies without known domains.",
+                },
+                "locations": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Location filters (e.g. ['San Francisco, CA', 'United States']).",
+                },
+                "industries": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Industry filters.",
+                },
+                "seniority_levels": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Seniority: director, vp, c_suite, manager, senior, entry.",
+                },
+                "employee_ranges": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Employee count ranges. Apollo format: '1,10', '11,50', '51,200', '201,500', '501,1000', '1001,5000', '5001,10000'.",
+                },
+                "previous_employer": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "RocketReach only: search by previous employer (alumni search). "
+                        "Free-text company names, NOT domains. Use multiple variations for "
+                        "better matching (e.g. ['Yellow.ai', 'yellow.ai', 'Yellow AI'])."
+                    ),
+                },
+                "provider": {
+                    "type": "string",
+                    "description": (
+                        "Force a specific provider: 'apollo' (standard B2B), "
+                        "'rocketreach' (alumni/previous employer). "
+                        "If omitted, auto-selects based on filters."
+                    ),
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max results to return. Default: 25.",
+                    "default": 25,
+                },
+            },
+            "required": [],
+        },
+    },
 ]
 
 
@@ -802,6 +908,85 @@ def _handle_nrv_health(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _handle_nrv_new_workflow(args: dict[str, Any]) -> dict[str, Any]:
+    """Start a new workflow within the current session."""
+    global WORKFLOW_ID, WORKFLOW_LABEL
+    old_id = WORKFLOW_ID
+    WORKFLOW_ID = str(uuid.uuid4())
+    WORKFLOW_LABEL = args.get("label", "")
+    logger.info(
+        "New workflow started: %s (label=%s), previous: %s",
+        WORKFLOW_ID, WORKFLOW_LABEL, old_id,
+    )
+    return {
+        "workflow_id": WORKFLOW_ID,
+        "label": WORKFLOW_LABEL or "(unlabeled)",
+        "message": "New workflow started. All subsequent tool calls will be grouped under this workflow in the run logs.",
+        "previous_workflow_id": old_id,
+    }
+
+
+def _handle_nrv_search_people(args: dict[str, Any]) -> dict[str, Any]:
+    """Search for people across B2B databases."""
+    # Determine provider based on filters
+    has_previous_employer = bool(args.get("previous_employer"))
+    provider = args.get("provider")
+
+    if has_previous_employer and not provider:
+        provider = "rocketreach"  # Only RocketReach has previous_employer filter
+    elif not provider:
+        provider = "apollo"  # Default to Apollo for standard B2B search
+
+    params: dict[str, Any] = {}
+
+    if provider == "apollo":
+        # Build Apollo-compatible params
+        if args.get("titles"):
+            params["person_titles"] = args["titles"]
+        if args.get("company_domains"):
+            # Apollo quirk: q_organization_domains is a newline-separated string
+            params["q_organization_domains"] = "\n".join(args["company_domains"])
+        if args.get("company_names"):
+            params["q_organization_name"] = args["company_names"][0] if len(args["company_names"]) == 1 else args["company_names"]
+        if args.get("locations"):
+            params["person_locations"] = args["locations"]
+        if args.get("industries"):
+            params["organization_industry_tag_ids"] = args["industries"]
+        if args.get("seniority_levels"):
+            params["person_seniority"] = args["seniority_levels"]
+        if args.get("employee_ranges"):
+            params["organization_num_employees_ranges"] = args["employee_ranges"]
+        params["per_page"] = min(args.get("limit", 25), 100)
+
+    elif provider == "rocketreach":
+        # Build RocketReach-compatible params
+        query: dict[str, Any] = {}
+        if args.get("titles"):
+            query["current_title"] = args["titles"]
+        if args.get("company_domains"):
+            query["company_domain"] = args["company_domains"]
+        if args.get("company_names"):
+            query["current_employer"] = args["company_names"]
+        if args.get("previous_employer"):
+            query["previous_employer"] = args["previous_employer"]
+        if args.get("locations"):
+            query["location"] = args["locations"]
+        if args.get("industries"):
+            query["company_industry"] = args["industries"]
+        if args.get("seniority_levels"):
+            query["management_levels"] = args["seniority_levels"]
+        params["query"] = query
+        params["page_size"] = min(args.get("limit", 25), 100)
+
+    body: dict[str, Any] = {
+        "operation": "search_people",
+        "params": params,
+        "provider": provider,
+    }
+
+    return _api_request("POST", "/execute", json_body=body)
+
+
 # Handler dispatch table
 TOOL_HANDLERS: dict[str, Any] = {
     "nrv_search_web": _handle_nrv_search_web,
@@ -819,6 +1004,8 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrv_execute_action": _handle_nrv_execute_action,
     "nrv_list_connections": _handle_nrv_list_connections,
     "nrv_health": _handle_nrv_health,
+    "nrv_new_workflow": _handle_nrv_new_workflow,
+    "nrv_search_people": _handle_nrv_search_people,
 }
 
 
