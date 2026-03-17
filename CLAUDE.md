@@ -16,17 +16,25 @@ src/nrv/           → Python package installed by users (CLI + skills)
   cli/             → Click CLI commands (nrv auth, nrv enrich, etc.)
   client/          → HTTP client that talks to nrv server
   skills/          → Claude Code skills (GTM intelligence)
-  mcp/             → Optional MCP server
+  mcp/             → MCP server (tools for Claude Code integration)
   utils/           → Display helpers, config management
 
 server/            → FastAPI server (deployed to AWS)
-  api/             → Route handlers (auth, execute, tables, credits, keys)
-  models/          → SQLAlchemy models
-  services/        → Business logic (auth, credits, execution)
+  auth/            → Auth models, JWT, router
+  billing/         → Credit system (1 credit/op, BYOK free, ~$0.08/credit)
+  console/         → Tenant dashboard (HTML/JS SPA served by FastAPI)
+  core/            → Config, database, middleware
+  data/            → Data tables + persistent datasets (JSONB document store)
+  dashboards/      → Dashboard management
+  execution/       → Workflow execution, run logs, schedules, providers
+  vault/           → BYOK key encryption (Fernet dev / KMS prod)
 
-migrations/        → SQL migration files for PostgreSQL
+migrations/        → SQL migration files for PostgreSQL (001-006)
 infra/             → AWS CDK infrastructure (future)
 docs/              → Architecture documentation
+
+.claude/skills/    → Claude Code skills (GTM knowledge base)
+.claude/rules/     → Security + enrichment rules
 ```
 
 ## Key Principles
@@ -55,7 +63,7 @@ nrv auth login
 nrv enrich person --email test@example.com
 ```
 
-## MCP Tools (17 tools)
+## MCP Tools (21 tools)
 
 | Tool | What It Does |
 |------|-------------|
@@ -70,6 +78,10 @@ nrv enrich person --email test@example.com
 | `nrv_enrich_company` | Company enrichment (domain/name) |
 | `nrv_query_table` | Query data tables with filters |
 | `nrv_list_tables` | List available tables |
+| `nrv_create_dataset` | Create a persistent dataset for workflow data accumulation |
+| `nrv_append_rows` | Append/upsert rows to a persistent dataset |
+| `nrv_query_dataset` | Query rows from a persistent dataset |
+| `nrv_list_datasets` | List all persistent datasets |
 | `nrv_credit_balance` | Check credit balance and spend |
 | `nrv_provider_status` | Check provider availability |
 | `nrv_list_connections` | List active OAuth connections |
@@ -123,6 +135,32 @@ Available app_ids: gmail, slack, google_sheets, google_docs, hubspot, salesforce
 3. If action returns `"Following fields are missing"` → you skipped `nrv_get_action_schema`. Go back and check exact param names.
 4. Common failure: app connected but missing required OAuth scopes → user must reconnect
 
+## Persistent Datasets
+
+Datasets are long-lived JSONB document stores that workflows write to over time. They support scheduled workflow accumulation (e.g., daily LinkedIn monitoring appends new posts without duplicating old ones).
+
+- **Create**: `nrv_create_dataset(name, columns, dedup_key)` — idempotent, returns existing if slug matches
+- **Append**: `nrv_append_rows(dataset_ref, rows)` — upserts via SHA256 hash of dedup_key value
+- **Query**: `nrv_query_dataset(dataset_ref, filters, limit, offset)`
+- **Dedup**: Set `dedup_key` (e.g., `"url"` for posts, `"email"` for contacts) to prevent duplicates across scheduled runs
+- **Schema**: `datasets` table (metadata) + `dataset_rows` table (JSONB data), both RLS-protected
+
+## Scheduled Workflows
+
+Execution uses Claude Code's built-in scheduler (`create_scheduled_task` MCP tool). nRev stores schedule metadata in `scheduled_workflows` table for dashboard display.
+
+- **Register**: `POST /api/v1/schedules` — called when a schedule is set up
+- **List**: `GET /api/v1/schedules` — dashboard reads this to show scheduled workflows
+- Schedules appear in the Runs tab of the tenant dashboard
+
+## Credit System
+
+- **1 credit per operation** (search, enrich, scrape, etc.)
+- **BYOK calls are always free** — no credits charged when using user's own API keys
+- **Conversion**: ~$0.08 per credit (Growth tier midpoint)
+- **Packages**: Starter 100/$9.99, Growth 500/$39.99, Scale 2000/$129.99
+- Credit consumption bar shown in dashboard topbar across all tabs
+
 ## Security Rules
 
 - NEVER log or expose API keys (platform or BYOK)
@@ -130,3 +168,26 @@ Available app_ids: gmail, slack, google_sheets, google_docs, hubspot, salesforce
 - NEVER store plaintext keys in the database
 - JWT tokens should have short expiry (24h access, 30d refresh)
 - All BYOK keys encrypted with KMS encryption context including tenant_id
+
+## Database Migrations
+
+Run in order against PostgreSQL (local Docker or AWS RDS):
+```bash
+psql -U nrv -d nrv -f migrations/001_tenants.sql
+psql -U nrv -d nrv -f migrations/002_vault.sql
+psql -U nrv -d nrv -f migrations/003_credits.sql
+psql -U nrv -d nrv -f migrations/004_run_logs.sql
+psql -U nrv -d nrv -f migrations/005_datasets.sql
+psql -U nrv -d nrv -f migrations/006_scheduled_workflows.sql
+```
+
+All tables use RLS with tenant isolation. The `nrv_api` role has appropriate grants.
+
+## Dashboard
+
+Tenant dashboard at `/console/{tenant_slug}` — 5 tabs:
+- **Keys**: BYOK key management with encrypted storage
+- **Connections**: OAuth app connections via Composio
+- **Usage**: Credit balance, consumption bar, per-operation costs, transaction ledger
+- **Runs**: Workflow run logs with step-level data viewer + scheduled workflows section
+- **Datasets**: Persistent dataset cards with column badges, row counts, data preview

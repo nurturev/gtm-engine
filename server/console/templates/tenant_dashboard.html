@@ -138,6 +138,12 @@
         .ledger-amount-credit { color: #34d399; }
         .ledger-amount-debit { color: #fca5a5; }
 
+        /* Credit bar in topbar */
+        .credit-bar-wrap { display: flex; flex-direction: column; gap: 3px; min-width: 180px; }
+        .credit-bar-label { display: flex; align-items: baseline; gap: 2px; font-size: 13px; }
+        .credit-bar-track { height: 4px; background: #1e1e2e; border-radius: 2px; overflow: hidden; }
+        .credit-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #818cf8, #34d399); transition: width 0.3s; }
+
         /* Toast notification */
         .toast { position: fixed; top: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 1000; display: none; }
         .toast.success { background: #064e3b; color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
@@ -152,8 +158,18 @@
     <div class="topbar">
         <h1><span>{{ tenant_name }}</span> &mdash; nrv</h1>
         <div class="meta">
+            <div class="credit-bar-wrap">
+                {% set credit_pct = ((usage.balance|default(0)) / (usage.balance|default(0) + usage.spend_this_month|default(0) + 0.001) * 100)|int %}
+                <div class="credit-bar-label">
+                    <span style="color:#e0e0e6;font-weight:600;">{{ "%.1f"|format(usage.balance|default(0)) }}</span>
+                    <span style="color:#6b7280;font-size:11px;"> credits</span>
+                    <span style="color:#4b5563;font-size:10px;margin-left:4px;">(~${{ "%.2f"|format(usage.balance|default(0) * 0.08) }})</span>
+                </div>
+                <div class="credit-bar-track">
+                    <div class="credit-bar-fill" style="width:{{ credit_pct }}%"></div>
+                </div>
+            </div>
             <span class="tag tag-{{ status }}">{{ status }}</span>
-            <span class="tag tag-platform">{{ plan }}</span>
             <a href="/api/v1/auth/logout" style="color:#888;font-size:13px;text-decoration:none;margin-left:16px;">Sign out</a>
         </div>
     </div>
@@ -175,6 +191,10 @@
             <a href="/console/{{ tenant_id }}?tab=runs" class="tab {% if active_tab == 'runs' %}active{% endif %}">
                 Runs
                 <span class="tab-badge">{{ runs_summary.total_workflows|default(0) }}</span>
+            </a>
+            <a href="/console/{{ tenant_id }}?tab=datasets" class="tab {% if active_tab == 'datasets' %}active{% endif %}">
+                Datasets
+                <span class="tab-badge">{{ datasets_summary.total_datasets|default(0) }}</span>
             </a>
         </div>
 
@@ -200,8 +220,8 @@
                 </div>
                 <div class="stat-card">
                     <div class="label">Credit Balance</div>
-                    <div class="value">${{ "%.2f"|format(usage.balance|default(0)) }}</div>
-                    <div class="sub">available credits</div>
+                    <div class="value">{{ "%.1f"|format(usage.balance|default(0)) }}</div>
+                    <div class="sub">~${{ "%.2f"|format(usage.balance|default(0) * 0.08) }} value</div>
                 </div>
             </div>
 
@@ -408,29 +428,52 @@
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="label">Credit Balance</div>
-                    <div class="value">${{ "%.2f"|format(usage.balance|default(0)) }}</div>
-                    <div class="sub">available credits</div>
+                    <div class="value">{{ "%.1f"|format(usage.balance|default(0)) }}</div>
+                    <div class="sub">~${{ "%.2f"|format(usage.balance|default(0) * 0.08) }} value</div>
                 </div>
                 <div class="stat-card">
-                    <div class="label">Spent This Month</div>
-                    <div class="value">${{ "%.2f"|format(usage.spend_this_month|default(0)) }}</div>
-                    <div class="sub">current billing period</div>
+                    <div class="label">Used This Month</div>
+                    <div class="value">{{ "%.1f"|format(usage.spend_this_month|default(0)) }}</div>
+                    <div class="sub">credits consumed</div>
                 </div>
                 <div class="stat-card">
                     <div class="label">Total API Calls</div>
                     <div class="value">{{ usage.total_calls|default(0) }}</div>
-                    <div class="sub">enrichment requests</div>
+                    <div class="sub">via platform keys</div>
                 </div>
                 <div class="stat-card">
-                    <div class="label">Spend Cap</div>
-                    <div class="value">
-                        {% if usage.spend_cap %}
-                        ${{ "%.2f"|format(usage.spend_cap / 100) }}
-                        {% else %}
-                        &infin;
-                        {% endif %}
-                    </div>
-                    <div class="sub">monthly limit</div>
+                    <div class="label">Credit Rate</div>
+                    <div class="value" style="font-size:18px;">1 cr = ~$0.08</div>
+                    <div class="sub">BYOK calls are free</div>
+                </div>
+            </div>
+
+            <!-- Credit Cost per Operation -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>Credit Cost per Operation</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Operation</th>
+                            <th>Credits (Platform Key)</th>
+                            <th>BYOK Key</th>
+                            <th>~USD Equivalent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Google Search</td><td>1 credit / query</td><td style="color:#34d399;">Free</td><td style="color:#6b7280;">~$0.08</td></tr>
+                        <tr><td>Scrape Page (Parallel Web)</td><td>1 credit / page</td><td style="color:#34d399;">Free</td><td style="color:#6b7280;">~$0.08</td></tr>
+                        <tr><td>Enrich Person</td><td>1 credit / lookup</td><td style="color:#34d399;">Free</td><td style="color:#6b7280;">~$0.08</td></tr>
+                        <tr><td>Enrich Company</td><td>1 credit / lookup</td><td style="color:#34d399;">Free</td><td style="color:#6b7280;">~$0.08</td></tr>
+                        <tr><td>Search People</td><td>1 credit / page (25 results)</td><td style="color:#34d399;">Free</td><td style="color:#6b7280;">~$0.08</td></tr>
+                        <tr><td>Structured Extract</td><td>1 credit / extraction</td><td style="color:#34d399;">Free</td><td style="color:#6b7280;">~$0.08</td></tr>
+                        <tr><td>PredictLeads Signals</td><td>1 credit / call</td><td style="color:#34d399;">Free</td><td style="color:#6b7280;">~$0.08</td></tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:12px;font-size:12px;color:#6b7280;">
+                    Credit packages: Starter 100 cr/$9.99 &middot; Growth 500 cr/$39.99 &middot; Scale 2,000 cr/$129.99
                 </div>
             </div>
 
@@ -566,12 +609,12 @@
                             </td>
                             <td>
                                 {% if entry.entry_type == 'credit' %}
-                                <span class="ledger-amount-credit">+${{ "%.2f"|format(entry.amount|float) }}</span>
+                                <span class="ledger-amount-credit">+{{ "%.1f"|format(entry.amount|float) }} cr</span>
                                 {% else %}
-                                <span class="ledger-amount-debit">-${{ "%.2f"|format(entry.amount|float|abs) }}</span>
+                                <span class="ledger-amount-debit">-{{ "%.1f"|format(entry.amount|float|abs) }} cr</span>
                                 {% endif %}
                             </td>
-                            <td>${{ "%.2f"|format(entry.balance_after|float) }}</td>
+                            <td>{{ "%.1f"|format(entry.balance_after|float) }} cr</td>
                             <td style="font-size:12px;color:#9ca3af">{{ entry.operation or '&mdash;' }}</td>
                             <td style="font-size:12px;color:#6b7280">{{ entry.description or '&mdash;' }}</td>
                         </tr>
@@ -622,8 +665,8 @@
                 </div>
                 <div class="stat-card">
                     <div class="label">Credits Used</div>
-                    <div class="value">${{ "%.2f"|format(workflows|sum(attribute='total_credits')|default(0)) }}</div>
-                    <div class="sub">across all runs</div>
+                    <div class="value">{{ "%.1f"|format(workflows|sum(attribute='total_credits')|default(0)) }}</div>
+                    <div class="sub">credits across all runs</div>
                 </div>
                 <div class="stat-card">
                     <div class="label">Avg Duration</div>
@@ -635,6 +678,18 @@
                         {% endif %}
                     </div>
                     <div class="sub">per workflow</div>
+                </div>
+            </div>
+
+            <!-- Scheduled Workflows -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>Scheduled Workflows</h2>
+                </div>
+                <div id="scheduled-workflows-container">
+                    <div style="text-align:center;padding:20px;color:#6b7280;font-size:12px;" id="scheduled-loading">
+                        Loading scheduled tasks...
+                    </div>
                 </div>
             </div>
 
@@ -674,7 +729,7 @@
                             </div>
                             <div style="display:flex;align-items:center;gap:12px;">
                                 {% if wf.total_credits > 0 %}
-                                <span style="font-size:13px;color:#818cf8;font-weight:500;">${{ "%.2f"|format(wf.total_credits) }}</span>
+                                <span style="font-size:13px;color:#818cf8;font-weight:500;">{{ "%.1f"|format(wf.total_credits) }} cr</span>
                                 {% else %}
                                 <span style="font-size:12px;color:#6b7280;">Free</span>
                                 {% endif %}
@@ -706,6 +761,100 @@
                     <p style="color:#6b7280;font-size:13px;">
                         When you use nrv tools in Claude Code, each session will appear here as a workflow
                         with its individual tool invocations as steps.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TAB: Datasets                                -->
+        <!-- ============================================ -->
+        <div class="tab-content {% if active_tab == 'datasets' %}active{% endif %}" id="tab-datasets">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="label">Total Datasets</div>
+                    <div class="value">{{ datasets_summary.total_datasets|default(0) }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Total Rows</div>
+                    <div class="value">{{ datasets_summary.total_rows|default(0) }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Data Layer</div>
+                    <div class="value" style="font-size:16px;color:#34d399;">Active</div>
+                    <div class="sub">PostgreSQL + RLS</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">API Access</div>
+                    <div class="value" style="font-size:14px;color:#818cf8;">/api/v1/datasets</div>
+                    <div class="sub">REST + MCP tools</div>
+                </div>
+            </div>
+
+            <div class="section">
+                {% if datasets %}
+                <div style="display:flex;flex-direction:column;gap:16px;">
+                    {% for ds in datasets %}
+                    <div class="card" style="background:#12121a;border:1px solid #1e1e2e;border-radius:12px;padding:20px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+                            <div>
+                                <h3 style="font-size:16px;font-weight:600;color:#f0f0f5;margin-bottom:4px;">{{ ds.name }}</h3>
+                                <div style="font-size:12px;color:#6b7280;">
+                                    slug: <span class="fingerprint">{{ ds.slug }}</span>
+                                    {% if ds.dedup_key %}
+                                    &middot; dedup: <span class="fingerprint">{{ ds.dedup_key }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if ds.description %}
+                                <div style="font-size:13px;color:#9ca3af;margin-top:6px;">{{ ds.description }}</div>
+                                {% endif %}
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:24px;font-weight:700;color:#f0f0f5;">{{ ds.row_count }}</div>
+                                <div style="font-size:11px;color:#6b7280;">rows</div>
+                            </div>
+                        </div>
+
+                        {% if ds.columns %}
+                        <div style="margin-top:12px;">
+                            <div style="font-size:11px;text-transform:uppercase;color:#6b7280;margin-bottom:8px;letter-spacing:0.5px;">Columns</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                {% for col in ds.columns %}
+                                <span style="background:#1a1a26;border:1px solid #2e2e3e;padding:3px 10px;border-radius:6px;font-size:11px;">
+                                    <span style="color:#e0e0e6;">{{ col.name }}</span>
+                                    <span style="color:#4b5563;margin-left:4px;">{{ col.type|default('text') }}</span>
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Expandable data preview -->
+                        <div style="margin-top:12px;">
+                            <button class="btn btn-ghost btn-sm" onclick="toggleDatasetPreview('{{ ds.slug }}', '{{ ds.id }}')" id="ds-btn-{{ ds.slug }}">
+                                Preview Data &#x25BC;
+                            </button>
+                            <div id="ds-preview-{{ ds.slug }}" style="display:none;margin-top:12px;overflow-x:auto;">
+                                <div style="text-align:center;padding:16px;color:#6b7280;font-size:12px;" id="ds-loading-{{ ds.slug }}">
+                                    Loading...
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:12px;font-size:11px;color:#4b5563;">
+                            Updated {{ ds.updated_at.strftime('%b %d, %Y %H:%M') if ds.updated_at else 'N/A' }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="card" style="background:#12121a;border:1px solid #1e1e2e;border-radius:12px;text-align:center;padding:60px 20px;">
+                    <div style="font-size:32px;margin-bottom:12px;">&#x1F4CA;</div>
+                    <h3 style="margin-bottom:8px;color:#f0f0f5;">No datasets yet</h3>
+                    <p style="color:#6b7280;font-size:13px;max-width:400px;margin:0 auto;">
+                        Datasets are persistent tables that workflows write to over time.
+                        Use <code style="color:#818cf8;">nrv_create_dataset</code> in a workflow to create one.
                     </p>
                 </div>
                 {% endif %}
@@ -946,7 +1095,7 @@
                 const toolDisplay = (step.tool_name || '').replace('nrv_', '');
                 const statusClass = step.status === 'success' ? 'tag-active' : step.status === 'failed' ? 'tag-disconnected' : 'tag-pending';
                 const duration = step.duration_ms ? (step.duration_ms / 1000).toFixed(1) + 's' : '—';
-                const credits = step.credits_charged > 0 ? '$' + step.credits_charged.toFixed(2) : '—';
+                const credits = step.credits_charged > 0 ? step.credits_charged.toFixed(1) + ' cr' : '—';
                 const time = step.created_at ? new Date(step.created_at).toLocaleTimeString() : '—';
                 const stepDataId = shortId + '-step-' + idx;
 
@@ -1086,6 +1235,105 @@
             html += '</div>';
             return html;
         }
+
+        // ---- Datasets ----
+
+        const _dsLoaded = {};
+        function toggleDatasetPreview(slug, dsId) {
+            const container = document.getElementById('ds-preview-' + slug);
+            const btn = document.getElementById('ds-btn-' + slug);
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                btn.innerHTML = 'Hide Data &#x25B2;';
+                if (!_dsLoaded[slug]) {
+                    _dsLoaded[slug] = true;
+                    fetch('/api/v1/datasets/' + slug + '?limit=20', {
+                        headers: getAuthHeaders()
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        const loading = document.getElementById('ds-loading-' + slug);
+                        if (data.rows && data.rows.length > 0) {
+                            const skipKeys = ['id', '_created_at', '_workflow_id'];
+                            const cols = Object.keys(data.rows[0]).filter(k => !skipKeys.includes(k));
+                            let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+                            html += '<thead><tr>';
+                            cols.forEach(c => {
+                                html += '<th style="text-align:left;padding:6px 8px;font-size:10px;text-transform:uppercase;color:#6b7280;background:#0a0a0f;border-bottom:1px solid #1e1e2e;">' + escHtml(c) + '</th>';
+                            });
+                            html += '</tr></thead><tbody>';
+                            data.rows.forEach(row => {
+                                html += '<tr>';
+                                cols.forEach(c => {
+                                    let val = row[c];
+                                    if (val == null) val = '';
+                                    const valStr = String(val);
+                                    if ((c === 'url' || c === 'link' || c.includes('url')) && valStr.startsWith('http')) {
+                                        html += '<td style="padding:5px 8px;border-bottom:1px solid #1a1a26;"><a href="' + escHtml(valStr) + '" target="_blank" style="color:#818cf8;">' + escHtml(valStr.substring(0, 60)) + '...</a></td>';
+                                    } else if (valStr.length > 80) {
+                                        html += '<td style="padding:5px 8px;border-bottom:1px solid #1a1a26;color:#9ca3af;" title="' + escHtml(valStr) + '">' + escHtml(valStr.substring(0, 80)) + '...</td>';
+                                    } else {
+                                        html += '<td style="padding:5px 8px;border-bottom:1px solid #1a1a26;color:#e0e0e6;">' + escHtml(valStr) + '</td>';
+                                    }
+                                });
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                            if (data.total > 20) {
+                                html += '<div style="text-align:center;padding:8px;font-size:11px;color:#6b7280;">Showing 20 of ' + data.total + ' rows</div>';
+                            }
+                            loading.innerHTML = html;
+                        } else {
+                            loading.innerHTML = '<div style="color:#6b7280;font-size:12px;">No rows yet</div>';
+                        }
+                    })
+                    .catch(err => {
+                        document.getElementById('ds-loading-' + slug).innerHTML = '<div style="color:#fca5a5;">Error loading data</div>';
+                    });
+                }
+            } else {
+                container.style.display = 'none';
+                btn.innerHTML = 'Preview Data &#x25BC;';
+            }
+        }
+        // ---- Scheduled Workflows ----
+        // Render scheduled workflows from template data
+        (function() {
+            const container = document.getElementById('scheduled-workflows-container');
+            if (!container) return;
+
+            const schedules = {{ scheduled_workflows|default([])|tojson }};
+
+            if (!schedules || schedules.length === 0) {
+                container.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px;">' +
+                    '<div style="font-size:24px;margin-bottom:8px;">&#x23F0;</div>' +
+                    '<h3 style="margin-bottom:8px;color:#f0f0f5;font-size:14px;">No scheduled workflows</h3>' +
+                    '<p style="color:#6b7280;font-size:12px;max-width:400px;margin:0 auto;">' +
+                    'Use Claude Code\'s scheduler to run workflows automatically.<br>' +
+                    '<code style="color:#818cf8;font-size:11px;">create_scheduled_task</code> with nrv MCP tools.' +
+                    '</p></div>';
+                return;
+            }
+
+            let html = '';
+            schedules.forEach(function(s) {
+                const statusColor = s.enabled ? '#34d399' : '#6b7280';
+                const statusText = s.enabled ? 'Active' : 'Paused';
+                html += '<div class="card" style="display:flex;justify-content:space-between;align-items:center;">';
+                html += '<div>';
+                html += '<div style="font-weight:600;font-size:14px;color:#f0f0f5;">' + escHtml(s.name || s.description || 'Scheduled Task') + '</div>';
+                html += '<div style="font-size:12px;color:#6b7280;margin-top:3px;">';
+                html += s.schedule ? escHtml(s.schedule) : (s.cron ? '<code>' + escHtml(s.cron) + '</code>' : 'One-time');
+                if (s.next_run) html += ' &middot; Next: ' + escHtml(s.next_run);
+                if (s.last_run) html += ' &middot; Last: ' + escHtml(s.last_run);
+                html += '</div></div>';
+                html += '<div style="display:flex;align-items:center;gap:8px;">';
+                html += '<span style="width:8px;height:8px;border-radius:50%;background:' + statusColor + ';display:inline-block;"></span>';
+                html += '<span style="font-size:12px;color:' + statusColor + ';">' + statusText + '</span>';
+                html += '</div></div>';
+            });
+            container.innerHTML = html;
+        })();
     </script>
 </body>
 </html>

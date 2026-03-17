@@ -55,6 +55,7 @@ Always follow this pattern:
 4. **Score** — rate against ICP criteria
 5. **Validate** — verify emails, check data freshness
 6. **Deliver** — ALWAYS output a structured table with hit rate stats. This is non-negotiable.
+7. **Persist** (when appropriate) — If this is data the user will act on over time (e.g., LinkedIn posts to comment on, leads to follow up with), save it to a persistent dataset using `nrv_create_dataset` + `nrv_append_rows`. Set `dedup_key` to prevent duplicates across scheduled runs (e.g., `url` for posts, `email` for contacts). This enables dashboards and scheduled workflow accumulation.
 
 ### Step 4: Show the wow, guide to automation
 

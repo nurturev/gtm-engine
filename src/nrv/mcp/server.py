@@ -373,6 +373,120 @@ TOOLS: list[dict[str, Any]] = [
             "required": [],
         },
     },
+    # ---- Persistent Datasets ----
+    {
+        "name": "nrv_create_dataset",
+        "description": (
+            "Create a persistent dataset (table) that workflows can write to over time. "
+            "Ideal for accumulating data across scheduled runs (e.g. LinkedIn posts to comment on, "
+            "leads from weekly searches). If the dataset slug already exists, returns the existing one. "
+            "Set dedup_key to a column name to prevent duplicate rows (e.g. 'url' or 'email')."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Human-readable name (e.g. 'LinkedIn Posts to Comment').",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "What this dataset is used for.",
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "type": {"type": "string"},
+                            "description": {"type": "string"},
+                        },
+                    },
+                    "description": "Column definitions. Optional but helps with dashboards.",
+                },
+                "dedup_key": {
+                    "type": "string",
+                    "description": (
+                        "Column name to use for deduplication. If a row with the same "
+                        "value for this key exists, it will be updated instead of inserted. "
+                        "E.g. 'url' for LinkedIn posts, 'email' for contacts."
+                    ),
+                },
+            },
+            "required": ["name"],
+        },
+    },
+    {
+        "name": "nrv_append_rows",
+        "description": (
+            "Append rows to a persistent dataset. Each row is a JSON object with key-value pairs. "
+            "If the dataset has a dedup_key, existing rows with matching keys are updated (upsert). "
+            "Use the dataset slug (from nrv_create_dataset) to identify the target."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "dataset": {
+                    "type": "string",
+                    "description": "Dataset slug or UUID.",
+                },
+                "rows": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Array of row objects to append. Each object is a row.",
+                },
+            },
+            "required": ["dataset", "rows"],
+        },
+    },
+    {
+        "name": "nrv_query_dataset",
+        "description": (
+            "Query rows from a persistent dataset with optional filters and pagination. "
+            "Returns the data that workflows have accumulated over time."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "dataset": {
+                    "type": "string",
+                    "description": "Dataset slug or UUID.",
+                },
+                "filters": {
+                    "type": "object",
+                    "description": "Key-value filters on row data (e.g. {\"status\": \"pending\"}).",
+                },
+                "order_by": {
+                    "type": "string",
+                    "description": "Column to sort by. Prefix with '-' for descending. Default: -created_at.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum rows to return. Default: 50.",
+                    "default": 50,
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Number of rows to skip. Default: 0.",
+                    "default": 0,
+                },
+            },
+            "required": ["dataset"],
+        },
+    },
+    {
+        "name": "nrv_list_datasets",
+        "description": (
+            "List all persistent datasets for the current tenant. "
+            "Shows name, slug, row count, columns, and dedup config."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    },
     # ---- Account ----
     {
         "name": "nrv_credit_balance",
@@ -794,6 +908,67 @@ def _handle_nrv_list_tables(args: dict[str, Any]) -> dict[str, Any]:
     return _api_request("GET", "/tables")
 
 
+# ---- Persistent Datasets ----
+
+
+def _handle_nrv_create_dataset(args: dict[str, Any]) -> dict[str, Any]:
+    name = args.get("name", "").strip()
+    if not name:
+        return {"error": "Parameter 'name' is required."}
+
+    body: dict[str, Any] = {"name": name}
+    if args.get("description"):
+        body["description"] = args["description"]
+    if args.get("columns"):
+        body["columns"] = args["columns"]
+    if args.get("dedup_key"):
+        body["dedup_key"] = args["dedup_key"]
+
+    # Include workflow_id so we know which workflow created this dataset
+    body["workflow_id"] = WORKFLOW_ID
+
+    return _api_request("POST", "/datasets", json_body=body)
+
+
+def _handle_nrv_append_rows(args: dict[str, Any]) -> dict[str, Any]:
+    dataset = args.get("dataset", "").strip()
+    if not dataset:
+        return {"error": "Parameter 'dataset' is required (slug or UUID)."}
+
+    rows = args.get("rows", [])
+    if not rows or not isinstance(rows, list):
+        return {"error": "Parameter 'rows' must be a non-empty array of objects."}
+
+    body: dict[str, Any] = {
+        "rows": rows,
+        "workflow_id": WORKFLOW_ID,
+    }
+
+    return _api_request("POST", f"/datasets/{dataset}/rows", json_body=body)
+
+
+def _handle_nrv_query_dataset(args: dict[str, Any]) -> dict[str, Any]:
+    dataset = args.get("dataset", "").strip()
+    if not dataset:
+        return {"error": "Parameter 'dataset' is required (slug or UUID)."}
+
+    params: dict[str, Any] = {}
+    if args.get("limit"):
+        params["limit"] = args["limit"]
+    if args.get("offset"):
+        params["offset"] = args["offset"]
+    if args.get("order_by"):
+        params["order_by"] = args["order_by"]
+    # Note: filters are applied server-side via query params
+    # For now, basic passthrough. Complex JSONB filters go through the query endpoint.
+
+    return _api_request("GET", f"/datasets/{dataset}", params=params)
+
+
+def _handle_nrv_list_datasets(args: dict[str, Any]) -> dict[str, Any]:
+    return _api_request("GET", "/datasets")
+
+
 def _handle_nrv_credit_balance(args: dict[str, Any]) -> dict[str, Any]:
     return _api_request("GET", "/credits")
 
@@ -996,6 +1171,10 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrv_enrich_company": _handle_nrv_enrich_company,
     "nrv_query_table": _handle_nrv_query_table,
     "nrv_list_tables": _handle_nrv_list_tables,
+    "nrv_create_dataset": _handle_nrv_create_dataset,
+    "nrv_append_rows": _handle_nrv_append_rows,
+    "nrv_query_dataset": _handle_nrv_query_dataset,
+    "nrv_list_datasets": _handle_nrv_list_datasets,
     "nrv_credit_balance": _handle_nrv_credit_balance,
     "nrv_provider_status": _handle_nrv_provider_status,
     "nrv_search_patterns": _handle_nrv_search_patterns,

@@ -32,6 +32,7 @@ _LOGGED_PREFIXES = (
     "/api/v1/keys",
     "/api/v1/credits",
     "/api/v1/tables",
+    "/api/v1/datasets",
 )
 
 # Paths to skip (health checks, auth, static, console pages)
@@ -54,6 +55,7 @@ _PATH_TO_TOOL: dict[str, str] = {
     "/api/v1/credits": "nrv_credit_balance",
     "/api/v1/keys": "nrv_provider_status",
     "/api/v1/tables": "nrv_query_table",
+    "/api/v1/datasets": "nrv_list_datasets",
 }
 
 

@@ -20,7 +20,9 @@ from server.auth.models import Tenant
 from server.billing.models import CreditBalance, CreditLedger
 from server.core.config import settings
 from server.core.database import get_db, set_tenant_context
+from server.data.dataset_models import Dataset, DatasetRow
 from server.execution.run_models import RunStep
+from server.execution.schedule_models import ScheduledWorkflow
 from server.vault.models import TenantKey
 
 logger = logging.getLogger(__name__)
@@ -288,7 +290,7 @@ async def console_root(request: Request):
 async def tenant_dashboard(
     request: Request,
     tenant_id: str,
-    tab: str = Query("keys", pattern="^(keys|connections|usage|runs)$"),
+    tab: str = Query("keys", pattern="^(keys|connections|usage|runs|datasets)$"),
     token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
@@ -520,6 +522,61 @@ async def tenant_dashboard(
     }
 
     # ------------------------------------------------------------------
+    # Datasets tab data
+    # ------------------------------------------------------------------
+    datasets_result = await db.execute(
+        select(Dataset)
+        .where(Dataset.tenant_id == tenant.id, Dataset.status == "active")
+        .order_by(Dataset.updated_at.desc())
+    )
+    tenant_datasets = datasets_result.scalars().all()
+
+    datasets_list = []
+    total_dataset_rows = 0
+    for ds in tenant_datasets:
+        total_dataset_rows += ds.row_count or 0
+        datasets_list.append({
+            "id": str(ds.id),
+            "name": ds.name,
+            "slug": ds.slug,
+            "description": ds.description or "",
+            "columns": ds.columns or [],
+            "dedup_key": ds.dedup_key,
+            "row_count": ds.row_count or 0,
+            "created_at": ds.created_at,
+            "updated_at": ds.updated_at,
+        })
+
+    datasets_summary = {
+        "total_datasets": len(datasets_list),
+        "total_rows": total_dataset_rows,
+    }
+
+    # ------------------------------------------------------------------
+    # Scheduled Workflows data
+    # ------------------------------------------------------------------
+    schedules_result = await db.execute(
+        select(ScheduledWorkflow)
+        .where(ScheduledWorkflow.tenant_id == tenant.id)
+        .order_by(ScheduledWorkflow.updated_at.desc())
+    )
+    scheduled_wfs = schedules_result.scalars().all()
+
+    scheduled_workflows_list = [
+        {
+            "name": sw.name,
+            "description": sw.description or "",
+            "schedule": sw.schedule or "",
+            "cron": sw.cron_expression or "",
+            "enabled": sw.enabled,
+            "next_run": sw.next_run_at.strftime('%b %d, %H:%M') if sw.next_run_at else None,
+            "last_run": sw.last_run_at.strftime('%b %d, %H:%M') if sw.last_run_at else None,
+            "run_count": sw.run_count or 0,
+        }
+        for sw in scheduled_wfs
+    ]
+
+    # ------------------------------------------------------------------
     # Render
     # ------------------------------------------------------------------
     return templates.TemplateResponse(
@@ -541,6 +598,9 @@ async def tenant_dashboard(
             "ledger_entries": ledger_entries,
             "workflows": workflows,
             "runs_summary": runs_summary,
+            "datasets": datasets_list,
+            "datasets_summary": datasets_summary,
+            "scheduled_workflows": scheduled_workflows_list,
         },
     )
 

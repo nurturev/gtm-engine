@@ -90,9 +90,11 @@ from server.auth.router import router as auth_router  # noqa: E402
 from server.billing.router import router as credits_router  # noqa: E402
 from server.console.router import router as console_router  # noqa: E402
 from server.dashboards.router import router as dashboards_router  # noqa: E402
+from server.data.dataset_router import router as datasets_router  # noqa: E402
 from server.data.router import router as tables_router  # noqa: E402
 from server.execution.router import router as execute_router  # noqa: E402
 from server.execution.runs_router import router as runs_router  # noqa: E402
+from server.execution.schedule_router import router as schedules_router  # noqa: E402
 from server.vault.router import router as keys_router  # noqa: E402
 
 app.include_router(auth_router)
@@ -102,6 +104,8 @@ app.include_router(tables_router)
 app.include_router(keys_router)
 app.include_router(credits_router)
 app.include_router(dashboards_router)
+app.include_router(datasets_router)
+app.include_router(schedules_router)
 app.include_router(console_router)
 
 # ---------------------------------------------------------------------------
