@@ -222,10 +222,21 @@ class RapidAPIGoogleProvider(BaseProvider):
             *[_run_query(q, i) for i, q in enumerate(queries)],
         )
 
+        # Flatten all results into a single unified response
+        # so the client sees the same format as a single search
+        all_results: list[dict[str, Any]] = []
+        for search in results:
+            for r in search.get("results", []):
+                r["_query"] = search.get("query", "")
+                all_results.append(r)
+
         return {
+            "query": f"[bulk: {len(queries)} queries]",
+            "results": all_results,
+            "total": len(all_results),
             "bulk": True,
             "total_queries": len(queries),
-            "searches": list(results),
+            "searches": list(results),  # keep per-query breakdown too
         }
 
     # ------------------------------------------------------------------

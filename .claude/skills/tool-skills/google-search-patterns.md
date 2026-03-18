@@ -22,7 +22,15 @@ site:linkedin.com/posts [person OR company] [topic]
 #   → handle = "sayantaghosh" (everything between /posts/ and first _)
 #
 # Monitor specific people by handle (batch up to 10 per query):
-site:linkedin.com/posts ("handle1" OR "handle2" OR "handle3") [topic]
+# Do NOT quote the handles — unquoted gives better recall
+site:linkedin.com/posts (handle1 OR handle2 OR handle3) [topic]
+#
+# IMPORTANT: Use the queries[] param for parallel execution on the server.
+# The server runs queries concurrently via asyncio.gather (up to 10 at once).
+# Do NOT call the API sequentially in a loop — pass all queries at once.
+#
+# CRITICAL: Google returns false positives. ALWAYS post-filter by extracting
+# the handle from each result URL and matching against your watchlist.
 #
 # Date batching for better coverage on large time ranges:
 # Instead of one query for 60 days, run 6 queries of 10 days each:
