@@ -16,6 +16,19 @@ site:linkedin.com/company [company name]
 # Posts (engagement monitoring)
 site:linkedin.com/posts [person OR company] [topic]
 
+# IMPORTANT: Extract profile handles from post URLs
+# URL format: linkedin.com/posts/HANDLE_rest-of-slug
+# Example: linkedin.com/posts/sayantaghosh_most-founders-treat-linkedin...
+#   → handle = "sayantaghosh" (everything between /posts/ and first _)
+#
+# Monitor specific people by handle (batch up to 10 per query):
+site:linkedin.com/posts ("handle1" OR "handle2" OR "handle3") [topic]
+#
+# Date batching for better coverage on large time ranges:
+# Instead of one query for 60 days, run 6 queries of 10 days each:
+#   tbs=cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY
+# This avoids Google's result truncation on broad time ranges.
+
 # Job postings
 site:linkedin.com/jobs/view [role] [location]
 
