@@ -1,41 +1,21 @@
-# Waterfall Enrichment Strategy
+# Enrichment Strategy (No Waterfall Needed)
 
-## Concept
-Try multiple providers in sequence. Stop when you get the data you need.
-Minimizes cost while maximizing coverage.
-Use nrv_provider_status to check which providers are available and optimize the order.
+BetterContact handles waterfall enrichment (trying multiple providers in sequence) automatically. Do NOT implement provider waterfall logic in nrv workflows.
 
-## Recommended Waterfall Orders
+## Instead:
+1. Use the provider-selection skill to pick the **best single provider** for each data type
+2. Send enrichment requests to that provider
+3. If data is missing, suggest the user configure BetterContact for automatic fallback
 
-### For Person Enrichment (by email):
-1. Apollo /people/match -- Best for B2B, includes org data (~$0.03)
-2. RocketReach /lookupProfile -- Strong contact data, phone numbers (~$0.04)
-3. PDL /person/enrich -- Broadest coverage, likelihood scoring (~$0.05)
+## Provider Selection Quick Reference:
+- **Person enrichment by email/name**: Apollo
+- **Person enrichment needing phone**: RocketReach
+- **Alumni/school search**: RocketReach (only provider with previous_employer filter)
+- **Company enrichment**: Apollo
+- **Company signals (jobs/tech/news)**: PredictLeads
+- **Email verification**: ZeroBounce
 
-### For Email Finding (by domain + name):
-1. RocketReach /lookupEmail -- Strong for finding specific people's emails
-2. Apollo /people/match with domain + first_name + last_name
-3. Hunter /email-finder with domain + first_name + last_name
-
-### For Company Enrichment (by domain):
-1. Apollo /organizations/enrich
-2. PDL /company/enrich
-3. Crustdata /screener/screen (for financial data)
-
-### For Email Verification:
-1. ZeroBounce /validate -- Most accurate (~$0.01)
-2. Hunter /email-verifier -- Good backup
-
-## Implementation Pattern
-```python
-providers = ["apollo", "rocketreach", "pdl"]
-for provider in providers:
-    result = gtm_enrich(provider=provider, ...)
-    if result["status_code"] == 200 and has_useful_data(result["data"]):
-        break  # Got data, stop trying
-```
-
-## Cost Optimization
-- Always start with cheapest provider if quality is similar
-- Track hit rates across providers to optimize over time
-- Verify emails before sending campaigns (ZeroBounce or Hunter)
+## Why Not Waterfall in nrv?
+- BetterContact already does this better — it handles 15+ providers, dedup, and quality scoring
+- Implementing waterfall in nrv wastes credits on redundant provider calls
+- Focus nrv on discovery, scoring, and creative sourcing — let BetterContact handle the fill-rate problem

@@ -63,7 +63,7 @@ nrv auth login
 nrv enrich person --email test@example.com
 ```
 
-## MCP Tools (22 tools)
+## MCP Tools (23 tools)
 
 | Tool | What It Does |
 |------|-------------|
@@ -83,6 +83,7 @@ nrv enrich person --email test@example.com
 | `nrv_query_dataset` | Query rows from a persistent dataset |
 | `nrv_list_datasets` | List all persistent datasets |
 | `nrv_estimate_cost` | Estimate credit cost before executing (call before large batches) |
+| `nrv_get_run_log` | Read back workflow run logs with results and column metadata |
 | `nrv_credit_balance` | Check credit balance and spend |
 | `nrv_provider_status` | Check provider availability |
 | `nrv_list_connections` | List active OAuth connections |

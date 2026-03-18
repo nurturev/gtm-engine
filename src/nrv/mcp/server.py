@@ -771,6 +771,34 @@ TOOLS: list[dict[str, Any]] = [
             "required": [],
         },
     },
+    {
+        "name": "nrv_get_run_log",
+        "description": (
+            "Get the run log for a workflow — returns all steps with their results, "
+            "params, status, and column metadata. Use this to answer user questions "
+            "about workflow output, check data quality, or review what happened. "
+            "Returns truncated results (20 rows max per step) plus column metadata "
+            "(type, null%, unique count, sample values). Defaults to current workflow."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workflow_id": {
+                    "type": "string",
+                    "description": "Workflow ID to fetch. If omitted, uses the current workflow.",
+                },
+                "step_index": {
+                    "type": "integer",
+                    "description": "Fetch only a specific step (0-indexed). Omit to get all steps.",
+                },
+                "include_metadata": {
+                    "type": "boolean",
+                    "description": "Include column metadata (type, null%, unique count). Default: true.",
+                },
+            },
+            "required": [],
+        },
+    },
 ]
 
 
@@ -1239,6 +1267,112 @@ def _handle_nrv_estimate_cost(arguments: dict) -> dict:
 
 
 # Handler dispatch table
+
+def _compute_column_metadata(rows: list) -> dict:
+    """Compute per-column metadata from row dicts. Pure Python, no deps."""
+    import re as _re
+    if not rows:
+        return {}
+    _url_re = _re.compile(r"^https?://", _re.IGNORECASE)
+    _email_re = _re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    skip = {"id", "_created_at", "_workflow_id", "_updated_at", "dedup_hash"}
+    all_cols = set()
+    for r in rows:
+        if isinstance(r, dict):
+            all_cols.update(r.keys())
+    cols = sorted(c for c in all_cols if c not in skip)
+    total = len(rows)
+    result = {}
+    for col in cols:
+        values = [r.get(col) if isinstance(r, dict) else None for r in rows]
+        non_null = [v for v in values if v is not None and v != "" and v != "null"]
+        null_pct = round((total - len(non_null)) / total * 100, 1) if total else 0.0
+        unique_count = len(set(str(v) for v in non_null))
+        col_type = "string"
+        if non_null:
+            nums = sum(1 for v in non_null if isinstance(v, (int, float)))
+            urls = sum(1 for v in non_null if isinstance(v, str) and _url_re.match(v))
+            emails = sum(1 for v in non_null if isinstance(v, str) and _email_re.match(v))
+            n = len(non_null)
+            if urls > n * 0.5: col_type = "url"
+            elif emails > n * 0.5: col_type = "email"
+            elif nums > n * 0.5: col_type = "number"
+        col_min = col_max = None
+        if col_type == "number":
+            numeric = []
+            for v in non_null:
+                try: numeric.append(float(v))
+                except: pass
+            if numeric: col_min, col_max = min(numeric), max(numeric)
+        samples = []
+        seen_s = set()
+        for v in non_null[:10]:
+            s = str(v)[:100]
+            if s not in seen_s and len(samples) < 3:
+                samples.append(s); seen_s.add(s)
+        result[col] = {"type": col_type, "null_pct": null_pct, "unique_count": unique_count,
+                        "min": col_min, "max": col_max, "sample_values": samples}
+    return result
+
+
+def _handle_nrv_get_run_log(arguments: dict) -> dict:
+    """Fetch run log steps with truncated results and column metadata."""
+    wf_id = arguments.get("workflow_id") or WORKFLOW_ID
+    step_idx = arguments.get("step_index")
+    include_meta = arguments.get("include_metadata", True)
+    try:
+        resp = _api_request("GET", f"/runs/{wf_id}")
+    except Exception as e:
+        return {"error": f"Could not fetch run log: {e}"}
+    steps = resp.get("steps", [])
+    if step_idx is not None:
+        if 0 <= step_idx < len(steps):
+            steps = [steps[step_idx]]
+        else:
+            return {"error": f"Step index {step_idx} out of range (0-{len(steps)-1})"}
+    output_steps = []
+    for s in steps:
+        results = s.get("result_summary", {}).get("results", [])
+        total_rows = len(results)
+        truncated = results[:20]
+        step_out = {
+            "tool_name": s.get("tool_name"), "operation": s.get("operation"),
+            "status": s.get("status"), "credits_charged": s.get("credits_charged"),
+            "total_rows": total_rows, "rows_shown": len(truncated), "results": truncated,
+        }
+        if include_meta and truncated:
+            step_out["column_metadata"] = _compute_column_metadata(truncated)
+        output_steps.append(step_out)
+    return {"workflow_id": wf_id, "step_count": len(output_steps), "steps": output_steps}
+
+
+def _auto_generate_label(tool_name: str, args: dict) -> str:
+    """Generate a short meaningful workflow label from the first tool call."""
+    if tool_name == "nrv_search_people":
+        parts = []
+        if args.get("person_titles"): parts.append(str(args["person_titles"]))
+        if args.get("organization_name"): parts.append(f"at {args['organization_name']}")
+        return f"Search: {' '.join(parts)}"[:50] if parts else "People Search"
+    if tool_name == "nrv_google_search":
+        q = args.get("query", "")
+        if not q and isinstance(args.get("queries"), list) and args["queries"]:
+            q = args["queries"][0]
+        return f"Google: {q}"[:50] if q else "Google Search"
+    if tool_name == "nrv_enrich_person":
+        ident = args.get("email") or f"{args.get('first_name', '')} {args.get('last_name', '')}".strip() or "person"
+        return f"Enrich: {ident}"[:50]
+    if tool_name == "nrv_enrich_company":
+        return f"Company: {args.get('domain') or args.get('name', 'company')}"[:50]
+    if tool_name == "nrv_create_dataset":
+        return f"Dataset: {args.get('name', 'data')}"[:50]
+    if tool_name == "nrv_scrape_page":
+        url = args.get("url") or (args["urls"][0] if isinstance(args.get("urls"), list) and args["urls"] else "")
+        return f"Scrape: {url}"[:50] if url else "Web Scrape"
+    if tool_name == "nrv_execute_action":
+        return f"{args.get('app_id', '')}: {args.get('action', '')}"[:50]
+    return tool_name.replace("nrv_", "").replace("_", " ").title()[:50]
+
+
 TOOL_HANDLERS: dict[str, Any] = {
     "nrv_search_web": _handle_nrv_search_web,
     "nrv_scrape_page": _handle_nrv_scrape_page,
@@ -1262,6 +1396,7 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrv_new_workflow": _handle_nrv_new_workflow,
     "nrv_search_people": _handle_nrv_search_people,
     "nrv_estimate_cost": _handle_nrv_estimate_cost,
+    "nrv_get_run_log": _handle_nrv_get_run_log,
 }
 
 
@@ -1337,6 +1472,15 @@ def handle_jsonrpc_request(request: dict) -> dict | None:
             global _current_tool_name
             _current_tool_name = tool_name
             result = handler(tool_args)
+
+            # Auto-name workflow from first meaningful tool call
+            if not WORKFLOW_LABEL and tool_name not in (
+                "nrv_health", "nrv_provider_status", "nrv_credit_balance",
+                "nrv_new_workflow", "nrv_estimate_cost", "nrv_get_run_log",
+                "nrv_list_tables", "nrv_list_datasets", "nrv_list_connections",
+            ):
+                WORKFLOW_LABEL = _auto_generate_label(tool_name, tool_args)
+
             _current_tool_name = ""
             text = json.dumps(result, indent=2, default=str)
 

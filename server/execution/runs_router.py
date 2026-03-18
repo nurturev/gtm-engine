@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import csv
+import io
 import logging
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from jose import JWTError, jwt
 from sqlalchemy import desc, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -228,3 +230,116 @@ async def get_workflow_steps(
             "last_step_at": step_list[-1]["created_at"] if step_list else None,
         },
     })
+
+
+# ------------------------------------------------------------------
+# Column metadata for a workflow's results
+# ------------------------------------------------------------------
+
+@router.get("/runs/{workflow_id}/metadata")
+async def get_workflow_metadata(
+    workflow_id: str,
+    request: Request,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> JSONResponse:
+    """Get column metadata for all result arrays in a workflow's steps."""
+    from server.execution.column_metadata import compute_column_metadata
+
+    tenant, db = await _get_tenant_flexible(request, token, db)
+    await set_tenant_context(db, tenant.id)
+
+    result = await db.execute(
+        select(RunStep)
+        .where(RunStep.workflow_id == workflow_id, RunStep.tenant_id == tenant.id)
+        .order_by(RunStep.created_at)
+    )
+    steps = result.scalars().all()
+    if not steps:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    steps_metadata = []
+    for s in steps:
+        summary = s.result_summary or {}
+        rows = summary.get("results", [])
+        metadata = compute_column_metadata(rows) if rows else {}
+        steps_metadata.append({
+            "step_index": len(steps_metadata),
+            "tool_name": s.tool_name,
+            "operation": s.operation,
+            "status": s.status,
+            "row_count": len(rows),
+            "columns": metadata,
+        })
+
+    return JSONResponse({"workflow_id": workflow_id, "steps": steps_metadata})
+
+
+# ------------------------------------------------------------------
+# CSV download for a workflow's results
+# ------------------------------------------------------------------
+
+@router.get("/runs/{workflow_id}/csv")
+async def download_workflow_csv(
+    workflow_id: str,
+    request: Request,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> StreamingResponse:
+    """Download all result rows from a workflow as CSV."""
+    tenant, db = await _get_tenant_flexible(request, token, db)
+    await set_tenant_context(db, tenant.id)
+
+    result = await db.execute(
+        select(RunStep)
+        .where(RunStep.workflow_id == workflow_id, RunStep.tenant_id == tenant.id)
+        .order_by(RunStep.created_at)
+    )
+    steps = result.scalars().all()
+    if not steps:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    # Collect all result rows across steps
+    all_rows: list[dict] = []
+    for s in steps:
+        summary = s.result_summary or {}
+        rows = summary.get("results", [])
+        for row in rows:
+            row_with_meta = {"_tool": s.tool_name, "_step": s.operation or "", **row}
+            all_rows.append(row_with_meta)
+
+    if not all_rows:
+        # Return empty CSV with just a header
+        output = io.StringIO()
+        output.write("No result rows in this workflow\n")
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=workflow-{workflow_id[:8]}.csv"},
+        )
+
+    # Union all column names
+    all_cols: list[str] = []
+    seen: set[str] = set()
+    for row in all_rows:
+        for k in row.keys():
+            if k not in seen:
+                all_cols.append(k)
+                seen.add(k)
+
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=all_cols, extrasaction="ignore")
+    writer.writeheader()
+    for row in all_rows:
+        writer.writerow(row)
+
+    output.seek(0)
+    label = steps[0].workflow_label or workflow_id[:8]
+    safe_label = "".join(c if c.isalnum() or c in "-_ " else "" for c in label).strip().replace(" ", "-")[:40]
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={safe_label}.csv"},
+    )

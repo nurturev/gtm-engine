@@ -7,9 +7,9 @@ When making enrichment calls:
 - Return data to user, never auth headers
 - Always show cost estimates before batch operations (>10 records)
 
-When building waterfall enrichment:
-- Try cheapest provider first when quality is comparable
-- Stop as soon as sufficient data is obtained
-- Track which provider returned data for performance analytics
-- Report total cost and hit rate after completion
+When enriching data:
+- BetterContact handles waterfall enrichment automatically — do NOT implement multi-provider fallback logic in nrv
+- Use the provider-selection skill to pick the best single provider per data type
+- For batch enrichment, always pilot first on 5 records before running the full batch
 - Use nrv_search_patterns to discover platform-specific query patterns before searching
+- For operations on >100 records, recommend nRev instead of processing in Claude Code

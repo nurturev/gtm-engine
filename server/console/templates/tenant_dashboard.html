@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nrv &mdash; {{ tenant_name }}</title>
+    <link href="https://unpkg.com/tabulator-tables@6.3/dist/css/tabulator_midnight.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@6.3/dist/js/tabulator.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e6; min-height: 100vh; }
@@ -150,6 +152,21 @@
         .toast.error { background: #7f1d1d; color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
         .toast.show { display: block; animation: fadeInOut 3s ease forwards; }
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-10px); } 10% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+    
+        /* Tabulator dark theme overrides */
+        .tabulator { background-color: #0f0f17 !important; border-color: #1e1e2e !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important; font-size: 11px !important; }
+        .tabulator .tabulator-header { background-color: #0a0a0f !important; border-color: #1e1e2e !important; }
+        .tabulator .tabulator-header .tabulator-col { background-color: #0a0a0f !important; border-color: #1e1e2e !important; color: #818cf8 !important; }
+        .tabulator .tabulator-row { background-color: #12121a !important; color: #e0e0e6 !important; border-color: #1a1a26 !important; }
+        .tabulator .tabulator-row:hover { background-color: #18182a !important; }
+        .tabulator .tabulator-row.tabulator-row-even { background-color: #0f0f17 !important; }
+        .tabulator .tabulator-cell { border-color: #1e1e2e !important; }
+        .tabulator .tabulator-header-filter input { background: #1a1a26 !important; border: 1px solid #2a2a3e !important; color: #e0e0e6 !important; font-size: 10px !important; padding: 2px 6px !important; border-radius: 4px !important; }
+        .tabulator .tabulator-footer { background-color: #0a0a0f !important; border-color: #1e1e2e !important; color: #888 !important; }
+        .col-meta-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+        .col-meta-chip { background:#1a1a26; border:1px solid #2a2a3e; border-radius:6px; padding:4px 10px; font-size:10px; color:#888; }
+        .col-meta-chip strong { color:#818cf8; }
+        .col-meta-chip .null-warn { color:#ef4444; }
     </style>
 </head>
 <body>
@@ -836,6 +853,7 @@
 
                         <!-- Expandable data preview -->
                         <div style="margin-top:12px;">
+                            <a href="/api/v1/datasets/{{ ds.slug }}/csv" class="btn btn-ghost btn-sm" style="font-size:11px;text-decoration:none;margin-right:6px;">Download CSV</a>
                             <button class="btn btn-ghost btn-sm" onclick="toggleDatasetPreview('{{ ds.slug }}', '{{ ds.id }}')" id="ds-btn-{{ ds.slug }}">
                                 Preview Data &#x25BC;
                             </button>
@@ -1264,12 +1282,26 @@
                 html += '<div style="font-size:11px;color:#6b7280;margin-bottom:8px;">Query: <span style="color:#818cf8;">' + escHtml(rs.query) + '</span></div>';
             }
 
-            // Search results → table
+            // Search results → table (truncated to 20 rows with metadata)
             if (rs.results && rs.results.length > 0) {
-                const results = rs.results;
-                // Detect columns from first result
+                const allResults = rs.results;
+                const totalRows = allResults.length;
+                const results = allResults.slice(0, 20);
                 const cols = Object.keys(results[0]).filter(k => k !== 'position');
-                html += '<table style="margin:0;border:1px solid #1e1e2e;font-size:11px;">';
+
+                // Column metadata cards
+                html += '<div class="col-meta-chips">';
+                cols.forEach(function(col) {
+                    const vals = allResults.map(r => r[col]);
+                    const nonNull = vals.filter(v => v != null && v !== '');
+                    const nullPct = Math.round((vals.length - nonNull.length) / vals.length * 100);
+                    const unique = new Set(nonNull.map(String)).size;
+                    const nullClass = nullPct > 30 ? 'null-warn' : '';
+                    html += '<div class="col-meta-chip"><strong>' + escHtml(col) + '</strong> &middot; <span class="' + nullClass + '">' + nullPct + '% null</span> &middot; ' + unique + ' unique</div>';
+                });
+                html += '</div>';
+
+                html += '<table style="margin:8px 0 0;border:1px solid #1e1e2e;font-size:11px;">';
                 html += '<thead><tr style="background:#12121a;">';
                 html += '<th style="background:#12121a;font-size:10px;padding:6px 10px;">#</th>';
                 cols.forEach(function(col) {
@@ -1283,7 +1315,6 @@
                         let val = row[col];
                         if (val == null) val = '';
                         const valStr = String(val);
-                        // Render URLs as clickable links
                         if (col === 'url' || col === 'link' || col === 'linkedin_url') {
                             html += '<td style="padding:6px 10px;font-size:10px;"><a href="' + escHtml(valStr) + '" target="_blank" style="color:#818cf8;word-break:break-all;">' + escHtml(valStr.substring(0, 60)) + (valStr.length > 60 ? '...' : '') + '</a></td>';
                         } else if (valStr.length > 120) {
@@ -1295,6 +1326,9 @@
                     html += '</tr>';
                 });
                 html += '</tbody></table>';
+                if (totalRows > 20) {
+                    html += '<div style="padding:8px 10px;font-size:11px;color:#6b7280;background:#0a0a0f;border:1px solid #1e1e2e;border-top:none;">Showing 20 of ' + totalRows + ' rows</div>';
+                }
             }
 
             // Person/company/profile data → key-value table
@@ -1326,6 +1360,7 @@
         // ---- Datasets ----
 
         const _dsLoaded = {};
+        const _dsTabulator = {};
         function toggleDatasetPreview(slug, dsId) {
             const container = document.getElementById('ds-preview-' + slug);
             const btn = document.getElementById('ds-btn-' + slug);
@@ -1334,48 +1369,49 @@
                 btn.innerHTML = 'Hide Data &#x25B2;';
                 if (!_dsLoaded[slug]) {
                     _dsLoaded[slug] = true;
-                    fetch('/api/v1/datasets/' + slug + '/rows?limit=20', {
-                        headers: getAuthHeaders()
-                    })
+                    container.innerHTML = '<div style="color:#888;font-size:12px;padding:16px;">Loading...</div>';
+                    const token = new URLSearchParams(window.location.search).get('token');
+                    const headers = token ? {'Authorization': 'Bearer ' + token} : {};
+                    fetch('/api/v1/datasets/' + slug + '/rows?limit=500', { headers })
                     .then(r => r.json())
                     .then(data => {
-                        const loading = document.getElementById('ds-loading-' + slug);
-                        if (data.rows && data.rows.length > 0) {
-                            const skipKeys = ['id', '_created_at', '_workflow_id'];
-                            const cols = Object.keys(data.rows[0]).filter(k => !skipKeys.includes(k));
-                            let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
-                            html += '<thead><tr>';
-                            cols.forEach(c => {
-                                html += '<th style="text-align:left;padding:6px 8px;font-size:10px;text-transform:uppercase;color:#6b7280;background:#0a0a0f;border-bottom:1px solid #1e1e2e;">' + escHtml(c) + '</th>';
+                        const rows = (data.rows || []).map(r => {
+                            const d = r.data || r;
+                            const clean = {};
+                            Object.keys(d).forEach(k => {
+                                if (!['id','_created_at','_workflow_id','_updated_at','dedup_hash'].includes(k))
+                                    clean[k] = d[k];
                             });
-                            html += '</tr></thead><tbody>';
-                            data.rows.forEach(row => {
-                                html += '<tr>';
-                                cols.forEach(c => {
-                                    let val = row[c];
-                                    if (val == null) val = '';
-                                    const valStr = String(val);
-                                    if ((c === 'url' || c === 'link' || c.includes('url')) && valStr.startsWith('http')) {
-                                        html += '<td style="padding:5px 8px;border-bottom:1px solid #1a1a26;"><a href="' + escHtml(valStr) + '" target="_blank" style="color:#818cf8;">' + escHtml(valStr.substring(0, 60)) + '...</a></td>';
-                                    } else if (valStr.length > 80) {
-                                        html += '<td style="padding:5px 8px;border-bottom:1px solid #1a1a26;color:#9ca3af;" title="' + escHtml(valStr) + '">' + escHtml(valStr.substring(0, 80)) + '...</td>';
-                                    } else {
-                                        html += '<td style="padding:5px 8px;border-bottom:1px solid #1a1a26;color:#e0e0e6;">' + escHtml(valStr) + '</td>';
+                            return clean;
+                        });
+                        if (!rows.length) {
+                            container.innerHTML = '<div style="color:#888;font-size:12px;padding:16px;">No data rows yet</div>';
+                            return;
+                        }
+                        container.innerHTML = '';
+                        _dsTabulator[slug] = new Tabulator(container, {
+                            data: rows,
+                            layout: "fitDataFill",
+                            height: "400px",
+                            movableColumns: true,
+                            resizableColumns: true,
+                            placeholder: "No data",
+                            autoColumns: true,
+                            autoColumnsDefinitions: function(defs) {
+                                defs.forEach(function(col) {
+                                    col.headerFilter = "input";
+                                    col.headerFilterPlaceholder = "Filter...";
+                                    if (col.field && (col.field === 'url' || col.field.includes('linkedin'))) {
+                                        col.formatter = "link";
+                                        col.formatterParams = { target: "_blank", labelField: col.field };
                                     }
                                 });
-                                html += '</tr>';
-                            });
-                            html += '</tbody></table>';
-                            if (data.total > 20) {
-                                html += '<div style="text-align:center;padding:8px;font-size:11px;color:#6b7280;">Showing 20 of ' + data.total + ' rows</div>';
-                            }
-                            loading.innerHTML = html;
-                        } else {
-                            loading.innerHTML = '<div style="color:#6b7280;font-size:12px;">No rows yet</div>';
-                        }
+                                return defs;
+                            },
+                        });
                     })
                     .catch(err => {
-                        document.getElementById('ds-loading-' + slug).innerHTML = '<div style="color:#fca5a5;">Error loading data</div>';
+                        container.innerHTML = '<div style="color:#ef4444;font-size:12px;padding:16px;">Error: ' + err.message + '</div>';
                     });
                 }
             } else {
@@ -1383,47 +1419,7 @@
                 btn.innerHTML = 'Preview Data &#x25BC;';
             }
         }
-        // ---- Scheduled Workflows ----
-        // Render scheduled workflows from template data
-        (function() {
-            const container = document.getElementById('scheduled-workflows-container');
-            if (!container) return;
 
-            const schedules = {{ scheduled_workflows|default([])|tojson }};
-
-            if (!schedules || schedules.length === 0) {
-                container.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px;">' +
-                    '<div style="font-size:24px;margin-bottom:8px;">&#x23F0;</div>' +
-                    '<h3 style="margin-bottom:8px;color:#f0f0f5;font-size:14px;">No scheduled workflows</h3>' +
-                    '<p style="color:#6b7280;font-size:12px;max-width:400px;margin:0 auto;">' +
-                    'Use Claude Code\'s scheduler to run workflows automatically.<br>' +
-                    '<code style="color:#818cf8;font-size:11px;">create_scheduled_task</code> with nrv MCP tools.' +
-                    '</p></div>';
-                return;
-            }
-
-            let html = '';
-            schedules.forEach(function(s) {
-                const statusColor = s.enabled ? '#34d399' : '#6b7280';
-                const statusText = s.enabled ? 'Active' : 'Paused';
-                html += '<div class="card" style="display:flex;justify-content:space-between;align-items:center;">';
-                html += '<div>';
-                html += '<div style="font-weight:600;font-size:14px;color:#f0f0f5;">' + escHtml(s.name || s.description || 'Scheduled Task') + '</div>';
-                html += '<div style="font-size:12px;color:#6b7280;margin-top:3px;">';
-                html += s.schedule ? escHtml(s.schedule) : (s.cron ? '<code>' + escHtml(s.cron) + '</code>' : 'One-time');
-                if (s.next_run) html += ' &middot; Next: ' + escHtml(s.next_run);
-                if (s.last_run) html += ' &middot; Last: ' + escHtml(s.last_run);
-                html += '</div></div>';
-                html += '<div style="display:flex;align-items:center;gap:8px;">';
-                html += '<span style="width:8px;height:8px;border-radius:50%;background:' + statusColor + ';display:inline-block;"></span>';
-                html += '<span style="font-size:12px;color:' + statusColor + ';">' + statusText + '</span>';
-                html += '</div></div>';
-            });
-            container.innerHTML = html;
-        })();
-
-
-        // ---- Dashboard Builder Functions ----
         function toggleDashboardBuilder() {
             const el = document.getElementById('dashboard-builder');
             el.style.display = el.style.display === 'none' ? 'block' : 'none';

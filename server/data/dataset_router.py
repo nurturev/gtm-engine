@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+import csv
+import io
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import StreamingResponse
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -248,3 +252,122 @@ async def delete_rows(
             detail=result["error"],
         )
     return result
+
+
+# ------------------------------------------------------------------
+# Column metadata
+# ------------------------------------------------------------------
+
+@router.get("/{dataset_ref}/metadata")
+async def get_dataset_metadata(
+    dataset_ref: str,
+    request: Request,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get column metadata for a dataset (type, null%, unique count, etc.)."""
+    from server.execution.column_metadata import compute_column_metadata
+
+    tenant, db = await _get_tenant_flexible(request, token=token, db=db)
+    is_uuid = len(dataset_ref) == 36 and "-" in dataset_ref
+
+    # Resolve dataset
+    from server.data.dataset_models import Dataset
+    if is_uuid:
+        q = select(Dataset).where(Dataset.id == dataset_ref, Dataset.tenant_id == tenant.id)
+    else:
+        q = select(Dataset).where(Dataset.slug == dataset_ref, Dataset.tenant_id == tenant.id)
+    ds = (await db.execute(q)).scalar_one_or_none()
+    if not ds:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_ref}' not found.")
+
+    # Query up to 1000 rows for profiling
+    rows_result = await svc.query_rows(
+        db, tenant.id,
+        dataset_id=str(ds.id) if is_uuid else None,
+        slug=dataset_ref if not is_uuid else None,
+        limit=1000,
+    )
+    raw_rows = rows_result.get("rows", [])
+
+    # Extract just the data dicts
+    row_dicts = [r.get("data", r) if isinstance(r, dict) else r for r in raw_rows]
+    metadata = compute_column_metadata(row_dicts)
+
+    return {
+        "dataset": ds.name,
+        "slug": ds.slug,
+        "row_count": ds.row_count,
+        "columns": metadata,
+    }
+
+
+# ------------------------------------------------------------------
+# CSV download
+# ------------------------------------------------------------------
+
+@router.get("/{dataset_ref}/csv")
+async def download_dataset_csv(
+    dataset_ref: str,
+    request: Request,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Download all dataset rows as CSV (max 10,000 rows)."""
+    tenant, db = await _get_tenant_flexible(request, token=token, db=db)
+    is_uuid = len(dataset_ref) == 36 and "-" in dataset_ref
+
+    from server.data.dataset_models import Dataset
+    if is_uuid:
+        q = select(Dataset).where(Dataset.id == dataset_ref, Dataset.tenant_id == tenant.id)
+    else:
+        q = select(Dataset).where(Dataset.slug == dataset_ref, Dataset.tenant_id == tenant.id)
+    ds = (await db.execute(q)).scalar_one_or_none()
+    if not ds:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_ref}' not found.")
+
+    rows_result = await svc.query_rows(
+        db, tenant.id,
+        dataset_id=str(ds.id) if is_uuid else None,
+        slug=dataset_ref if not is_uuid else None,
+        limit=10000,
+    )
+    raw_rows = rows_result.get("rows", [])
+
+    # Flatten data dicts
+    flat_rows = [r.get("data", r) if isinstance(r, dict) else r for r in raw_rows]
+
+    if not flat_rows:
+        output = io.StringIO()
+        output.write("No rows in this dataset\n")
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={ds.slug}.csv"},
+        )
+
+    # Union all column names
+    all_cols: list[str] = []
+    seen: set[str] = set()
+    skip = {"id", "_created_at", "_workflow_id", "_updated_at", "dedup_hash"}
+    for row in flat_rows:
+        if isinstance(row, dict):
+            for k in row.keys():
+                if k not in seen and k not in skip:
+                    all_cols.append(k)
+                    seen.add(k)
+
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=all_cols, extrasaction="ignore")
+    writer.writeheader()
+    for row in flat_rows:
+        if isinstance(row, dict):
+            writer.writerow({k: v for k, v in row.items() if k not in skip})
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={ds.slug}.csv"},
+    )
