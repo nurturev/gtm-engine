@@ -212,7 +212,7 @@ TOOLS: list[dict[str, Any]] = [
                     "description": "Focus extraction on this intent (e.g. 'pricing information').",
                 },
             },
-            "required": [],
+            "required": ["url"],
         },
     },
     {
@@ -309,7 +309,7 @@ TOOLS: list[dict[str, Any]] = [
                     "description": "Force a specific provider (e.g. 'apollo', 'pdl'). Omit for auto-selection.",
                 },
             },
-            "required": [],
+            "required": ["email"],
         },
     },
     {
@@ -334,7 +334,7 @@ TOOLS: list[dict[str, Any]] = [
                     "description": "Force a specific provider. Omit for auto-selection.",
                 },
             },
-            "required": [],
+            "required": ["domain"],
         },
     },
     # ---- Data Management ----
@@ -504,6 +504,8 @@ TOOLS: list[dict[str, Any]] = [
                     "enum": [
                         "enrich_person", "enrich_company", "search_people",
                         "search_web", "scrape_page", "google_search",
+                        "company_signals", "find_email", "verify_email",
+                        "domain_search",
                     ],
                 },
                 "count": {
@@ -768,7 +770,7 @@ TOOLS: list[dict[str, Any]] = [
                     "default": 25,
                 },
             },
-            "required": [],
+            "required": ["person_titles"],
         },
     },
     {
@@ -1257,12 +1259,25 @@ def _handle_nrv_search_people(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def _handle_nrv_estimate_cost(arguments: dict) -> dict:
-    """Estimate credit cost for an operation."""
+    """Estimate credit cost for an operation using real per-op pricing."""
     operation = arguments.get("operation", "")
     count = arguments.get("count", 1)
 
-    CREDIT_COST = 1
     CREDIT_TO_USD = 0.08
+
+    # Real per-operation credit costs (platform key pricing)
+    OP_COSTS = {
+        "search_people": 2,       # Apollo/RocketReach people search
+        "enrich_person": 1,       # Person enrichment
+        "enrich_company": 1,      # Company enrichment
+        "search_web": 1,          # Google web search
+        "google_search": 1,       # Google SERP search
+        "scrape_page": 1,         # Web page extraction
+        "company_signals": 1,     # PredictLeads signals
+        "find_email": 1,          # Hunter email finder
+        "verify_email": 1,        # ZeroBounce verification
+        "domain_search": 1,       # Hunter domain search
+    }
 
     OP_PROVIDERS = {
         "enrich_person": "apollo",
@@ -1271,10 +1286,15 @@ def _handle_nrv_estimate_cost(arguments: dict) -> dict:
         "search_web": "rapidapi",
         "scrape_page": "parallel",
         "google_search": "rapidapi",
+        "company_signals": "predictleads",
+        "find_email": "hunter",
+        "verify_email": "zerobounce",
+        "domain_search": "hunter",
     }
 
-    estimated_credits = CREDIT_COST * count
-    estimated_usd = estimated_credits * CREDIT_TO_USD
+    cost_per_op = OP_COSTS.get(operation, 1)
+    estimated_credits = cost_per_op * count
+    estimated_usd = round(estimated_credits * CREDIT_TO_USD, 2)
     provider = OP_PROVIDERS.get(operation, "unknown")
 
     # Check if user has BYOK for this provider

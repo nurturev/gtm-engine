@@ -152,13 +152,10 @@ INTEGRATION_CATALOG = {
 }
 
 # Known enrichment providers that may have platform keys
-ENRICHMENT_PROVIDERS = [
-    "apollo",
-    "rocketreach",
-    "predictleads",
-    "parallel",
-    "rapidapi",
-]
+from server.core.vendor_catalog import VENDOR_CATALOG, VENDOR_CATEGORIES, get_vendors_by_category
+
+# Legacy list kept for backward compat; new code uses VENDOR_CATALOG
+ENRICHMENT_PROVIDERS = list(VENDOR_CATALOG.keys())
 
 # ---------------------------------------------------------------------------
 # Templates
@@ -326,7 +323,7 @@ async def tenant_dashboard(
     platform_count = 0
     unavailable_count = 0
 
-    for prov_name in ENRICHMENT_PROVIDERS:
+    for prov_name, vendor_info in VENDOR_CATALOG.items():
         tk = byok_providers.get(prov_name)
         if tk and tk.status == "active":
             using = "byok"
@@ -346,16 +343,26 @@ async def tenant_dashboard(
 
         providers.append({
             "provider": prov_name,
+            "display_name": vendor_info.get("name", prov_name),
+            "category": vendor_info.get("category", "other"),
+            "description": vendor_info.get("description", ""),
+            "has_platform_key": vendor_info.get("platform_key", False),
             "using": using,
             "status": prov_status,
             "fingerprint": fingerprint,
-            "calls": 0,  # TODO: wire up from usage tracking
         })
 
     key_summary = {
         "using_my_keys": byok_count,
         "using_platform": platform_count,
-        "unavailable": unavailable_count,
+        "available_to_provision": sum(1 for p in providers if p["status"] == "unavailable"),
+        "total_vendors": len(VENDOR_CATALOG),
+    }
+
+    # Group providers by category for template
+    vendor_categories = {
+        cat: {"name": meta["name"], "icon": meta["icon"], "description": meta["description"]}
+        for cat, meta in VENDOR_CATEGORIES.items()
     }
 
     # ------------------------------------------------------------------
@@ -631,6 +638,7 @@ async def tenant_dashboard(
             "plan": "platform",
             "active_tab": tab,
             "providers": providers,
+            "vendor_categories": vendor_categories,
             "summary": key_summary,
             "connections": connections,
             "conn_summary": conn_summary,
