@@ -922,6 +922,7 @@ asyncio.run(check())
 - [ ] **CI/CD pipeline**: GitHub Actions — lint → test → build Docker → push ECR → helm upgrade
 - [ ] **Alembic migrations**: Replace raw SQL + tracking table with proper framework
 - [ ] **Monitoring/APM**: Datadog or OpenTelemetry
+- [ ] **IAM role for ServiceAccount**: Create `nrv-api-{env}-role` with KMS permissions for BYOK key encryption (V1 uses Fernet fallback)
 - [ ] **Multi-replica**: Enable HPA, move batch result store to Redis
 
 ---
