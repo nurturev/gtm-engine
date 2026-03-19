@@ -113,7 +113,7 @@ Last updated: 2026-03-19
 - [x] `nrv status` shows authenticated user, server online, providers listed
 - [x] `nrv credits balance` returns successfully
 - [x] Redis connectivity confirmed (app startup connects + pings Redis; auth state stored in Redis)
-- [ ] OAuth flow survives pod restart (state in Redis) — test later
+- [x] Session survives pod restart — `nrv status` works after `kubectl rollout restart`
 
 ### Task 11: Environment management & CI/CD
 #### Branches
@@ -126,10 +126,10 @@ Last updated: 2026-03-19
 - [x] `.github/workflows/deployment-k8s-prod.yml` created
 - All workflows follow Workflow Studio pattern: OIDC `role-to-assume`, ECR push, `KUBECONFIG_STAGING`/`KUBECONFIG_PROD` secrets for kubectl
 
-#### GitHub Secrets (needed for automated CI/CD, NOT blocking first manual deploy)
-- [ ] `KUBECONFIG_STAGING` — kubeconfig for staging EKS kubectl access (copy from Workflow Studio repo secrets)
-- [ ] `KUBECONFIG_PROD` — kubeconfig for prod EKS (defer until prod deploy)
-- [ ] OIDC: verify `github-action-role` IAM role trusts `nurturev/gtm-engine` (if scoped per-repo)
+#### GitHub Secrets
+- [x] `KUBECONFIG_STAGING` — added to gtm-engine repo
+- [ ] `KUBECONFIG_PROD` — defer until prod deploy
+- [x] OIDC: `github-action-role` trusts `nurturev/*` — covers gtm-engine
 
 ---
 
@@ -145,6 +145,6 @@ Last updated: 2026-03-19
 | 06 Dockerfile update | **Done** |
 | 07 Schema migrations tracking | **Done** |
 | 08 Helm chart | **Done** — DATABASE_URL via secretKeyRef, ECR repo corrected to `gtm-engine-staging` |
-| 09 Provision infrastructure | **Almost done** — only K8s Secret apply remaining |
+| 09 Provision infrastructure | **Done** |
 | 10 First deploy | **Done** — deployed, healthy, auth + CLI verified |
-| 11 Environment & CI/CD | **Partially done** — branches + workflows created, GitHub secrets for CI/CD pending (not blocking first deploy) |
+| 11 Environment & CI/CD | **Done** — branches, workflows, KUBECONFIG_STAGING, OIDC all set. Prod branch deferred. |
