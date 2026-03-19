@@ -42,6 +42,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["execute"])
 
 # ---------------------------------------------------------------------------
+# V1 batch size cap — prevents long-running requests during rolling restarts.
+# 25 records ≈ 10-15s execution (safe within 30s grace window).
+# V2: async job queue for larger batches.
+# ---------------------------------------------------------------------------
+
+MAX_BATCH_SIZE = 25
+
+# ---------------------------------------------------------------------------
 # In-memory batch store (replace with Redis/DB in production)
 # ---------------------------------------------------------------------------
 
@@ -259,6 +267,16 @@ async def execute_batch_endpoint(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No operations provided",
+        )
+
+    if len(body.operations) > MAX_BATCH_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Batch size {len(body.operations)} exceeds maximum of "
+                f"{MAX_BATCH_SIZE} records. Split into smaller batches or "
+                f"use nRev for large-scale operations."
+            ),
         )
 
     # All operations must be the same type for concurrent execution

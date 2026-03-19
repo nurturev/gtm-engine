@@ -1,0 +1,40 @@
+name: Deploy Prod K8s
+
+on:
+  push:
+    branches:
+      - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: arn:aws:iam::979176640062:role/github-action-role
+          aws-region: us-east-1
+          mask-aws-account-id: 'false'
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 979176640062.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Build and push Docker image
+        run: |
+          docker build --platform linux/amd64 -t nrv-api . -f ./Dockerfile.server
+          docker tag nrv-api:latest 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest
+          docker push 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest
+
+      - name: Deploy to Kubernetes
+        run: |
+          echo "${{ secrets.KUBECONFIG_PROD }}" > kubeconfig_prod
+          export KUBECONFIG=kubeconfig_prod
+          kubectl rollout restart deploy nrv-api -n prod

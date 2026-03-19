@@ -1,0 +1,50 @@
+name: Code Quality & Tests
+
+on:
+  push:
+    branches: ["main", "prod", "staging"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-server.txt', '**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-server.txt
+        pip install -e ".[dev]"
+
+    - name: Check for unused imports with ruff
+      run: |
+        python -m ruff check . --select F401
+
+    - name: Check code formatting with ruff
+      run: |
+        python -m ruff format --check --diff .
+
+    - name: Run tests
+      run: |
+        python -m pytest tests/ -v --asyncio-mode=auto
+      env:
+        JWT_SECRET_KEY: test-secret-key-for-ci-at-least-32-chars-long
+        GOOGLE_CLIENT_ID: test-client-id
+        GOOGLE_CLIENT_SECRET: test-client-secret
+        ENVIRONMENT: development

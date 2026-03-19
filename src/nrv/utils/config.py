@@ -13,7 +13,7 @@ NRV_DIR = Path.home() / ".nrv"
 CONFIG_FILE = NRV_DIR / "config.toml"
 CREDENTIALS_FILE = NRV_DIR / "credentials"
 
-DEFAULT_API_BASE_URL = "http://localhost:8000"
+DEFAULT_API_BASE_URL = "https://nrv-api.public.prod.nurturev.com"
 
 
 def ensure_nrv_dir() -> Path:

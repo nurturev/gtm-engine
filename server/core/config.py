@@ -51,6 +51,7 @@ class Settings(BaseSettings):
 
     # --- App ---
     ENVIRONMENT: str = "development"
+    CORS_ALLOWED_ORIGINS: str = ""
 
     model_config = {
         "env_file": ".env",

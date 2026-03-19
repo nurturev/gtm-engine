@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json as _json
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 from string import Template
 from typing import Any
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,26 +35,107 @@ from server.auth.service import (
     google_exchange_code,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 # ---------------------------------------------------------------------------
-# Constants & in-memory stores
+# Constants
 # ---------------------------------------------------------------------------
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_SCOPES = "openid email profile"
-
-# Maps state -> {cli_redirect, code_verifier, console_login} (so we know
-# where to send the browser and can complete the PKCE exchange after Google auth)
-_pending_auth: dict[str, dict[str, str]] = {}
 
 # Cookie settings for console browser sessions
 _COOKIE_NAME = "nrv_session"
 _COOKIE_MAX_AGE = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60  # seconds
 _COOKIE_SECURE = settings.ENVIRONMENT != "development"  # HTTPS only in prod
 
-# In-memory device code store (replace with Redis in production)
-_device_codes: dict[str, dict[str, Any]] = {}
+# Redis TTLs
+_PENDING_AUTH_TTL = 600  # 10 minutes
+_DEVICE_CODE_TTL = 900  # 15 minutes
+
+# Rate limiting for device token polling
+_DEVICE_TOKEN_RATE_LIMIT_MAX = 10  # max requests
+_DEVICE_TOKEN_RATE_LIMIT_WINDOW = 60  # per 60 seconds
+
+
+# ---------------------------------------------------------------------------
+# Redis helpers for auth state
+# ---------------------------------------------------------------------------
+
+
+def _get_redis():
+    """Get the Redis connection from the app module."""
+    from server.app import redis_pool
+    return redis_pool
+
+
+async def _set_pending_auth(state: str, data: dict[str, str]) -> None:
+    """Store pending OAuth state in Redis with TTL."""
+    redis = _get_redis()
+    if redis is None:
+        raise RuntimeError("Redis not available")
+    await redis.set(
+        f"auth:pending:{state}",
+        _json.dumps(data),
+        ex=_PENDING_AUTH_TTL,
+    )
+
+
+async def _pop_pending_auth(state: str) -> dict[str, str]:
+    """Retrieve and delete pending OAuth state from Redis."""
+    redis = _get_redis()
+    if redis is None:
+        return {}
+    key = f"auth:pending:{state}"
+    data = await redis.get(key)
+    if data is None:
+        return {}
+    await redis.delete(key)
+    return _json.loads(data)
+
+
+async def _set_device_code(device_code: str, data: dict[str, Any]) -> None:
+    """Store device code state in Redis with TTL."""
+    redis = _get_redis()
+    if redis is None:
+        raise RuntimeError("Redis not available")
+    await redis.set(
+        f"auth:device:{device_code}",
+        _json.dumps(data, default=str),
+        ex=_DEVICE_CODE_TTL,
+    )
+
+
+async def _get_device_code(device_code: str) -> dict[str, Any] | None:
+    """Retrieve device code state from Redis."""
+    redis = _get_redis()
+    if redis is None:
+        return None
+    data = await redis.get(f"auth:device:{device_code}")
+    if data is None:
+        return None
+    return _json.loads(data)
+
+
+async def _delete_device_code(device_code: str) -> None:
+    """Delete device code from Redis."""
+    redis = _get_redis()
+    if redis is not None:
+        await redis.delete(f"auth:device:{device_code}")
+
+
+async def _check_device_token_rate_limit(client_ip: str) -> bool:
+    """Check rate limit for device token polling. Returns True if allowed."""
+    redis = _get_redis()
+    if redis is None:
+        return True
+    key = f"ratelimit:auth:device:{client_ip}"
+    current = await redis.incr(key)
+    if current == 1:
+        await redis.expire(key, _DEVICE_TOKEN_RATE_LIMIT_WINDOW)
+    return current <= _DEVICE_TOKEN_RATE_LIMIT_MAX
 
 # ---------------------------------------------------------------------------
 # Endpoints
@@ -72,10 +154,10 @@ async def initiate_google_auth(body: GoogleAuthRequest) -> GoogleAuthResponse:
 
     # Store the CLI's localhost redirect and PKCE verifier so the callback
     # can complete the exchange.
-    _pending_auth[state] = {
+    await _set_pending_auth(state, {
         "cli_redirect": body.redirect_uri or "",
         "code_verifier": body.code_verifier or "",
-    }
+    })
 
     # Google always redirects to our server callback (registered in Google Console)
     server_callback = settings.GOOGLE_REDIRECT_URI
@@ -145,11 +227,11 @@ Sign in with Google
 async def console_login_page(error: str | None = None):
     """Render a sign-in page for browser-based console access."""
     state = secrets.token_urlsafe(32)
-    _pending_auth[state] = {
+    await _set_pending_auth(state, {
         "cli_redirect": "",
         "code_verifier": "",
         "console_login": "1",
-    }
+    })
 
     server_callback = settings.GOOGLE_REDIRECT_URI
     auth_url = (
@@ -195,17 +277,14 @@ async def google_callback(
     tokens, create/find the user, then redirect the browser to the CLI's
     localhost callback with the nrv tokens as query params.
     """
-    import logging
-    _logger = logging.getLogger(__name__)
-
     # Look up where the CLI is listening (do this early so we can redirect errors)
-    pending = _pending_auth.pop(state, {}) if state else {}
-    cli_redirect = pending.get("cli_redirect", "") if isinstance(pending, dict) else pending
-    code_verifier = pending.get("code_verifier", "") if isinstance(pending, dict) else ""
+    pending = await _pop_pending_auth(state) if state else {}
+    cli_redirect = pending.get("cli_redirect", "")
+    code_verifier = pending.get("code_verifier", "")
 
     # Handle Google errors (user denied access, etc.)
     if error:
-        _logger.warning("Google OAuth error: %s", error)
+        logger.warning("Google OAuth error: %s", error)
         if cli_redirect:
             return RedirectResponse(url=f"{cli_redirect}?error={error}")
         raise HTTPException(status_code=400, detail=f"Google auth error: {error}")
@@ -219,7 +298,7 @@ async def google_callback(
     try:
         google_user = await google_exchange_code(code, code_verifier=code_verifier or None)
     except (ValueError, Exception) as exc:
-        _logger.error("Google token exchange failed: %s", exc)
+        logger.error("Google token exchange failed: %s", exc)
         error_msg = str(exc)[:200]
         if cli_redirect:
             return RedirectResponse(url=f"{cli_redirect}?error={error_msg}")
@@ -234,7 +313,7 @@ async def google_callback(
         "tenant": user.tenant_id,
     }
 
-    _logger.info("Auth success: email=%s tenant=%s", user.email, user.tenant_id)
+    logger.info("Auth success: email=%s tenant=%s", user.email, user.tenant_id)
 
     if cli_redirect:
         # Redirect browser to CLI's localhost with tokens
@@ -307,13 +386,13 @@ async def request_device_code() -> DeviceCodeResponse:
     user_code = secrets.token_hex(3).upper()
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
 
-    _device_codes[device_code] = {
+    await _set_device_code(device_code, {
         "user_code": user_code,
-        "expires_at": expires_at,
+        "expires_at": expires_at.isoformat(),
         "user_id": None,
         "tenant_id": None,
         "completed": False,
-    }
+    })
 
     return DeviceCodeResponse(
         device_code=device_code,
@@ -327,15 +406,26 @@ async def request_device_code() -> DeviceCodeResponse:
 @router.post("/device/token", response_model=TokenResponse)
 async def poll_device_token(
     body: DeviceTokenRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """Poll for device auth completion. Returns 428 while pending."""
-    entry = _device_codes.get(body.device_code)
+    # Rate limit to prevent brute-force of device codes
+    client_ip = request.client.host if request.client else "unknown"
+    if not await _check_device_token_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many requests. Try again later.",
+            headers={"Retry-After": str(_DEVICE_TOKEN_RATE_LIMIT_WINDOW)},
+        )
+
+    entry = await _get_device_code(body.device_code)
     if entry is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown device code")
 
-    if entry["expires_at"] < datetime.now(timezone.utc):
-        _device_codes.pop(body.device_code, None)
+    expires_at = datetime.fromisoformat(entry["expires_at"])
+    if expires_at < datetime.now(timezone.utc):
+        await _delete_device_code(body.device_code)
         raise HTTPException(status_code=status.HTTP_410_GONE, detail="Device code expired")
 
     if not entry["completed"]:
@@ -346,7 +436,7 @@ async def poll_device_token(
 
     user_result = await db.execute(select(User).where(User.id == entry["user_id"]))
     user = user_result.scalar_one()
-    _device_codes.pop(body.device_code, None)
+    await _delete_device_code(body.device_code)
 
     tokens = await generate_tokens(db, user)
     return TokenResponse(
