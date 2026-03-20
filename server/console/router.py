@@ -9,7 +9,7 @@ from typing import Optional
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -169,6 +169,15 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 # ---------------------------------------------------------------------------
 
 router = APIRouter(tags=["console"])
+
+_STATIC_DIR = Path(__file__).resolve().parent / "static"
+
+
+@router.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serve favicon.ico from console static assets."""
+    return FileResponse(_STATIC_DIR / "favicon.ico", media_type="image/x-icon")
+
 
 # Reverse map: COMPOSIO_APP_NAME → catalog_key (e.g. "GMAIL" → "gmail")
 _composio_to_catalog = {
