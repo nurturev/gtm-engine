@@ -398,28 +398,35 @@ async def tenant_dashboard(
     composio_key = settings.COMPOSIO_API_KEY
 
     # Check user_connections table for entity→email mapping + attribution
-    from server.connections.models import UserConnection
-    uc_result = await db.execute(
-        select(UserConnection).where(
-            UserConnection.tenant_id == tenant.id,
-            UserConnection.status == "active",
-        )
-    )
     entity_to_email: dict[str, str] = {}
-    for uc in uc_result.scalars().all():
-        connection_users.setdefault(uc.app_id, []).append(uc.user_email)
-        entity_to_email[uc.composio_entity_id] = uc.user_email
+    try:
+        from server.connections.models import UserConnection
+        uc_result = await db.execute(
+            select(UserConnection).where(
+                UserConnection.tenant_id == tenant.id,
+                UserConnection.status == "active",
+            )
+        )
+        for uc in uc_result.scalars().all():
+            connection_users.setdefault(uc.app_id, []).append(uc.user_email)
+            entity_to_email[uc.composio_entity_id] = uc.user_email
+    except Exception:
+        # user_connections table may not exist yet (migration 013)
+        await db.rollback()
 
     if composio_key:
         try:
             entity_ids_to_check: set[str] = set()
-            uc_entities_result = await db.execute(
-                select(UserConnection.composio_entity_id).where(
-                    UserConnection.tenant_id == tenant.id,
-                ).distinct()
-            )
-            for (eid,) in uc_entities_result.all():
-                entity_ids_to_check.add(eid)
+            try:
+                uc_entities_result = await db.execute(
+                    select(UserConnection.composio_entity_id).where(
+                        UserConnection.tenant_id == tenant.id,
+                    ).distinct()
+                )
+                for (eid,) in uc_entities_result.all():
+                    entity_ids_to_check.add(eid)
+            except Exception:
+                await db.rollback()
             entity_ids_to_check.add(f"nrev-{tenant.id}")
             entity_ids_to_check.add(f"nrv-{tenant.id}")
 
@@ -1191,39 +1198,47 @@ async def initiate_connection(
                 )
                 conn_id = data.get("id", "")
 
-                # Record user-connection mapping
+                # Record user-connection mapping (best-effort; table may not exist yet)
                 if current_user:
-                    from server.connections.models import UserConnection
-                    uc = UserConnection(
-                        tenant_id=tenant.id,
-                        user_id=current_user.id,
-                        user_email=current_user.email,
-                        app_id=body.app_id,
-                        composio_entity_id=entity_id,
-                        composio_account_id=conn_id,
-                        status="active",
-                    )
                     try:
-                        db.add(uc)
-                        await db.commit()
-                    except Exception:
-                        await db.rollback()
-                        # May already exist — update instead
-                        from sqlalchemy import update as sa_update
-                        await db.execute(
-                            sa_update(UserConnection)
-                            .where(
-                                UserConnection.tenant_id == tenant.id,
-                                UserConnection.user_id == current_user.id,
-                                UserConnection.app_id == body.app_id,
-                            )
-                            .values(
-                                composio_entity_id=entity_id,
-                                composio_account_id=conn_id,
-                                status="active",
-                            )
+                        from server.connections.models import UserConnection
+                        uc = UserConnection(
+                            tenant_id=tenant.id,
+                            user_id=current_user.id,
+                            user_email=current_user.email,
+                            app_id=body.app_id,
+                            composio_entity_id=entity_id,
+                            composio_account_id=conn_id,
+                            status="active",
                         )
-                        await db.commit()
+                        try:
+                            db.add(uc)
+                            await db.commit()
+                        except Exception:
+                            await db.rollback()
+                            # May already exist — update instead
+                            from sqlalchemy import update as sa_update
+                            await db.execute(
+                                sa_update(UserConnection)
+                                .where(
+                                    UserConnection.tenant_id == tenant.id,
+                                    UserConnection.user_id == current_user.id,
+                                    UserConnection.app_id == body.app_id,
+                                )
+                                .values(
+                                    composio_entity_id=entity_id,
+                                    composio_account_id=conn_id,
+                                    status="active",
+                                )
+                            )
+                            await db.commit()
+                    except Exception:
+                        # user_connections table may not exist (migration 013)
+                        logger.warning("Could not record user-connection mapping: %s", body.app_id)
+                        try:
+                            await db.rollback()
+                        except Exception:
+                            pass
 
                 if redirect_url:
                     return JSONResponse({
@@ -1291,21 +1306,23 @@ async def list_connections(
         return JSONResponse({"connections": [], "error": "Composio not configured"})
 
     # Collect all entity IDs to query (per-user + tenant + legacy)
-    from server.connections.models import UserConnection
-    uc_result = await db.execute(
-        select(UserConnection).where(
-            UserConnection.tenant_id == tenant.id,
-            UserConnection.status == "active",
-        )
-    )
-    user_connections = uc_result.scalars().all()
-
-    # Build entity → user_email mapping for attribution
     entity_to_email: dict[str, str] = {}
     entity_ids_to_check: set[str] = set()
-    for uc in user_connections:
-        entity_ids_to_check.add(uc.composio_entity_id)
-        entity_to_email[uc.composio_entity_id] = uc.user_email
+    try:
+        from server.connections.models import UserConnection
+        uc_result = await db.execute(
+            select(UserConnection).where(
+                UserConnection.tenant_id == tenant.id,
+                UserConnection.status == "active",
+            )
+        )
+        user_connections = uc_result.scalars().all()
+        for uc in user_connections:
+            entity_ids_to_check.add(uc.composio_entity_id)
+            entity_to_email[uc.composio_entity_id] = uc.user_email
+    except Exception:
+        # user_connections table may not exist yet (migration 013)
+        await db.rollback()
 
     # Always check tenant-level and legacy entity IDs
     entity_id = f"nrev-{tenant.id}"
