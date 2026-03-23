@@ -11,10 +11,10 @@ Over 60% of B2B software purchases are replacements, not greenfield. This is the
 - LinkedIn job descriptions revealing tech requirements
 - Website source code analysis (tracking pixels, scripts, integrations)
 
-**nrv approach:**
-- `nrv_google_search(query="[competitor] site:g2.com/products", tbs="year")`
-- `nrv_search_patterns(use_case="competitive_intelligence")` for platform-specific patterns
-- `nrv_enrich_company` for technographic data
+**nrev-lite approach:**
+- `nrev_google_search(query="[competitor] site:g2.com/products", tbs="year")`
+- `nrev_search_patterns(use_case="competitive_intelligence")` for platform-specific patterns
+- `nrev_enrich_company` for technographic data
 
 ## Step 2: Identify Dissatisfaction Signals
 

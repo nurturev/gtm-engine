@@ -8,7 +8,7 @@
 
 ## Goal
 
-Provision all AWS infrastructure needed for the nrv-api service. **RDS PostgreSQL is the only new resource to create.** ElastiCache Redis, EKS clusters, VPC/subnets, and NAT gateways are existing org infrastructure to reuse.
+Provision all AWS infrastructure needed for the nrev-lite-api service. **RDS PostgreSQL is the only new resource to create.** ElastiCache Redis, EKS clusters, VPC/subnets, and NAT gateways are existing org infrastructure to reuse.
 
 ---
 
@@ -35,17 +35,17 @@ Provision all AWS infrastructure needed for the nrv-api service. **RDS PostgreSQ
 ```bash
 # Staging (ap-south-1)
 aws ecr create-repository \
-  --repository-name nrv-api \
+  --repository-name nrev-lite-api \
   --region ap-south-1 \
   --image-scanning-configuration scanOnPush=true \
-  --tags Key=Service,Value=nrv-api Key=Environment,Value=staging
+  --tags Key=Service,Value=nrev-lite-api Key=Environment,Value=staging
 
 # Prod (us-east-1)
 aws ecr create-repository \
-  --repository-name nrv-api \
+  --repository-name nrev-lite-api \
   --region us-east-1 \
   --image-scanning-configuration scanOnPush=true \
-  --tags Key=Service,Value=nrv-api Key=Environment,Value=prod
+  --tags Key=Service,Value=nrev-lite-api Key=Environment,Value=prod
 ```
 
 - [ ] ECR repo created in ap-south-1 (staging)
@@ -55,7 +55,7 @@ aws ecr create-repository \
 
 #### Org Pattern Reference
 
-Workflow Studio uses Supabase-hosted PostgreSQL. nrv uses self-managed RDS with SQLAlchemy async. The RDS approach is different from org but necessary because nrv needs RLS (Row-Level Security) which requires direct PostgreSQL access, not a PostgREST proxy.
+Workflow Studio uses Supabase-hosted PostgreSQL. nrev-lite uses self-managed RDS with SQLAlchemy async. The RDS approach is different from org but necessary because nrev-lite needs RLS (Row-Level Security) which requires direct PostgreSQL access, not a PostgREST proxy.
 
 #### Staging (ap-south-1)
 
@@ -76,15 +76,15 @@ aws rds describe-db-subnet-groups \
   --output text
 # If none exists, create one using private subnets:
 # aws rds create-db-subnet-group \
-#   --db-subnet-group-name nrv-db-subnet-group \
-#   --db-subnet-group-description "nrv RDS subnet group" \
+#   --db-subnet-group-name nrev-lite-db-subnet-group \
+#   --db-subnet-group-description "nrev-lite RDS subnet group" \
 #   --subnet-ids <private-subnet-1> <private-subnet-2> \
 #   --region ap-south-1
 
 # 3. Create security group for RDS
 aws ec2 create-security-group \
-  --group-name nrv-rds-staging-sg \
-  --description "Security group for nrv RDS staging" \
+  --group-name nrev-lite-rds-staging-sg \
+  --description "Security group for nrev-lite RDS staging" \
   --vpc-id <vpc-id> \
   --region ap-south-1
 # Note the security group ID
@@ -112,7 +112,7 @@ aws ec2 authorize-security-group-ingress \
 
 # 5. Create the RDS instance
 aws rds create-db-instance \
-  --db-instance-identifier nrv-db-staging \
+  --db-instance-identifier nrev-lite-db-staging \
   --db-instance-class db.t3.micro \
   --engine postgres \
   --engine-version 15 \
@@ -120,7 +120,7 @@ aws rds create-db-instance \
   --master-user-password '<generate-strong-password>' \
   --allocated-storage 20 \
   --storage-type gp3 \
-  --db-name nrv \
+  --db-name nrev-lite \
   --vpc-security-group-ids <rds-sg-id> \
   --db-subnet-group-name <subnet-group-name> \
   --backup-retention-period 7 \
@@ -128,16 +128,16 @@ aws rds create-db-instance \
   --no-publicly-accessible \
   --storage-encrypted \
   --region ap-south-1 \
-  --tags Key=Environment,Value=staging Key=Service,Value=nrv-api
+  --tags Key=Environment,Value=staging Key=Service,Value=nrev-lite-api
 
 # 6. Wait for instance to be available (~5-10 min)
 aws rds wait db-instance-available \
-  --db-instance-identifier nrv-db-staging \
+  --db-instance-identifier nrev-lite-db-staging \
   --region ap-south-1
 
 # 7. Get the endpoint
 aws rds describe-db-instances \
-  --db-instance-identifier nrv-db-staging \
+  --db-instance-identifier nrev-lite-db-staging \
   --query 'DBInstances[0].Endpoint.Address' \
   --output text \
   --region ap-south-1
@@ -147,7 +147,7 @@ aws rds describe-db-instances \
 
 ```bash
 # Same steps as staging with these differences:
-# --db-instance-identifier nrv-db-prod
+# --db-instance-identifier nrev-lite-db-prod
 # --db-instance-class db.t3.small (larger)
 # --allocated-storage 50 (larger)
 # --multi-az (high availability)
@@ -156,7 +156,7 @@ aws rds describe-db-instances \
 # Tags: Key=Environment,Value=prod
 
 aws rds create-db-instance \
-  --db-instance-identifier nrv-db-prod \
+  --db-instance-identifier nrev-lite-db-prod \
   --db-instance-class db.t3.small \
   --engine postgres \
   --engine-version 15 \
@@ -164,7 +164,7 @@ aws rds create-db-instance \
   --master-user-password '<generate-strong-password>' \
   --allocated-storage 50 \
   --storage-type gp3 \
-  --db-name nrv \
+  --db-name nrev-lite \
   --vpc-security-group-ids <prod-rds-sg-id> \
   --db-subnet-group-name <prod-subnet-group-name> \
   --backup-retention-period 14 \
@@ -172,54 +172,54 @@ aws rds create-db-instance \
   --no-publicly-accessible \
   --storage-encrypted \
   --region us-east-1 \
-  --tags Key=Environment,Value=prod Key=Service,Value=nrv-api
+  --tags Key=Environment,Value=prod Key=Service,Value=nrev-lite-api
 ```
 
 #### Database Initialization
 
 ```bash
 # Connect (may need bastion/port-forward if not publicly accessible)
-psql -h <rds-staging-endpoint> -U postgres -d nrv
+psql -h <rds-staging-endpoint> -U postgres -d nrev_lite
 
 # Create application role
-CREATE ROLE nrv_api WITH LOGIN PASSWORD '<strong-password>';
+CREATE ROLE nrev_lite_api WITH LOGIN PASSWORD '<strong-password>';
 
 # Apply migration tracking
-psql -h <rds-endpoint> -U postgres -d nrv -f migrations/000_schema_migrations.sql
+psql -h <rds-endpoint> -U postgres -d nrev-lite -f migrations/000_schema_migrations.sql
 
 # Apply all migrations
 for f in migrations/00[1-8]_*.sql; do
   echo "Applying $f..."
-  psql -h <rds-endpoint> -U postgres -d nrv -f "$f"
+  psql -h <rds-endpoint> -U postgres -d nrev-lite -f "$f"
 done
 
 # Record applied migrations
-psql -h <rds-endpoint> -U postgres -d nrv -f migrations/000_schema_migrations.sql
+psql -h <rds-endpoint> -U postgres -d nrev-lite -f migrations/000_schema_migrations.sql
 
 # Verify RLS
-psql -h <rds-endpoint> -U postgres -d nrv -c "SET ROLE nrv_api; SET app.current_tenant = 'test'; SELECT count(*) FROM contacts; RESET ROLE;"
+psql -h <rds-endpoint> -U postgres -d nrev-lite -c "SET ROLE nrev_lite_api; SET app.current_tenant = 'test'; SELECT count(*) FROM contacts; RESET ROLE;"
 ```
 
 - [ ] RDS instance created (staging)
 - [ ] RDS instance created (prod)
 - [ ] Security group allows EKS pods → RDS (staging)
 - [ ] Security group allows EKS pods → RDS (prod)
-- [ ] Role `nrv_api` created with password (staging)
-- [ ] Role `nrv_api` created with password (prod)
+- [ ] Role `nrev_lite_api` created with password (staging)
+- [ ] Role `nrev_lite_api` created with password (prod)
 - [ ] All 8 migrations + 000_schema_migrations applied (staging)
 - [ ] All 8 migrations + 000_schema_migrations applied (prod)
 - [ ] RLS verified working (staging)
 
 ### 3. ElastiCache Redis (EXISTING — reuse)
 
-nrv reuses existing org ElastiCache clusters. No new infrastructure to create.
+nrev-lite reuses existing org ElastiCache clusters. No new infrastructure to create.
 
 | Environment | Existing Endpoint | Source |
 |-------------|-------------------|--------|
 | Staging | `staging-cache-sooatg.serverless.aps1.cache.amazonaws.com:6379` | From `helm-charts/user-management-ws/values-staging.yaml` |
 | Prod | `prod-cache-msnit6.serverless.use1.cache.amazonaws.com:6379` | From `helm-charts/user-management-ws/values-prod.yaml` |
 
-**Org Pattern Reference:** Workflow Studio connects using separate `REDIS_HOST` + `REDIS_PORT` with SSL enabled. nrv uses `REDIS_URL` (`rediss://` for TLS). Both connect to the same ElastiCache clusters.
+**Org Pattern Reference:** Workflow Studio connects using separate `REDIS_HOST` + `REDIS_PORT` with SSL enabled. nrev-lite uses `REDIS_URL` (`rediss://` for TLS). Both connect to the same ElastiCache clusters.
 
 Connectivity should already work since other services in the same EKS cluster use these clusters. Verify:
 
@@ -237,14 +237,14 @@ kubectl exec -it <any-pod> -n staging -- \
 
 Follow org DNS convention: `{service}.public.{env}.nurturev.com`
 
-- [ ] `nrv-api.public.staging.nurturev.com` → staging EKS nginx ingress load balancer
-- [ ] `nrv-api.public.prod.nurturev.com` → prod EKS nginx ingress load balancer
+- [ ] `nrev-lite-api.public.staging.nurturev.com` → staging EKS nginx ingress load balancer
+- [ ] `nrev-lite-api.public.prod.nurturev.com` → prod EKS nginx ingress load balancer
 
 ### 5. Google OAuth
 
 - [ ] Google Cloud project has OAuth 2.0 Web Application credentials
-- [ ] Redirect URI whitelisted: `https://nrv-api.public.staging.nurturev.com/api/v1/auth/callback`
-- [ ] Redirect URI whitelisted: `https://nrv-api.public.prod.nurturev.com/api/v1/auth/callback`
+- [ ] Redirect URI whitelisted: `https://nrev-lite-api.public.staging.nurturev.com/api/v1/auth/callback`
+- [ ] Redirect URI whitelisted: `https://nrev-lite-api.public.prod.nurturev.com/api/v1/auth/callback`
 - [ ] Redirect URI whitelisted: `http://localhost:8000/api/v1/auth/callback` (dev)
 - [ ] OAuth consent screen configured: scopes `email`, `profile`, `openid`
 
@@ -252,7 +252,7 @@ Follow org DNS convention: `{service}.public.{env}.nurturev.com`
 
 Org pattern: ServiceAccount annotated with `eks.amazonaws.com/role-arn`. See: `helm-charts/user-management-ws/values-staging.yaml` → `iamrole` field.
 
-nrv needs KMS access for BYOK key encryption (Fernet in dev, KMS in prod).
+nrev-lite needs KMS access for BYOK key encryption (Fernet in dev, KMS in prod).
 
 ```bash
 # Create IAM role with trust policy for EKS OIDC
@@ -260,30 +260,30 @@ nrv needs KMS access for BYOK key encryption (Fernet in dev, KMS in prod).
 aws eks describe-cluster --name staging-eks --query 'cluster.identity.oidc.issuer' --output text --region ap-south-1
 
 # Create role (use console or CloudFormation — trust policy needs OIDC provider ARN)
-# Attach policy: Allow kms:Encrypt, kms:Decrypt on alias/nrv-tenant-keys
+# Attach policy: Allow kms:Encrypt, kms:Decrypt on alias/nrev-lite-tenant-keys
 ```
 
-- [ ] IAM role `nrv-api-staging-role` created with KMS permissions
-- [ ] IAM role `nrv-api-prod-role` created with KMS permissions
+- [ ] IAM role `nrev-lite-api-staging-role` created with KMS permissions
+- [ ] IAM role `nrev-lite-api-prod-role` created with KMS permissions
 - [ ] Trust policy configured for EKS OIDC provider
 
 ### 7. Kubernetes Secrets
 
 Follows org pattern: `{appName}-secret` via `kubectl apply -f`. Secret YAML never committed to git.
 
-Create `nrv-api-secret-staging.yaml`:
+Create `nrev-lite-api-secret-staging.yaml`:
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: nrv-api-secret
+  name: nrev-lite-api-secret
   namespace: staging
 type: Opaque
 stringData:
   JWT_SECRET_KEY: "<generate: python3 -c 'import secrets; print(secrets.token_urlsafe(48))'>"
   GOOGLE_CLIENT_SECRET: "<from Google Cloud Console>"
-  DATABASE_URL: "postgresql+asyncpg://nrv_api:<password>@<rds-staging-endpoint>:5432/nrv"
+  DATABASE_URL: "postgresql+asyncpg://nrev_lite_api:<password>@<rds-staging-endpoint>:5432/nrv"
   APOLLO_API_KEY: "<from Apollo.io>"
   ROCKETREACH_API_KEY: "<from RocketReach>"
   X_RAPIDAPI_KEY: "<from RapidAPI>"
@@ -295,8 +295,8 @@ stringData:
 **Note:** `DATABASE_URL` is in the secret because it contains the DB password. In V2, when aligning with org pattern (separate `POSTGRES_*` vars), only `POSTGRES_PASSWORD` will be in the secret.
 
 ```bash
-kubectl apply -f nrv-api-secret-staging.yaml -n staging
-kubectl apply -f nrv-api-secret-prod.yaml -n prod
+kubectl apply -f nrev-lite-api-secret-staging.yaml -n staging
+kubectl apply -f nrev-lite-api-secret-prod.yaml -n prod
 ```
 
 - [ ] Secret manifest created (staging) — stored securely, NOT in git
@@ -322,4 +322,4 @@ kubectl apply -f nrv-api-secret-prod.yaml -n prod
 - Provider API keys (Apollo, RocketReach, etc.) are optional — the service starts without them
 - Prod infrastructure can be provisioned after staging is verified working
 - RDS backup and recovery is managed by AWS — configured via `--backup-retention-period`
-- ElastiCache is shared infrastructure — be careful with key namespacing to avoid collisions (nrv uses `cache:exec:`, `ratelimit:`, `auth:` prefixes)
+- ElastiCache is shared infrastructure — be careful with key namespacing to avoid collisions (nrev-lite uses `cache:exec:`, `ratelimit:`, `auth:` prefixes)

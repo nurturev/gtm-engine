@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.auth.models import Tenant
+from server.auth.models import Tenant, User
 from server.billing.models import CreditBalance, CreditLedger
 from server.core.config import settings
 from server.core.database import get_db, set_tenant_context
@@ -191,7 +191,7 @@ _composio_to_catalog = {
 # ---------------------------------------------------------------------------
 
 
-_COOKIE_NAME = "nrv_session"
+_COOKIE_NAME = "nrev_session"
 _LOGIN_URL = "/api/v1/auth/login"
 
 
@@ -204,8 +204,11 @@ async def _authenticate_console(
     token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     allow_redirect: bool = True,
-) -> tuple[Tenant, AsyncSession]:
+) -> tuple[Tenant, "User | None", AsyncSession]:
     """Authenticate via cookie, query param, or Authorization header.
+
+    Returns (Tenant, User | None, AsyncSession).  The User is resolved
+    from the JWT ``sub`` claim when available.
 
     For browser page requests (allow_redirect=True), redirects to the
     login page instead of returning raw JSON errors.
@@ -265,8 +268,15 @@ async def _authenticate_console(
             detail="Tenant not found",
         )
 
+    # Resolve the User from JWT sub claim
+    user: User | None = None
+    user_id = payload.get("sub")
+    if user_id:
+        user_result = await db.execute(select(User).where(User.id == user_id))
+        user = user_result.scalar_one_or_none()
+
     await set_tenant_context(db, tenant.id)
-    return tenant, db
+    return tenant, user, db
 
 
 # ---------------------------------------------------------------------------
@@ -298,14 +308,14 @@ async def console_root(request: Request):
 async def tenant_dashboard(
     request: Request,
     tenant_id: str,
-    tab: str = Query("keys", pattern="^(keys|connections|usage|runs|datasets|dashboards)$"),
+    tab: str = Query("keys", pattern="^(keys|connections|usage|runs|datasets|dashboards|team)$"),
     token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Serve the tenant console dashboard."""
 
     try:
-        tenant, db = await _authenticate_console(request, token=token, db=db, allow_redirect=True)
+        tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=True)
     except _AuthFailRedirect:
         response = RedirectResponse(url=_LOGIN_URL, status_code=302)
         response.delete_cookie(_COOKIE_NAME, path="/")
@@ -383,35 +393,94 @@ async def tenant_dashboard(
     # ------------------------------------------------------------------
 
     active_connections: dict[str, str] = {}  # catalog_key → status
+    connection_users: dict[str, list[str]] = {}  # catalog_key → [user_emails]
+    connection_accounts: dict[str, list[dict]] = {}  # catalog_key → [{connection_id, email, entity_id, status}]
     composio_key = settings.COMPOSIO_API_KEY
+
+    # Check user_connections table for entity→email mapping + attribution
+    from server.connections.models import UserConnection
+    uc_result = await db.execute(
+        select(UserConnection).where(
+            UserConnection.tenant_id == tenant.id,
+            UserConnection.status == "active",
+        )
+    )
+    entity_to_email: dict[str, str] = {}
+    for uc in uc_result.scalars().all():
+        connection_users.setdefault(uc.app_id, []).append(uc.user_email)
+        entity_to_email[uc.composio_entity_id] = uc.user_email
+
     if composio_key:
         try:
-            entity_id = f"nrv-{tenant.id}"
+            entity_ids_to_check: set[str] = set()
+            uc_entities_result = await db.execute(
+                select(UserConnection.composio_entity_id).where(
+                    UserConnection.tenant_id == tenant.id,
+                ).distinct()
+            )
+            for (eid,) in uc_entities_result.all():
+                entity_ids_to_check.add(eid)
+            entity_ids_to_check.add(f"nrev-{tenant.id}")
+            entity_ids_to_check.add(f"nrv-{tenant.id}")
+
+            seen_account_ids: set[str] = set()
             async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.get(
-                    f"{COMPOSIO_V3}/connected_accounts",
-                    headers={"x-api-key": composio_key},
-                    params={"entityId": entity_id},
-                )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    items = data.get("items", []) if isinstance(data, dict) else data
-                    for item in items:
-                        # Composio v3 uses toolkit.slug for app identity
-                        toolkit_slug = (item.get("toolkit") or {}).get("slug", "")
-                        catalog_key = _composio_to_catalog.get(
-                            toolkit_slug.upper(), toolkit_slug,
+                for check_eid in entity_ids_to_check:
+                    try:
+                        resp = await client.get(
+                            f"{COMPOSIO_V3}/connected_accounts",
+                            headers={"x-api-key": composio_key},
+                            params={"entityId": check_eid},
                         )
-                        s = item.get("status", "").upper()
-                        # Skip expired/failed connections entirely
-                        if s in ("EXPIRED", "FAILED", "REVOKED"):
+                        if resp.status_code != 200:
                             continue
-                        if s == "ACTIVE":
-                            active_connections[catalog_key] = "active"
-                        elif s in ("INITIATED", "PENDING"):
-                            # Don't downgrade an already-active connection
-                            if active_connections.get(catalog_key) != "active":
-                                active_connections[catalog_key] = "initiated"
+                        data = resp.json()
+                        items = data.get("items", []) if isinstance(data, dict) else data
+                        for item in items:
+                            acct_id = item.get("id", "")
+                            if acct_id in seen_account_ids:
+                                continue
+                            seen_account_ids.add(acct_id)
+
+                            toolkit_slug = (item.get("toolkit") or {}).get("slug", "")
+                            catalog_key = _composio_to_catalog.get(
+                                toolkit_slug.upper(), toolkit_slug,
+                            )
+                            s = item.get("status", "").upper()
+                            if s in ("EXPIRED", "FAILED", "REVOKED"):
+                                continue
+                            if s == "ACTIVE":
+                                active_connections[catalog_key] = "active"
+                            elif s in ("INITIATED", "PENDING"):
+                                if active_connections.get(catalog_key) != "active":
+                                    active_connections[catalog_key] = "initiated"
+
+                            # Track per-account details for drawer
+                            # Try multiple entity ID sources for email lookup:
+                            # check_eid is the query param, item may have a
+                            # different entityId; also check nrev-/nrv- variants.
+                            item_eid = item.get("entityId", "")
+                            acct_email = (
+                                entity_to_email.get(check_eid, "")
+                                or entity_to_email.get(item_eid, "")
+                            )
+                            # Fallback: try nrev-/nrv- prefix swap
+                            if not acct_email:
+                                for eid_variant in (check_eid, item_eid):
+                                    if eid_variant.startswith("nrv-"):
+                                        acct_email = entity_to_email.get("nrev-" + eid_variant[4:], "")
+                                    elif eid_variant.startswith("nrev-"):
+                                        acct_email = entity_to_email.get("nrv-" + eid_variant[5:], "")
+                                    if acct_email:
+                                        break
+                            connection_accounts.setdefault(catalog_key, []).append({
+                                "connection_id": acct_id,
+                                "email": acct_email,
+                                "entity_id": check_eid,
+                                "status": s,
+                            })
+                    except Exception:
+                        continue
         except Exception:
             logger.warning("Failed to fetch Composio connections for %s", tenant.id)
 
@@ -436,6 +505,8 @@ async def tenant_dashboard(
             "description": info["description"],
             "status": conn_status,
             "total_calls": 0,
+            "connected_by": connection_users.get(app_id, []),
+            "accounts": connection_accounts.get(app_id, []),
         })
         if conn_status == "active":
             conn_active += 1
@@ -460,9 +531,9 @@ async def tenant_dashboard(
         select(CreditLedger)
         .where(CreditLedger.tenant_id == tenant.id)
         .order_by(CreditLedger.created_at.desc())
-        .limit(50)
+        .limit(200)
     )
-    ledger_entries = ledger_result.scalars().all()
+    raw_ledger = ledger_result.scalars().all()
 
     usage = {
         "total_calls": 0,
@@ -473,7 +544,7 @@ async def tenant_dashboard(
 
     # Build vault_usage from ledger grouped by operation (provider)
     vault_usage: dict = {}
-    for entry in ledger_entries:
+    for entry in raw_ledger:
         prov = entry.operation or "unknown"
         if prov not in vault_usage:
             vault_usage[prov] = {"platform_calls": 0, "byok_calls": 0, "total": 0}
@@ -481,6 +552,75 @@ async def tenant_dashboard(
             vault_usage[prov]["platform_calls"] += 1
             vault_usage[prov]["total"] += 1
             usage["total_calls"] += 1
+
+    # Group ledger entries by workflow for cleaner display
+    # Only show holds and credits at the summary level; debits/releases are internal
+    ledger_groups: list[dict] = []
+    _wf_groups: dict[str, dict] = {}
+    ungrouped: list = []
+    for entry in raw_ledger:
+        wf_id = getattr(entry, "workflow_id", None)
+        if wf_id and entry.entry_type in ("hold", "debit"):
+            if wf_id not in _wf_groups:
+                _wf_groups[wf_id] = {
+                    "workflow_id": wf_id,
+                    "operations": {},
+                    "total_credits": 0.0,
+                    "entry_count": 0,
+                    "first_at": entry.created_at,
+                    "last_at": entry.created_at,
+                    "balance_after": float(entry.balance_after),
+                }
+            g = _wf_groups[wf_id]
+            # Only count holds to avoid double-counting (hold + debit = same op)
+            if entry.entry_type == "hold":
+                op = entry.operation or "unknown"
+                g["operations"][op] = g["operations"].get(op, 0) + 1
+                g["total_credits"] += float(entry.amount)
+                g["entry_count"] += 1
+            if entry.created_at < g["first_at"]:
+                g["first_at"] = entry.created_at
+            if entry.created_at > g["last_at"]:
+                g["last_at"] = entry.created_at
+            g["balance_after"] = min(g["balance_after"], float(entry.balance_after))
+        elif entry.entry_type == "credit":
+            ungrouped.append(entry)
+        elif entry.entry_type == "debit" and not wf_id:
+            # Debit without workflow_id — show as individual confirmed charge
+            ungrouped.append(entry)
+
+    # Build sorted list: workflow groups + credit top-ups, newest first
+    for g in _wf_groups.values():
+        ops_str = ", ".join(f"{op} x{cnt}" for op, cnt in g["operations"].items())
+        ledger_groups.append({
+            "type": "workflow",
+            "date": g["last_at"],
+            "operations": ops_str,
+            "total_credits": g["total_credits"],
+            "entry_count": g["entry_count"],
+            "balance_after": g["balance_after"],
+            "workflow_id": g["workflow_id"],
+        })
+    for entry in ungrouped:
+        if entry.entry_type == "credit":
+            grp_type = "credit"
+            ops_label = entry.operation or "top-up"
+        else:
+            grp_type = "operation"
+            ops_label = entry.operation or "unknown"
+        ledger_groups.append({
+            "type": grp_type,
+            "date": entry.created_at,
+            "operations": ops_label,
+            "total_credits": float(entry.amount),
+            "entry_count": 1,
+            "balance_after": float(entry.balance_after),
+            "workflow_id": None,
+        })
+    ledger_groups.sort(key=lambda x: x["date"], reverse=True)
+    ledger_groups = ledger_groups[:30]
+    # Keep raw entries for backward compatibility
+    ledger_entries = raw_ledger[:50]
 
     conn_usage = {"total_calls": 0, "breakdown": {}}
 
@@ -639,6 +779,90 @@ async def tenant_dashboard(
     }
 
     # ------------------------------------------------------------------
+    # Team tab data — list all users in the tenant
+    # ------------------------------------------------------------------
+    team_result = await db.execute(
+        select(User)
+        .where(User.tenant_id == tenant.id)
+        .order_by(User.created_at)
+    )
+    team_members = [
+        {
+            "id": u.id,
+            "email": u.email,
+            "name": u.name or u.email.split("@")[0],
+            "avatar_url": u.avatar_url,
+            "role": u.role or "member",
+            "created_at": u.created_at,
+        }
+        for u in team_result.scalars().all()
+    ]
+
+    # ------------------------------------------------------------------
+    # Runs tab — add user attribution per workflow
+    # ------------------------------------------------------------------
+    # Get the user_id from the first step of each workflow for attribution
+    workflow_user_ids = set()
+    wf_user_map: dict[str, str | None] = {}
+    if workflows:
+        wf_ids = [w["workflow_id"] for w in workflows]
+        from sqlalchemy import distinct
+        wf_user_result = await db.execute(
+            select(RunStep.workflow_id, RunStep.user_id)
+            .where(RunStep.tenant_id == tenant.id, RunStep.workflow_id.in_(wf_ids))
+            .distinct(RunStep.workflow_id)
+            .order_by(RunStep.workflow_id, RunStep.created_at)
+        )
+        for row in wf_user_result.all():
+            wf_user_map[row.workflow_id] = row.user_id
+            if row.user_id:
+                workflow_user_ids.add(row.user_id)
+
+    # Resolve user emails for attribution
+    user_email_map: dict[str, str] = {}
+    if workflow_user_ids:
+        ue_result = await db.execute(
+            select(User.id, User.email, User.name)
+            .where(User.id.in_(list(workflow_user_ids)))
+        )
+        for row in ue_result.all():
+            user_email_map[row.id] = row.email
+
+    # Attach user info to workflows
+    for wf in workflows:
+        uid = wf_user_map.get(wf["workflow_id"])
+        wf["user_email"] = user_email_map.get(uid, "") if uid else ""
+
+    # Usage tab — add user attribution to ledger groups
+    ledger_user_ids = set()
+    for entry in raw_ledger:
+        uid = getattr(entry, "user_id", None)
+        if uid:
+            ledger_user_ids.add(uid)
+    if ledger_user_ids - workflow_user_ids:
+        lu_result = await db.execute(
+            select(User.id, User.email)
+            .where(User.id.in_(list(ledger_user_ids - workflow_user_ids)))
+        )
+        for row in lu_result.all():
+            user_email_map[row.id] = row.email
+
+    # Rebuild ledger_groups with user attribution
+    # The workflow groups need user info from the first hold entry
+    wf_group_users: dict[str, str] = {}
+    for entry in raw_ledger:
+        wf_id = getattr(entry, "workflow_id", None)
+        uid = getattr(entry, "user_id", None)
+        if wf_id and uid and wf_id not in wf_group_users:
+            wf_group_users[wf_id] = user_email_map.get(uid, "")
+    for lg in ledger_groups:
+        wf_id = lg.get("workflow_id")
+        if wf_id:
+            lg["user_email"] = wf_group_users.get(wf_id, "")
+        else:
+            lg["user_email"] = ""
+
+    # ------------------------------------------------------------------
     # Render
     # ------------------------------------------------------------------
     return templates.TemplateResponse(
@@ -659,6 +883,7 @@ async def tenant_dashboard(
             "usage": usage,
             "vault_usage": vault_usage,
             "ledger_entries": ledger_entries,
+            "ledger_groups": ledger_groups,
             "workflows": workflows,
             "runs_summary": runs_summary,
             "datasets": datasets_list,
@@ -666,6 +891,14 @@ async def tenant_dashboard(
             "scheduled_workflows": scheduled_workflows_list,
             "dashboards": dashboards_list,
             "dashboards_summary": dashboards_summary,
+            "team_members": team_members,
+            "current_user": {
+                "id": current_user.id,
+                "email": current_user.email,
+                "name": current_user.name,
+                "avatar_url": current_user.avatar_url,
+                "role": current_user.role,
+            } if current_user else None,
         },
     )
 
@@ -681,7 +914,7 @@ async def view_dashboard(
 ):
     """Render a dashboard view (authenticated)."""
     try:
-        tenant, db = await _authenticate_console(request, token=token, db=db, allow_redirect=True)
+        tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=True)
     except _AuthFailRedirect:
         return RedirectResponse(url=_LOGIN_URL, status_code=302)
 
@@ -797,7 +1030,7 @@ _OAUTH_CALLBACK_HTML = Template("""\
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Connection $status_title — nrv</title>
+<title>Connection $status_title — nrev-lite</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -888,7 +1121,7 @@ async def initiate_connection(
     2. Create a connected_account with the auth_config + entity
     3. Return the redirect URL for OAuth authorization
     """
-    tenant, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
+    tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
 
     composio_key = settings.COMPOSIO_API_KEY
     if not composio_key:
@@ -897,7 +1130,11 @@ async def initiate_connection(
             detail="Composio integration not configured. Set COMPOSIO_API_KEY.",
         )
 
-    entity_id = f"nrv-{tenant.id}"
+    # Per-user entity_id for multi-account support; fall back to tenant-level
+    if current_user:
+        entity_id = f"nrev-u-{current_user.id}"
+    else:
+        entity_id = f"nrev-{tenant.id}"
 
     # Resolve the Composio app name (uppercase) from catalog
     catalog_entry = INTEGRATION_CATALOG.get(body.app_id)
@@ -953,6 +1190,41 @@ async def initiate_connection(
                         .get("val", {}).get("redirectUrl"))
                 )
                 conn_id = data.get("id", "")
+
+                # Record user-connection mapping
+                if current_user:
+                    from server.connections.models import UserConnection
+                    uc = UserConnection(
+                        tenant_id=tenant.id,
+                        user_id=current_user.id,
+                        user_email=current_user.email,
+                        app_id=body.app_id,
+                        composio_entity_id=entity_id,
+                        composio_account_id=conn_id,
+                        status="active",
+                    )
+                    try:
+                        db.add(uc)
+                        await db.commit()
+                    except Exception:
+                        await db.rollback()
+                        # May already exist — update instead
+                        from sqlalchemy import update as sa_update
+                        await db.execute(
+                            sa_update(UserConnection)
+                            .where(
+                                UserConnection.tenant_id == tenant.id,
+                                UserConnection.user_id == current_user.id,
+                                UserConnection.app_id == body.app_id,
+                            )
+                            .values(
+                                composio_entity_id=entity_id,
+                                composio_account_id=conn_id,
+                                status="active",
+                            )
+                        )
+                        await db.commit()
+
                 if redirect_url:
                     return JSONResponse({
                         "status": "redirect",
@@ -1012,51 +1284,87 @@ async def list_connections(
     db: AsyncSession = Depends(get_db),
 ):
     """List all active Composio connections for this tenant."""
-    tenant, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
+    tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
 
     composio_key = settings.COMPOSIO_API_KEY
     if not composio_key:
         return JSONResponse({"connections": [], "error": "Composio not configured"})
 
-    entity_id = f"nrv-{tenant.id}"
+    # Collect all entity IDs to query (per-user + tenant + legacy)
+    from server.connections.models import UserConnection
+    uc_result = await db.execute(
+        select(UserConnection).where(
+            UserConnection.tenant_id == tenant.id,
+            UserConnection.status == "active",
+        )
+    )
+    user_connections = uc_result.scalars().all()
+
+    # Build entity → user_email mapping for attribution
+    entity_to_email: dict[str, str] = {}
+    entity_ids_to_check: set[str] = set()
+    for uc in user_connections:
+        entity_ids_to_check.add(uc.composio_entity_id)
+        entity_to_email[uc.composio_entity_id] = uc.user_email
+
+    # Always check tenant-level and legacy entity IDs
+    entity_id = f"nrev-{tenant.id}"
+    legacy_entity_id = f"nrv-{tenant.id}"
+    entity_ids_to_check.add(entity_id)
+    entity_ids_to_check.add(legacy_entity_id)
+    valid_entity_ids = entity_ids_to_check
 
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(
-                f"{COMPOSIO_V3}/connected_accounts",
-                headers={"x-api-key": composio_key},
-                params={"entityId": entity_id},
-            )
-
-            if resp.status_code == 200:
-                data = resp.json()
-                items = data.get("items", []) if isinstance(data, dict) else data
-                connections = []
-                seen_active: set[str] = set()
-                for item in items:
-                    s = (item.get("status") or "").upper()
-                    # Skip stale connections — only return ACTIVE ones
-                    if s in ("EXPIRED", "FAILED", "REVOKED"):
-                        continue
-                    toolkit_slug = (item.get("toolkit") or {}).get("slug", "")
-                    catalog_key = _composio_to_catalog.get(
-                        toolkit_slug.upper(), toolkit_slug,
+            all_items: list[dict] = []
+            for eid in entity_ids_to_check:
+                try:
+                    resp = await client.get(
+                        f"{COMPOSIO_V3}/connected_accounts",
+                        headers={"x-api-key": composio_key},
+                        params={"entityId": eid},
                     )
-                    # Deduplicate: only keep one ACTIVE entry per app
-                    if s == "ACTIVE":
-                        if catalog_key in seen_active:
+                    if resp.status_code != 200:
+                        continue
+                    data = resp.json()
+                    items = data.get("items", []) if isinstance(data, dict) else data
+                    for item in items:
+                        item_entity = item.get("entityId") or (item.get("entity") or {}).get("id", "")
+                        if item_entity and item_entity not in valid_entity_ids:
                             continue
-                        seen_active.add(catalog_key)
-                    connections.append({
-                        "id": item.get("id"),
-                        "app_id": catalog_key,
-                        "toolkit_slug": toolkit_slug,
-                        "status": s,
-                        "created_at": item.get("created_at", ""),
-                    })
-                return JSONResponse({"connections": connections})
-            else:
-                return JSONResponse({"connections": [], "error": resp.text[:200]})
+                        item["_entity_id"] = item_entity or eid
+                        all_items.append(item)
+                except Exception:
+                    continue
+
+            connections = []
+            seen: set[str] = set()  # dedup by composio account id
+            for item in all_items:
+                acct_id = item.get("id", "")
+                if acct_id in seen:
+                    continue
+                seen.add(acct_id)
+
+                s = (item.get("status") or "").upper()
+                if s in ("EXPIRED", "FAILED", "REVOKED"):
+                    continue
+                toolkit_slug = (item.get("toolkit") or {}).get("slug", "")
+                catalog_key = _composio_to_catalog.get(
+                    toolkit_slug.upper(), toolkit_slug,
+                )
+                item_eid = item.get("_entity_id", "")
+                connected_by = entity_to_email.get(item_eid)
+
+                connections.append({
+                    "id": acct_id,
+                    "app_id": catalog_key,
+                    "toolkit_slug": toolkit_slug,
+                    "status": s,
+                    "created_at": item.get("created_at", ""),
+                    "connected_by": connected_by,
+                    "entity_id": item_eid,
+                })
+            return JSONResponse({"connections": connections})
     except httpx.HTTPError as exc:
         return JSONResponse({"connections": [], "error": str(exc)})
 
@@ -1069,7 +1377,7 @@ async def delete_connection(
     db: AsyncSession = Depends(get_db),
 ):
     """Disconnect a Composio connection."""
-    tenant, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
+    tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
 
     composio_key = settings.COMPOSIO_API_KEY
     if not composio_key:
@@ -1123,7 +1431,7 @@ async def list_actions(
 
     Returns action names, display names, and descriptions from Composio.
     """
-    tenant, db = await _authenticate_console(
+    tenant, current_user, db = await _authenticate_console(
         request, token=token, db=db, allow_redirect=False,
     )
 
@@ -1181,7 +1489,7 @@ async def get_action_schema(
 
     Returns parameter names, types, descriptions, and required flags.
     """
-    tenant, db = await _authenticate_console(
+    tenant, current_user, db = await _authenticate_console(
         request, token=token, db=db, allow_redirect=False,
     )
 
@@ -1242,24 +1550,61 @@ async def get_action_schema(
 
 
 async def _find_connected_account(
-    client: httpx.AsyncClient, composio_key: str, entity_id: str, app_slug: str,
+    client: httpx.AsyncClient,
+    composio_key: str,
+    entity_id: str,
+    app_slug: str,
+    user_id: str | None = None,
+    tenant_id: str | None = None,
 ) -> dict | None:
-    """Find the ACTIVE connected account for an app and return id + v2 UUID."""
-    resp = await client.get(
-        f"{COMPOSIO_V3}/connected_accounts",
-        headers={"x-api-key": composio_key},
-        params={"entityId": entity_id},
-    )
-    if resp.status_code != 200:
-        return None
-    items = resp.json().get("items", [])
-    for item in items:
-        toolkit_slug = (item.get("toolkit") or {}).get("slug", "")
-        if toolkit_slug.lower() == app_slug.lower() and item.get("status") == "ACTIVE":
-            return {
-                "id": item["id"],
-                "v2_uuid": (item.get("deprecated") or {}).get("uuid"),
-            }
+    """Find the ACTIVE connected account for an app and return id + v2 UUID.
+
+    Priority order:
+    1. Current user's per-user entity (nrev-u-{user_id})
+    2. Tenant entity (nrev-{tenant_id})
+    3. Legacy tenant entity (nrv-{tenant_id})
+    """
+    # Build ordered list of entity IDs to check
+    entity_ids: list[str] = []
+
+    # Prefer the current user's per-user entity
+    if user_id:
+        entity_ids.append(f"nrev-u-{user_id}")
+
+    # Then the provided entity_id (may be tenant-level or per-user)
+    if entity_id not in entity_ids:
+        entity_ids.append(entity_id)
+
+    # Legacy tenant entity
+    if tenant_id:
+        tenant_eid = f"nrev-{tenant_id}"
+        if tenant_eid not in entity_ids:
+            entity_ids.append(tenant_eid)
+        legacy_eid = f"nrv-{tenant_id}"
+        if legacy_eid not in entity_ids:
+            entity_ids.append(legacy_eid)
+    elif entity_id.startswith("nrev-"):
+        legacy = "nrv-" + entity_id[5:]
+        if legacy not in entity_ids:
+            entity_ids.append(legacy)
+
+    for eid in entity_ids:
+        resp = await client.get(
+            f"{COMPOSIO_V3}/connected_accounts",
+            headers={"x-api-key": composio_key},
+            params={"entityId": eid},
+        )
+        if resp.status_code != 200:
+            continue
+        items = resp.json().get("items", [])
+        for item in items:
+            toolkit_slug = (item.get("toolkit") or {}).get("slug", "")
+            if toolkit_slug.lower() == app_slug.lower() and item.get("status") == "ACTIVE":
+                return {
+                    "id": item["id"],
+                    "v2_uuid": (item.get("deprecated") or {}).get("uuid"),
+                    "entity_id": eid,
+                }
     return None
 
 
@@ -1275,7 +1620,7 @@ async def execute_action(
     Resolves the connected account for the given app, bridges v3->v2 UUID,
     and executes the action via Composio v2 API.
     """
-    tenant, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
+    tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
 
     composio_key = settings.COMPOSIO_API_KEY
     if not composio_key:
@@ -1284,7 +1629,7 @@ async def execute_action(
             detail="Composio integration not configured.",
         )
 
-    entity_id = f"nrv-{tenant.id}"
+    entity_id = f"nrev-{tenant.id}"
 
     # Resolve the Composio toolkit slug from catalog
     catalog_entry = INTEGRATION_CATALOG.get(body.app_id)
@@ -1297,9 +1642,11 @@ async def execute_action(
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
-            # Find the active connected account
+            # Find the active connected account (prefer current user's)
             account = await _find_connected_account(
                 client, composio_key, entity_id, composio_app,
+                user_id=current_user.id if current_user else None,
+                tenant_id=tenant.id,
             )
             if not account:
                 raise HTTPException(

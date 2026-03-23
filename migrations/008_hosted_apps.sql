@@ -28,6 +28,6 @@ CREATE POLICY hosted_apps_tenant_isolation ON hosted_apps
     USING (tenant_id = current_setting('app.current_tenant', true));
 
 -- Grants
-GRANT SELECT, INSERT, UPDATE, DELETE ON hosted_apps TO nrv_api;
+GRANT SELECT, INSERT, UPDATE, DELETE ON hosted_apps TO nrev_lite_api;
 
 COMMIT;

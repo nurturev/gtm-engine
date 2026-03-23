@@ -120,10 +120,10 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: nrv-api
+  ECR_REPOSITORY: nrev-lite-api
   EKS_CLUSTER: staging-eks
   K8S_NAMESPACE: staging
-  HELM_CHART_PATH: ../helm-charts/nrv-api
+  HELM_CHART_PATH: ../helm-charts/nrev-lite-api
 
 jobs:
   build-and-deploy:
@@ -163,12 +163,12 @@ jobs:
         run: |
           # Checkout helm-charts repo (or use a separate step)
           # For now, use kubectl rollout which doesn't need helm-charts repo
-          kubectl set image deployment/nrv-api nrv-api=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -n $K8S_NAMESPACE
-          kubectl rollout status deployment/nrv-api -n $K8S_NAMESPACE --timeout=120s
+          kubectl set image deployment/nrev-lite-api nrev-lite-api=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -n $K8S_NAMESPACE
+          kubectl rollout status deployment/nrev-lite-api -n $K8S_NAMESPACE --timeout=120s
 
       - name: Verify deployment
         run: |
-          kubectl get pods -n $K8S_NAMESPACE -l appName=nrv-api
+          kubectl get pods -n $K8S_NAMESPACE -l appName=nrev-lite-api
 ```
 
 **Note:** The first deploy must be done manually via `deploy-staging.sh` (Helm install). Subsequent deploys can use `kubectl set image` (rolling update) as shown above, or a full `helm upgrade`. Decide based on how Workflow Studio's K8s deploy workflow works.
@@ -209,16 +209,16 @@ You mentioned you'll add the credentials. Here's the complete list of what's nee
 | `JWT_SECRET_KEY` | Generate: `python3 -c "import secrets; print(secrets.token_urlsafe(48))"` | K8s Secret |
 | `GOOGLE_CLIENT_ID` | Google Cloud Console → APIs & Services → Credentials | Helm values (plain) |
 | `GOOGLE_CLIENT_SECRET` | Same as above | K8s Secret |
-| `DATABASE_URL` | Constructed from RDS endpoint + nrv_api password (Task 09) | K8s Secret |
+| `DATABASE_URL` | Constructed from RDS endpoint + nrev_lite_api password (Task 09) | K8s Secret |
 
 ### Required infrastructure (must exist before deploy)
 
 | Resource | Value Needed |
 |----------|-------------|
-| RDS PostgreSQL endpoint | From Task 09 — `nrv-db-staging.xxx.ap-south-1.rds.amazonaws.com` |
-| RDS `nrv_api` role password | You set during RDS setup |
+| RDS PostgreSQL endpoint | From Task 09 — `nrev-lite-db-staging.xxx.ap-south-1.rds.amazonaws.com` |
+| RDS `nrev_lite_api` role password | You set during RDS setup |
 | ElastiCache endpoint | Existing: `staging-cache-sooatg.serverless.aps1.cache.amazonaws.com` |
-| DNS record | `nrv-api.public.staging.nurturev.com` → EKS ingress LB |
+| DNS record | `nrev-lite-api.public.staging.nurturev.com` → EKS ingress LB |
 
 ### Optional (provider API keys — service runs without them)
 
@@ -236,7 +236,7 @@ You mentioned you'll add the credentials. Here's the complete list of what's nee
 
 You need a Google Cloud project with OAuth 2.0 credentials. If one already exists from the original developer:
 - Get the Client ID and Client Secret
-- Add redirect URI: `https://nrv-api.public.staging.nurturev.com/api/v1/auth/callback`
+- Add redirect URI: `https://nrev-lite-api.public.staging.nurturev.com/api/v1/auth/callback`
 
 If creating new:
 1. Google Cloud Console → New Project (or existing)
@@ -255,7 +255,7 @@ If creating new:
 - [ ] GitHub Secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) are configured
 - [ ] Merging to `staging` branch builds Docker image, pushes to ECR, deploys to EKS
 - [ ] `ENVIRONMENT=staging` is set in Helm values
-- [ ] Staging deployment is reachable at `nrv-api.public.staging.nurturev.com`
+- [ ] Staging deployment is reachable at `nrev-lite-api.public.staging.nurturev.com`
 
 ---
 

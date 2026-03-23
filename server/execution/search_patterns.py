@@ -4,7 +4,7 @@ Platform-specific Google search query patterns, operator usage, and
 parameter recommendations. This lives on the server so it can evolve
 without client/CLI updates.
 
-The MCP tool `nrv_search_patterns` fetches this data so Claude can
+The MCP tool `nrev_search_patterns` fetches this data so Claude can
 construct optimal queries at runtime.
 """
 
@@ -595,6 +595,39 @@ GTM_USE_CASES: dict[str, dict] = {
 
 
 # ---------------------------------------------------------------------------
+# Dynamic knowledge cache — loaded from DB, refreshed on demand
+# ---------------------------------------------------------------------------
+
+_dynamic_search_patterns: dict[str, dict] = {}
+
+
+def load_dynamic_patterns(patterns: dict[str, dict]) -> None:
+    """Replace the in-memory dynamic patterns cache.
+
+    Called at server startup and when an admin merges new search patterns.
+    """
+    global _dynamic_search_patterns
+    _dynamic_search_patterns = dict(patterns)
+
+
+def get_dynamic_patterns() -> dict[str, dict]:
+    """Return the current dynamic patterns cache."""
+    return dict(_dynamic_search_patterns)
+
+
+def _lookup_pattern(key: str) -> tuple[dict | None, str | None]:
+    """Look up a pattern by key, checking hardcoded first, then dynamic.
+
+    Returns (pattern_dict, source) where source is 'builtin' or 'dynamic'.
+    """
+    if key in PLATFORM_PATTERNS:
+        return PLATFORM_PATTERNS[key], "builtin"
+    if key in _dynamic_search_patterns:
+        return _dynamic_search_patterns[key], "dynamic"
+    return None, None
+
+
+# ---------------------------------------------------------------------------
 # Build the full response
 # ---------------------------------------------------------------------------
 
@@ -609,25 +642,39 @@ def get_search_patterns(
     If platform is specified, returns only that platform's pattern.
     If use_case is specified, returns that use case with relevant platforms.
     If neither, returns the full reference.
+
+    Checks hardcoded PLATFORM_PATTERNS first, then dynamic_knowledge cache.
     """
+    # Merged view of all patterns (hardcoded + dynamic)
+    all_patterns = {**PLATFORM_PATTERNS, **_dynamic_search_patterns}
+
     if platform:
-        pattern = PLATFORM_PATTERNS.get(platform)
+        pattern, source = _lookup_pattern(platform)
         if not pattern:
-            # Try fuzzy match
+            # Try fuzzy match across both hardcoded and dynamic
             matches = [
-                k for k in PLATFORM_PATTERNS
+                k for k in all_patterns
                 if platform.lower() in k.lower()
-                or platform.lower() in PLATFORM_PATTERNS[k].get("platform", "").lower()
+                or platform.lower() in all_patterns[k].get("platform", "").lower()
             ]
             if matches:
+                result_patterns = {}
+                for k in matches:
+                    p, s = _lookup_pattern(k)
+                    if p:
+                        result_patterns[k] = {**p, "_source": s}
                 return {
-                    "patterns": {k: PLATFORM_PATTERNS[k] for k in matches},
+                    "patterns": result_patterns,
                     "tbs_reference": TBS_REFERENCE,
                     "operators": GOOGLE_OPERATORS,
                 }
-            return {"error": f"Unknown platform: '{platform}'", "available": sorted(PLATFORM_PATTERNS.keys())}
+            return {
+                "error": f"Unknown platform: '{platform}'",
+                "available": sorted(all_patterns.keys()),
+                "hint": "No pattern found. Use the Experimental Protocol: run a broad search first, analyze URLs, then refine.",
+            }
         return {
-            "patterns": {platform: pattern},
+            "patterns": {platform: {**pattern, "_source": source}},
             "tbs_reference": TBS_REFERENCE,
             "operators": GOOGLE_OPERATORS,
         }
@@ -671,8 +718,15 @@ def get_search_patterns(
         }
 
     # Full reference — list available platforms and use cases
+    all_platform_summary = {}
+    for k, v in PLATFORM_PATTERNS.items():
+        all_platform_summary[k] = {"description": v["description"], "site_prefix": v.get("site_prefix", ""), "_source": "builtin"}
+    for k, v in _dynamic_search_patterns.items():
+        if k not in all_platform_summary:
+            all_platform_summary[k] = {"description": v.get("description", ""), "site_prefix": v.get("site_prefix", ""), "_source": "dynamic"}
+
     return {
-        "platforms": {k: {"description": v["description"], "site_prefix": v.get("site_prefix", "")} for k, v in PLATFORM_PATTERNS.items()},
+        "platforms": all_platform_summary,
         "use_cases": {k: {"description": v["description"]} for k, v in GTM_USE_CASES.items()},
         "tbs_reference": TBS_REFERENCE,
         "operators": GOOGLE_OPERATORS,

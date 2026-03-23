@@ -57,9 +57,9 @@ Build a signal-to-play system:
 3. **Build signal-to-action table** — Signal -> Action -> Owner -> SLA
 4. **Track signal-to-meeting conversion** by signal type. Prune what doesn't convert.
 
-## How nrv Captures Signals
-- `nrv_google_search` with time filters to catch funding, hiring, leadership changes
-- `nrv_search_patterns` for platform-specific signal queries (LinkedIn jobs, G2 reviews, news)
-- `nrv_enrich_company` for technographic data and firmographic changes
-- `nrv_enrich_person` to verify champion job changes
+## How nrev-lite Captures Signals
+- `nrev_google_search` with time filters to catch funding, hiring, leadership changes
+- `nrev_search_patterns` for platform-specific signal queries (LinkedIn jobs, G2 reviews, news)
+- `nrev_enrich_company` for technographic data and firmographic changes
+- `nrev_enrich_person` to verify champion job changes
 - Schedule regular signal sweeps and act within speed tier SLAs

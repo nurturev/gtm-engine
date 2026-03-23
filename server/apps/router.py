@@ -117,7 +117,7 @@ async def serve_app_file(
     # Inject NRV context into HTML files
     if content_type == "text/html":
         api_base = "/api/v1"
-        content = svc.inject_nrv_context(content, app.app_token, api_base)
+        content = svc.inject_nrev_context(content, app.app_token, api_base)
         return HTMLResponse(content=content)
 
     return Response(content=content, media_type=content_type)

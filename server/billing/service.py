@@ -33,6 +33,8 @@ async def check_and_hold(
     tenant_id: str,
     amount: float,
     operation: str,
+    workflow_id: str | None = None,
+    user_id: str | None = None,
 ) -> int:
     """Place a hold on credits before executing an operation.
 
@@ -72,10 +74,12 @@ async def check_and_hold(
     # Write ledger entry
     entry = CreditLedger(
         tenant_id=tenant_id,
+        user_id=user_id,
         entry_type="hold",
         amount=amount,
         balance_after=new_balance,
         operation=operation,
+        workflow_id=workflow_id,
         description=f"Hold for {operation}",
     )
     db.add(entry)
@@ -113,10 +117,12 @@ async def confirm_debit(db: AsyncSession, hold_id: int) -> None:
     # Write debit entry (balance unchanged since hold already deducted)
     debit = CreditLedger(
         tenant_id=hold_entry.tenant_id,
+        user_id=hold_entry.user_id,
         entry_type="debit",
         amount=hold_entry.amount,
         balance_after=hold_entry.balance_after,
         operation=hold_entry.operation,
+        workflow_id=hold_entry.workflow_id,
         reference_id=str(hold_id),
         description=f"Confirmed debit for {hold_entry.operation}",
     )
@@ -152,10 +158,12 @@ async def release_hold(db: AsyncSession, hold_id: int) -> None:
     # Write release entry
     release = CreditLedger(
         tenant_id=hold_entry.tenant_id,
+        user_id=hold_entry.user_id,
         entry_type="release",
         amount=hold_entry.amount,
         balance_after=new_balance,
         operation=hold_entry.operation,
+        workflow_id=hold_entry.workflow_id,
         reference_id=str(hold_id),
         description=f"Released hold for {hold_entry.operation}",
     )

@@ -11,7 +11,7 @@ Usage:
     python scripts/watchlist-digest.py --slack --channel C09LF59HS3H  # send to a channel
 
 Requires:
-    - nrv server running at localhost:8000
+    - nrev-lite server running at localhost:8000
     - Valid JWT (auto-generated from .env)
     - Slack MCP available (for --slack mode)
 """
@@ -179,7 +179,7 @@ def main():
     if args.slack:
         print(f"\n--- Sending to Slack ({args.channel}) ---")
         print("NOTE: Slack delivery requires the Slack MCP to be available.")
-        print("If running standalone, use the nrv Composio Slack connection instead.")
+        print("If running standalone, use the nrev-lite Composio Slack connection instead.")
 
 
 if __name__ == "__main__":

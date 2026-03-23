@@ -56,13 +56,13 @@ Replace two in-memory Python dicts in `server/auth/router.py` with Redis-backed 
 
 ### Org Pattern Reference (Workflow Studio)
 
-nrv's Redis usage differs from Workflow Studio's pattern (SingletonBorg, separate `REDIS_HOST`/`REDIS_PORT`, centralized key prefixes in `constants/redis_constants.py`). For V1, keep nrv's existing `redis.asyncio` approach. V2 will align with org patterns.
+nrev-lite's Redis usage differs from Workflow Studio's pattern (SingletonBorg, separate `REDIS_HOST`/`REDIS_PORT`, centralized key prefixes in `constants/redis_constants.py`). For V1, keep nrev-lite's existing `redis.asyncio` approach. V2 will align with org patterns.
 
 Reference: `workflow_studio/infrastructure/async_redis_client.py`, `workflow_studio/constants/redis_constants.py`
 
 ### ElastiCache Connectivity
 
-nrv reuses existing org ElastiCache clusters (not new instances):
+nrev-lite reuses existing org ElastiCache clusters (not new instances):
 - Staging: `staging-cache-sooatg.serverless.aps1.cache.amazonaws.com:6379` (TLS)
 - Prod: `prod-cache-msnit6.serverless.use1.cache.amazonaws.com:6379` (TLS)
 
@@ -74,7 +74,7 @@ Ensure the `REDIS_URL` env var uses `rediss://` (double-s) for TLS connections.
 
 - [ ] `_pending_auth` dict removed from `server/auth/router.py`
 - [ ] `_device_codes` dict removed from `server/auth/router.py`
-- [ ] OAuth login flow works end-to-end with Redis (test: `nrv auth login`)
+- [ ] OAuth login flow works end-to-end with Redis (test: `nrev-lite auth login`)
 - [ ] Device code flow works end-to-end with Redis (test: headless auth)
 - [ ] State expires after TTL (no stale entries accumulate)
 - [ ] Server restart mid-auth-flow does not lose pending state
@@ -89,11 +89,11 @@ docker-compose up -d redis
 uvicorn server.app:app --reload
 
 # 2. Test OAuth flow
-nrv auth login
+nrev-lite auth login
 # Should complete successfully
 
 # 3. Test state persistence: start auth, restart server, complete auth
-nrv auth login &  # Opens browser
+nrev-lite auth login &  # Opens browser
 # Restart server while browser is on Google consent screen
 # Complete Google auth — callback should still work
 

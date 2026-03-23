@@ -102,7 +102,7 @@ The tech stack endpoint returns WHERE a technology was detected (career page, ma
 | Stale job data | Normal — refresh cycle is ~36 hours |
 | Wrong company returned | Use exact root domain (stripe.com not www.stripe.com) |
 
-## Integration Pattern with nrv
+## Integration Pattern with nrev-lite
 ```
 PredictLeads (company signals) → identify trigger events
   → Apollo search_people (find decision makers at that company)

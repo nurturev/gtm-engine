@@ -1,11 +1,11 @@
-# nrv — Engineering Handover Guide
+# nrev-lite — Engineering Handover Guide
 
 > **Version:** 0.1.0 (Alpha)
 > **Date:** March 2026
 > **From:** Sayanta Ghosh
 > **To:** Engineering Lead
 
-This document contains everything you need to host the nrv platform and publish the CLI package.
+This document contains everything you need to host the nrev-lite platform and publish the CLI package.
 
 ---
 
@@ -30,7 +30,7 @@ This document contains everything you need to host the nrv platform and publish 
 
 ## 1. Architecture Overview
 
-nrv is a **split-architecture** GTM (Go-To-Market) platform:
+nrev-lite is a **split-architecture** GTM (Go-To-Market) platform:
 
 ```
                         ┌─────────────────────┐
@@ -39,12 +39,12 @@ nrv is a **split-architecture** GTM (Go-To-Market) platform:
                         └──────────┬──────────┘
                                    │ MCP Protocol (stdio)
                         ┌──────────▼──────────┐
-                        │   nrv CLI + MCP      │  ← Published to PyPI
-                        │   (src/nrv/)         │
+                        │   nrev-lite CLI + MCP      │  ← Published to PyPI
+                        │   (src/nrev_lite/)         │
                         └──────────┬──────────┘
                                    │ HTTPS + JWT
                         ┌──────────▼──────────┐
-                        │   nrv API Server     │  ← Deployed to cloud
+                        │   nrev-lite API Server     │  ← Deployed to cloud
                         │   (server/)          │
                         └──────────┬──────────┘
                                    │
@@ -68,7 +68,7 @@ nrv is a **split-architecture** GTM (Go-To-Market) platform:
 
 ```
 gtm-engine/
-├── src/nrv/                    # CLI package (published to PyPI)
+├── src/nrev_lite/                    # CLI package (published to PyPI)
 │   ├── cli/                    # Click commands (auth, enrich, search, etc.)
 │   ├── client/                 # HTTP client (auth.py, http.py)
 │   ├── mcp/                    # MCP server (15 tools for Claude Code)
@@ -113,7 +113,7 @@ Create a `.env` file in the project root. All variables are loaded by `server/co
 
 ```bash
 # --- Database ---
-DATABASE_URL=postgresql+asyncpg://nrv:YOUR_PASSWORD@localhost:5432/nrv
+DATABASE_URL=postgresql+asyncpg://nrev-lite:YOUR_PASSWORD@localhost:5432/nrv
 
 # --- Redis ---
 REDIS_URL=redis://localhost:6379/0
@@ -132,7 +132,7 @@ GOOGLE_REDIRECT_URI=https://your-domain.com/api/v1/auth/callback
 
 ### Optional — Provider API Keys (Platform-Managed)
 
-These are nrv's own keys used when tenants don't have BYOK keys. Calls using these charge credits.
+These are nrev-lite's own keys used when tenants don't have BYOK keys. Calls using these charge credits.
 
 ```bash
 APOLLO_API_KEY=                    # Apollo.io (person/company enrichment)
@@ -192,8 +192,8 @@ docker-compose ps   # both should show "healthy"
 # 7. Run database migrations
 # Migrations are auto-applied on first postgres start via docker-entrypoint-initdb.d.
 # For subsequent migrations (002, 003), run manually:
-docker exec -i nrv-postgres psql -U nrv -d nrv < migrations/002_domain_index.sql
-docker exec -i nrv-postgres psql -U nrv -d nrv < migrations/003_run_steps.sql
+docker exec -i nrev-lite-postgres psql -U nrev-lite -d nrev-lite < migrations/002_domain_index.sql
+docker exec -i nrev-lite-postgres psql -U nrev-lite -d nrev-lite < migrations/003_run_steps.sql
 
 # 8. Start the API server
 uvicorn server.app:app --reload --port 8000
@@ -203,10 +203,10 @@ curl http://localhost:8000/health
 # → {"status": "ok", "version": "0.1.0"}
 
 # 10. Authenticate (opens browser for Google OAuth)
-nrv auth login
+nrev-lite auth login
 
 # 11. Test a tool
-nrv status
+nrev-lite status
 ```
 
 ### Running with Docker (all services)
@@ -227,7 +227,7 @@ docker-compose up -d
 
 - **Version:** 15+ (uses `gen_random_uuid()`, RLS)
 - **Extensions:** `pgcrypto` (created in migration 001)
-- **Database role:** `nrv_api` (created in migration 001 — used for RLS enforcement)
+- **Database role:** `nrev_lite_api` (created in migration 001 — used for RLS enforcement)
 
 ### Migration Order
 
@@ -235,9 +235,9 @@ Migrations must be applied in sequence:
 
 ```bash
 # On a fresh database:
-psql -U nrv -d nrv -f migrations/001_initial.sql
-psql -U nrv -d nrv -f migrations/002_domain_index.sql
-psql -U nrv -d nrv -f migrations/003_run_steps.sql
+psql -U nrev-lite -d nrev-lite -f migrations/001_initial.sql
+psql -U nrev-lite -d nrev-lite -f migrations/002_domain_index.sql
+psql -U nrev-lite -d nrev-lite -f migrations/003_run_steps.sql
 ```
 
 ### What migration 001 creates:
@@ -261,7 +261,7 @@ psql -U nrv -d nrv -f migrations/003_run_steps.sql
 
 ### Database Connection Setup
 
-The application connects using the `nrv_api` role for RLS enforcement. The connection flow:
+The application connects using the `nrev_lite_api` role for RLS enforcement. The connection flow:
 
 1. Connect to PostgreSQL
 2. For each request: `SET app.current_tenant = '<tenant_id>'`
@@ -272,10 +272,10 @@ The application connects using the `nrv_api` role for RLS enforcement. The conne
 For production, use Aurora Serverless v2 (PostgreSQL 15 compatible):
 
 ```bash
-DATABASE_URL=postgresql+asyncpg://nrv_api:PASSWORD@your-aurora-cluster.us-east-1.rds.amazonaws.com:5432/nrv
+DATABASE_URL=postgresql+asyncpg://nrev_lite_api:PASSWORD@your-aurora-cluster.us-east-1.rds.amazonaws.com:5432/nrv
 ```
 
-The `nrv_api` role must be created and granted permissions as defined in migration 001.
+The `nrev_lite_api` role must be created and granted permissions as defined in migration 001.
 
 ---
 
@@ -285,12 +285,12 @@ The `nrv_api` role must be created and granted permissions as defined in migrati
 
 ```bash
 # 1. Build the Docker image
-docker build -f Dockerfile.server -t nrv-api:latest .
+docker build -f Dockerfile.server -t nrev-lite-api:latest .
 
 # 2. Push to ECR
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account>.dkr.ecr.us-east-1.amazonaws.com
-docker tag nrv-api:latest <account>.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest
-docker push <account>.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest
+docker tag nrev-lite-api:latest <account>.dkr.ecr.us-east-1.amazonaws.com/nrev-lite-api:latest
+docker push <account>.dkr.ecr.us-east-1.amazonaws.com/nrev-lite-api:latest
 
 # 3. Create ECS service with:
 #    - Aurora Serverless v2 (PostgreSQL 15)
@@ -324,18 +324,18 @@ docker push <account>.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest
 # render.yaml
 services:
   - type: web
-    name: nrv-api
+    name: nrev-lite-api
     runtime: python
     buildCommand: pip install -r requirements-server.txt
     startCommand: uvicorn server.app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: nrv-db
+          name: nrev-lite-db
           property: connectionString
       - key: REDIS_URL
         fromService:
-          name: nrv-redis
+          name: nrev-lite-redis
           type: redis
           property: connectionString
       - key: JWT_SECRET_KEY
@@ -345,10 +345,10 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_REDIRECT_URI
-        value: https://nrv-api.onrender.com/api/v1/auth/callback
+        value: https://nrev-lite-api.onrender.com/api/v1/auth/callback
 
 databases:
-  - name: nrv-db
+  - name: nrev-lite-db
     plan: starter
     postgresMajorVersion: 15
 ```
@@ -360,15 +360,15 @@ databases:
 sudo apt update && sudo apt install -y python3.12 python3.12-venv postgresql-15 redis-server nginx certbot
 
 # Setup PostgreSQL
-sudo -u postgres createuser nrv_api
-sudo -u postgres createdb nrv -O nrv_api
-sudo -u postgres psql -d nrv -f migrations/001_initial.sql
-sudo -u postgres psql -d nrv -f migrations/002_domain_index.sql
-sudo -u postgres psql -d nrv -f migrations/003_run_steps.sql
+sudo -u postgres createuser nrev_lite_api
+sudo -u postgres createdb nrev-lite -O nrev_lite_api
+sudo -u postgres psql -d nrev-lite -f migrations/001_initial.sql
+sudo -u postgres psql -d nrev-lite -f migrations/002_domain_index.sql
+sudo -u postgres psql -d nrev-lite -f migrations/003_run_steps.sql
 
 # Setup application
-git clone <repo> /opt/nrv
-cd /opt/nrv
+git clone <repo> /opt/nrev-lite
+cd /opt/nrev-lite
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-server.txt
@@ -378,17 +378,17 @@ cp .env.example .env
 nano .env
 
 # Run with systemd
-sudo tee /etc/systemd/system/nrv-api.service << 'EOF'
+sudo tee /etc/systemd/system/nrev-lite-api.service << 'EOF'
 [Unit]
-Description=nrv API Server
+Description=nrev-lite API Server
 After=network.target postgresql.service redis.service
 
 [Service]
 Type=simple
 User=www-data
-WorkingDirectory=/opt/nrv
-Environment=PATH=/opt/nrv/.venv/bin
-ExecStart=/opt/nrv/.venv/bin/uvicorn server.app:app --host 127.0.0.1 --port 8000 --workers 4
+WorkingDirectory=/opt/nrev-lite
+Environment=PATH=/opt/nrev-lite/.venv/bin
+ExecStart=/opt/nrev-lite/.venv/bin/uvicorn server.app:app --host 127.0.0.1 --port 8000 --workers 4
 Restart=always
 RestartSec=5
 
@@ -396,11 +396,11 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl enable nrv-api
-sudo systemctl start nrv-api
+sudo systemctl enable nrev-lite-api
+sudo systemctl start nrev-lite-api
 
 # Setup nginx reverse proxy with HTTPS
-sudo tee /etc/nginx/sites-available/nrv << 'EOF'
+sudo tee /etc/nginx/sites-available/nrev-lite << 'EOF'
 server {
     listen 80;
     server_name api.nrev.ai;
@@ -415,7 +415,7 @@ server {
 }
 EOF
 
-sudo ln -s /etc/nginx/sites-available/nrv /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/nrev-lite /etc/nginx/sites-enabled/
 sudo certbot --nginx -d api.nrev.ai
 sudo systemctl restart nginx
 ```
@@ -435,7 +435,7 @@ sudo systemctl restart nginx
 
 ## 7. CLI Publishing (PyPI)
 
-The CLI package (`nrv`) is what end users install. It's defined in `pyproject.toml`.
+The CLI package (`nrev-lite`) is what end users install. It's defined in `pyproject.toml`.
 
 ### Prerequisites
 
@@ -452,12 +452,12 @@ pip install build twine
 # 2. Build the package
 python -m build
 # Creates:
-#   dist/nrv-0.1.0.tar.gz
-#   dist/nrv-0.1.0-py3-none-any.whl
+#   dist/nrev-lite-0.1.0.tar.gz
+#   dist/nrev-lite-0.1.0-py3-none-any.whl
 
 # 3. Test on TestPyPI first
 twine upload --repository testpypi dist/*
-pip install --index-url https://test.pypi.org/simple/ nrv
+pip install --index-url https://test.pypi.org/simple/ nrev-lite
 
 # 4. Publish to PyPI
 twine upload dist/*
@@ -465,11 +465,11 @@ twine upload dist/*
 
 ### What Gets Published
 
-Only `src/nrv/` is included in the wheel (configured in `pyproject.toml`):
+Only `src/nrev_lite/` is included in the wheel (configured in `pyproject.toml`):
 
 ```toml
 [tool.hatch.build.targets.wheel]
-packages = ["src/nrv"]
+packages = ["src/nrev_lite"]
 ```
 
 The `server/` directory, `migrations/`, `tests/`, etc. are **NOT** included in the CLI package.
@@ -478,41 +478,41 @@ The `server/` directory, `migrations/`, `tests/`, etc. are **NOT** included in t
 
 ```bash
 # End users install with:
-pip install nrv
+pip install nrev-lite
 
 # Or with pipx (recommended for CLI tools):
-pipx install nrv
+pipx install nrev-lite
 
 # Then:
-nrv auth login              # Authenticate with Google OAuth
-nrv status                   # Check connection status
-nrv enrich person --email user@example.com
+nrev-lite auth login              # Authenticate with Google OAuth
+nrev-lite status                   # Check connection status
+nrev-lite enrich person --email user@example.com
 ```
 
 ### CLI Configuration
 
-After `nrv auth login`, credentials are stored at `~/.nrv/credentials.json`.
+After `nrev-lite auth login`, credentials are stored at `~/.nrev-lite/credentials.json`.
 
 The CLI needs to know the server URL. By default it uses `http://localhost:8000`. For production, users configure via:
 
 ```bash
-nrv config set server_url https://api.nrev.ai
+nrev-lite config set server_url https://api.nrev.ai
 ```
 
 Or set the environment variable:
 ```bash
-export NRV_SERVER_URL=https://api.nrev.ai
+export NREV_LITE_SERVER_URL=https://api.nrev.ai
 ```
 
-**Important:** Before publishing, update the default server URL in `src/nrv/client/http.py` to point to your production server, or ensure all documentation tells users to configure it.
+**Important:** Before publishing, update the default server URL in `src/nrev_lite/client/http.py` to point to your production server, or ensure all documentation tells users to configure it.
 
 ### MCP Server Registration
 
 After installing the CLI, users register the MCP server with Claude Code:
 
 ```bash
-nrv setup claude
-# This writes ~/.claude/mcp.json with the nrv MCP server config
+nrev-lite setup claude
+# This writes ~/.claude/mcp.json with the nrev-lite MCP server config
 ```
 
 Or manually add to Claude Code's MCP configuration:
@@ -520,11 +520,11 @@ Or manually add to Claude Code's MCP configuration:
 ```json
 {
   "mcpServers": {
-    "nrv": {
+    "nrev-lite": {
       "command": "python3",
-      "args": ["-m", "nrv.mcp.server"],
+      "args": ["-m", "nrev_lite.mcp.server"],
       "env": {
-        "PYTHONPATH": "<path-to-nrv-package>"
+        "PYTHONPATH": "<path-to-nrev-lite-package>"
       }
     }
   }
@@ -535,7 +535,7 @@ Or manually add to Claude Code's MCP configuration:
 
 ## 8. Google OAuth Setup
 
-nrv uses Google OAuth for authentication. You need a Google Cloud project with OAuth credentials.
+nrev-lite uses Google OAuth for authentication. You need a Google Cloud project with OAuth credentials.
 
 ### Step-by-step
 
@@ -560,10 +560,10 @@ nrv uses Google OAuth for authentication. You need a Google Cloud project with O
 ### Auth Flow
 
 ```
-User → nrv auth login → Opens browser → Google OAuth → Callback to server
-→ Server creates JWT (access + refresh) → Stored in ~/.nrv/credentials.json
+User → nrev-lite auth login → Opens browser → Google OAuth → Callback to server
+→ Server creates JWT (access + refresh) → Stored in ~/.nrev-lite/credentials.json
 → CLI sends JWT with every API call
-→ Dashboard stores JWT as nrv_session cookie
+→ Dashboard stores JWT as nrev_session cookie
 ```
 
 ---
@@ -606,8 +606,8 @@ Each enrichment provider needs its own API key if you want to offer platform-man
 
 ### How It Works
 
-1. User installs CLI: `pip install nrv`
-2. User runs: `nrv setup claude` (registers MCP server with Claude Code)
+1. User installs CLI: `pip install nrev-lite`
+2. User runs: `nrev-lite setup claude` (registers MCP server with Claude Code)
 3. When Claude Code starts a session, it spawns the MCP server process
 4. The MCP server generates a unique `WORKFLOW_ID` (UUID) for that session
 5. Every tool call sends the `WORKFLOW_ID` + `X-Tool-Name` as HTTP headers
@@ -618,21 +618,21 @@ Each enrichment provider needs its own API key if you want to offer platform-man
 
 | Tool | Purpose |
 |------|---------|
-| `nrv_health` | Health check |
-| `nrv_search_web` | Google web search |
-| `nrv_scrape_page` | Web page scraping |
-| `nrv_google_search` | Advanced Google SERP (operators, filters, bulk) |
-| `nrv_search_patterns` | Get platform-specific search query patterns |
-| `nrv_enrich_person` | Person enrichment (email, name, LinkedIn) |
-| `nrv_enrich_company` | Company enrichment (domain, name) |
-| `nrv_query_table` | Query stored data tables |
-| `nrv_list_tables` | List available tables |
-| `nrv_credit_balance` | Check credit balance |
-| `nrv_provider_status` | Check provider availability |
-| `nrv_list_connections` | List OAuth-connected apps |
-| `nrv_list_actions` | Discover actions for a connected app |
-| `nrv_get_action_schema` | Get parameter schema for an action |
-| `nrv_execute_action` | Execute an action on a connected app |
+| `nrev_health` | Health check |
+| `nrev_search_web` | Google web search |
+| `nrev_scrape_page` | Web page scraping |
+| `nrev_google_search` | Advanced Google SERP (operators, filters, bulk) |
+| `nrev_search_patterns` | Get platform-specific search query patterns |
+| `nrev_enrich_person` | Person enrichment (email, name, LinkedIn) |
+| `nrev_enrich_company` | Company enrichment (domain, name) |
+| `nrev_query_table` | Query stored data tables |
+| `nrev_list_tables` | List available tables |
+| `nrev_credit_balance` | Check credit balance |
+| `nrev_provider_status` | Check provider availability |
+| `nrev_list_connections` | List OAuth-connected apps |
+| `nrev_list_actions` | Discover actions for a connected app |
+| `nrev_get_action_schema` | Get parameter schema for an action |
+| `nrev_execute_action` | Execute an action on a connected app |
 
 ---
 
@@ -717,7 +717,7 @@ RESET app.current_tenant;
 - Access tokens expire in 24 hours
 - Refresh tokens expire in 30 days
 - Refresh tokens are hashed before storage (SHA-256)
-- Console uses HTTP-only cookies (`nrv_session`)
+- Console uses HTTP-only cookies (`nrev_session`)
 
 ---
 
@@ -754,7 +754,7 @@ ruff format --check .
 
 ### Immediate
 
-- [ ] **Default server URL in CLI:** Currently defaults to `localhost:8000`. Update `src/nrv/client/http.py` before publishing to PyPI.
+- [ ] **Default server URL in CLI:** Currently defaults to `localhost:8000`. Update `src/nrev_lite/client/http.py` before publishing to PyPI.
 - [ ] **Migration tooling:** Using raw SQL files. Consider Alembic for version tracking.
 - [ ] **docker-compose.yml:** Only mounts migration 001 for auto-init. Migrations 002 and 003 must be run manually.
 - [ ] **CORS in production:** Currently blocks all origins when `ENVIRONMENT=production`. Add your frontend domain.
@@ -763,8 +763,8 @@ ruff format --check .
 
 - [ ] **Tenant-based knowledge:** Custom knowledge bases per tenant
 - [ ] **Pricing plans:** Implement tier-based plan enforcement
-- [ ] **BYOK token management:** CLI command `nrv keys add` improvements
-- [ ] **`nrv connect <app>` CLI:** OAuth connections from the CLI (currently dashboard-only)
+- [ ] **BYOK token management:** CLI command `nrev-lite keys add` improvements
+- [ ] **`nrev-lite connect <app>` CLI:** OAuth connections from the CLI (currently dashboard-only)
 - [ ] **Marketing website:** Product landing page
 - [ ] **Rate limiting:** Redis-based per-tenant rate limits (code exists but not fully wired)
 - [ ] **Alembic migrations:** Replace raw SQL with proper migration framework
@@ -782,21 +782,21 @@ uvicorn server.app:app --reload         # Start server (dev mode)
 pip install -e ".[dev]"                 # Install CLI in dev mode
 
 # --- Database ---
-docker exec -i nrv-postgres psql -U nrv -d nrv < migrations/003_run_steps.sql
+docker exec -i nrev-lite-postgres psql -U nrev-lite -d nrev-lite < migrations/003_run_steps.sql
 
 # --- CLI ---
-nrv auth login                          # Authenticate
-nrv status                              # Check everything
-nrv enrich person --email user@co.com   # Enrich a person
-nrv setup claude                        # Register MCP with Claude Code
+nrev-lite auth login                          # Authenticate
+nrev-lite status                              # Check everything
+nrev-lite enrich person --email user@co.com   # Enrich a person
+nrev-lite setup claude                        # Register MCP with Claude Code
 
 # --- Build & Publish ---
 python -m build                         # Build CLI package
 twine upload dist/*                     # Publish to PyPI
 
 # --- Docker (production) ---
-docker build -f Dockerfile.server -t nrv-api .
-docker run -p 8000:8000 --env-file .env nrv-api
+docker build -f Dockerfile.server -t nrev-lite-api .
+docker run -p 8000:8000 --env-file .env nrev-lite-api
 ```
 
 ---

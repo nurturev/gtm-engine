@@ -14,7 +14,7 @@ Update `Dockerfile.server` with production optimizations: multiple workers and m
 
 Workflow Studio uses a multi-stage Dockerfile with gunicorn + uvicorn workers, hash-verified deps (`pip-tools`, `--require-hashes`), port 8080, and worker recycling (`--max-requests 1000 --max-requests-jitter 100`). See: `workflow_studio/Dockerfile_server`.
 
-**For V1, keep nrv's single-stage build with direct uvicorn on port 8000.** Multi-stage + gunicorn is a V2 item. The Helm chart maps port 80→8000, so external behavior is identical regardless of container port.
+**For V1, keep nrev-lite's single-stage build with direct uvicorn on port 8000.** Multi-stage + gunicorn is a V2 item. The Helm chart maps port 80→8000, so external behavior is identical regardless of container port.
 
 ---
 
@@ -74,18 +74,18 @@ CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8000", "--work
 
 ```bash
 # Build
-docker build -f Dockerfile.server -t nrv-api:test .
+docker build -f Dockerfile.server -t nrev-lite-api:test .
 
 # Run
 docker run --rm -p 8000:8000 \
-  -e DATABASE_URL=postgresql+asyncpg://nrv:nrv@host.docker.internal:5432/nrv \
+  -e DATABASE_URL=postgresql+asyncpg://nrev-lite:nrv@host.docker.internal:5432/nrv \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e JWT_SECRET_KEY=test-secret-key-at-least-32-chars \
-  nrv-api:test
+  nrev-lite-api:test
 
 # Verify workers
 # Logs should show: "Started server process" twice (one per worker)
 
 # Verify migrations exist
-docker run --rm nrv-api:test ls /app/migrations/
+docker run --rm nrev-lite-api:test ls /app/migrations/
 ```

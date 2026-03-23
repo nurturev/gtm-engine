@@ -167,7 +167,7 @@ def _prepare_enrich_company(params: dict[str, Any]) -> dict[str, Any]:
 def _prepare_search_people(params: dict[str, Any]) -> dict[str, Any]:
     """Build the payload for POST /api/v1/mixed_people/search.
 
-    Key param mappings from nrv -> Apollo:
+    Key param mappings from nrev-lite -> Apollo:
         title/titles   -> person_titles[]
         location       -> person_locations[]
         domain/domains -> q_organization_domains
@@ -470,7 +470,7 @@ class ApolloProvider(BaseProvider):
             raise ProviderError(
                 self.name,
                 "Apollo API key is invalid or expired. "
-                "Update it with: nrv keys add apollo",
+                "Update it with: nrev-lite keys add apollo",
                 status_code=401,
             )
         if response.status_code == 403:

@@ -56,13 +56,13 @@ Follows org Helm pattern: injected as plain `value:` in `values-{env}.yaml` (not
 
 ```bash
 # Staging (matches org DNS: {service}.public.{env}.nurturev.com)
-CORS_ALLOWED_ORIGINS=https://nrv-api.public.staging.nurturev.com
+CORS_ALLOWED_ORIGINS=https://nrev-lite-api.public.staging.nurturev.com
 
 # Prod
-CORS_ALLOWED_ORIGINS=https://nrv-api.public.prod.nurturev.com
+CORS_ALLOWED_ORIGINS=https://nrev-lite-api.public.prod.nurturev.com
 
 # Multiple origins (if needed later)
-CORS_ALLOWED_ORIGINS=https://nrv-api.public.prod.nurturev.com,https://console.nrev.ai
+CORS_ALLOWED_ORIGINS=https://nrev-lite-api.public.prod.nurturev.com,https://console.nrev.ai
 ```
 
 ---

@@ -710,7 +710,7 @@ class ParallelWebProvider(BaseProvider):
     # ------------------------------------------------------------------
 
     def _normalize_search(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Normalize Parallel search response to nrv schema."""
+        """Normalize Parallel search response to nrev-lite schema."""
         raw_results = data.get("results", [])
         results = []
         for i, r in enumerate(raw_results):
@@ -741,7 +741,7 @@ class ParallelWebProvider(BaseProvider):
         return normalized
 
     def _normalize_extract(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Normalize Parallel extract response to nrv schema."""
+        """Normalize Parallel extract response to nrev-lite schema."""
         raw_results = data.get("results", [])
         pages = []
         for r in raw_results:

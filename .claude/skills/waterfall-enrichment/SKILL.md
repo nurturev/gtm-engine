@@ -1,6 +1,6 @@
 # Enrichment Strategy (No Waterfall Needed)
 
-BetterContact handles waterfall enrichment (trying multiple providers in sequence) automatically. Do NOT implement provider waterfall logic in nrv workflows.
+BetterContact handles waterfall enrichment (trying multiple providers in sequence) automatically. Do NOT implement provider waterfall logic in nrev-lite workflows.
 
 ## Instead:
 1. Use the provider-selection skill to pick the **best single provider** for each data type
@@ -15,7 +15,7 @@ BetterContact handles waterfall enrichment (trying multiple providers in sequenc
 - **Company signals (jobs/tech/news)**: PredictLeads
 - **Email verification**: ZeroBounce
 
-## Why Not Waterfall in nrv?
+## Why Not Waterfall in nrev-lite?
 - BetterContact already does this better — it handles 15+ providers, dedup, and quality scoring
-- Implementing waterfall in nrv wastes credits on redundant provider calls
-- Focus nrv on discovery, scoring, and creative sourcing — let BetterContact handle the fill-rate problem
+- Implementing waterfall in nrev-lite wastes credits on redundant provider calls
+- Focus nrev-lite on discovery, scoring, and creative sourcing — let BetterContact handle the fill-rate problem

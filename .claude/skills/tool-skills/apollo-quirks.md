@@ -164,5 +164,5 @@ Search (free) → filter → page through results → Bulk Enrich (10/call) → 
 - Alumni/previous employer search → use **RocketReach**
 - Non-standard businesses (local, D2C) → use **Google + Parallel Web**
 - Enterprise-grade data depth + org charts → use **ZoomInfo** ($15k+/yr)
-- Maximum email accuracy → use **waterfall** (Clay/nrv with multiple providers)
+- Maximum email accuracy → use **waterfall** (Clay/nrev-lite with multiple providers)
 - International/European data → Apollo is weak here

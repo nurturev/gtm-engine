@@ -69,5 +69,5 @@ ALTER TABLE datasets FORCE ROW LEVEL SECURITY;
 ALTER TABLE dataset_rows FORCE ROW LEVEL SECURITY;
 
 -- Grant to API role
-GRANT SELECT, INSERT, UPDATE, DELETE ON datasets TO nrv_api;
-GRANT SELECT, INSERT, UPDATE, DELETE ON dataset_rows TO nrv_api;
+GRANT SELECT, INSERT, UPDATE, DELETE ON datasets TO nrev_lite_api;
+GRANT SELECT, INSERT, UPDATE, DELETE ON dataset_rows TO nrev_lite_api;

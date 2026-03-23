@@ -1,5 +1,5 @@
 -- ============================================================
--- nrv Database Schema — Domain-based Tenant Lookup
+-- nrev-lite Database Schema — Domain-based Tenant Lookup
 -- Version: 002
 -- Date: 2026-03-16
 -- ============================================================

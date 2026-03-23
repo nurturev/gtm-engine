@@ -1,4 +1,4 @@
-# nrv — Architecture & Product Specification
+# nrev-lite — Architecture & Product Specification
 
 > Version: 1.0.0-draft
 > Date: 2026-03-15
@@ -18,7 +18,7 @@
 7. [Database Architecture](#7-database-architecture)
 8. [Credit & Billing System](#8-credit--billing-system)
 9. [Key Vault & Security](#9-key-vault--security)
-10. [CLI Package (nrv)](#10-cli-package-nrv)
+10. [CLI Package (nrev-lite)](#10-cli-package-nrv)
 11. [Skills Architecture](#11-skills-architecture)
 12. [MCP Strategy](#12-mcp-strategy)
 13. [Dashboard & Interactive Tables](#13-dashboard--interactive-tables)
@@ -32,30 +32,30 @@
 
 ## 1. Product Vision
 
-### What is nrv?
+### What is nrev-lite?
 
-nrv is an agent-native GTM (Go-To-Market) execution platform. It gives GTM engineers, RevOps teams, and growth operators a single interface — through Claude Code — to enrich leads, search companies, validate contacts, sequence outreach, and build dashboards on their GTM data.
+nrev-lite is an agent-native GTM (Go-To-Market) execution platform. It gives GTM engineers, RevOps teams, and growth operators a single interface — through Claude Code — to enrich leads, search companies, validate contacts, sequence outreach, and build dashboards on their GTM data.
 
 ### Core Principles
 
-1. **Intelligence on the client, execution on the cloud.** Claude Code + nrv skills handle GTM reasoning, workflow orchestration, and data massaging. The nrv cloud handles API calls, rate limits, pagination, key management, and billing.
+1. **Intelligence on the client, execution on the cloud.** Claude Code + nrev-lite skills handle GTM reasoning, workflow orchestration, and data massaging. The nrev-lite cloud handles API calls, rate limits, pagination, key management, and billing.
 
-2. **One command, many providers.** Users never call Apollo or RocketReach directly. They call nrv, which routes to the best provider (or multiple in parallel/waterfall).
+2. **One command, many providers.** Users never call Apollo or RocketReach directly. They call nrev-lite, which routes to the best provider (or multiple in parallel/waterfall).
 
-3. **BYOK + managed keys.** Users can bring their own API keys (free) or use nrv's platform keys (credits). Both paths go through the same secure gateway.
+3. **BYOK + managed keys.** Users can bring their own API keys (free) or use nrev-lite's platform keys (credits). Both paths go through the same secure gateway.
 
-4. **Data you can build on.** Every enrichment result, every API call, every workflow output writes to interactive tables in the user's tenant. Users build dashboards on this data using Claude Code, then optionally deploy them to nrv cloud.
+4. **Data you can build on.** Every enrichment result, every API call, every workflow output writes to interactive tables in the user's tenant. Users build dashboards on this data using Claude Code, then optionally deploy them to nrev-lite cloud.
 
 5. **Credit-based pricing with a free tier.** New users get free credits (~$2 worth) to try the platform. After that, top-up via one-time or recurring payments.
 
 ### How It Differs from Deepline
 
-| Aspect | Deepline | nrv |
+| Aspect | Deepline | nrev-lite |
 |--------|----------|-----|
 | Primary interface | CLI commands | Claude Code skills (MCP-native) |
 | GTM intelligence | Optional skills | Core differentiator — deep GTM playbooks |
 | Data layer | PostgreSQL per workspace | Interactive tables + user-deployable dashboards |
-| Dashboard hosting | Not offered | Users build with Claude Code, deploy to nrv cloud |
+| Dashboard hosting | Not offered | Users build with Claude Code, deploy to nrev-lite cloud |
 | Free tier | None for managed keys | $2 free credits on signup |
 | MCP support | On roadmap | Day-one MCP support |
 | Provider parallelization | Sequential waterfall | Parallel + waterfall (configurable) |
@@ -71,25 +71,25 @@ nrv is an agent-native GTM (Go-To-Market) execution platform. It gives GTM engin
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │  Claude Code                                              │   │
-│  │  ├─ nrv MCP Skills (pip installed)                        │   │
+│  │  ├─ nrev-lite MCP Skills (pip installed)                        │   │
 │  │  │   ├─ GTM knowledge & reasoning                         │   │
 │  │  │   ├─ Workflow orchestration                            │   │
 │  │  │   ├─ Data massaging & transformation                   │   │
 │  │  │   ├─ ICP scoring logic                                 │   │
 │  │  │   └─ Dashboard generation                              │   │
 │  │  │                                                        │   │
-│  │  ├─ nrv CLI (thin client)                                 │   │
-│  │  │   ├─ nrv auth login (Google OAuth)                     │   │
-│  │  │   ├─ nrv enrich <target>                               │   │
-│  │  │   ├─ nrv search <query>                                │   │
-│  │  │   ├─ nrv query <sql>                                   │   │
-│  │  │   ├─ nrv dashboard deploy <path>                       │   │
-│  │  │   └─ nrv keys add <provider>                           │   │
+│  │  ├─ nrev-lite CLI (thin client)                                 │   │
+│  │  │   ├─ nrev-lite auth login (Google OAuth)                     │   │
+│  │  │   ├─ nrev-lite enrich <target>                               │   │
+│  │  │   ├─ nrev-lite search <query>                                │   │
+│  │  │   ├─ nrev-lite query <sql>                                   │   │
+│  │  │   ├─ nrev-lite dashboard deploy <path>                       │   │
+│  │  │   └─ nrev-lite keys add <provider>                           │   │
 │  │  │                                                        │   │
 │  │  ├─ Native MCP connectors (user's own)                    │   │
 │  │  │   └─ HubSpot MCP, Slack MCP, etc.                      │   │
 │  │  │                                                        │   │
-│  │  └─ nrv MCP Server (optional, for non-CLI MCP calls)      │   │
+│  │  └─ nrev-lite MCP Server (optional, for non-CLI MCP calls)      │   │
 │  └──────────────────────┬───────────────────────────────────┘   │
 │                         │                                       │
 │                         │ HTTPS (JWT auth)                      │
@@ -97,7 +97,7 @@ nrv is an agent-native GTM (Go-To-Market) execution platform. It gives GTM engin
                           │
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      nrv CLOUD (AWS)                            │
+│                      nrev-lite CLOUD (AWS)                            │
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │  API Gateway (ALB + FastAPI on ECS Fargate)               │   │
@@ -158,7 +158,7 @@ nrv is an agent-native GTM (Go-To-Market) execution platform. It gives GTM engin
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │  CloudFront CDN                                           │   │
-│  │  ├─ Dashboard serving (tenant.dashboards.nrv.TLD)         │   │
+│  │  ├─ Dashboard serving (tenant.dashboards.nrev_lite.TLD)         │   │
 │  │  └─ Static assets                                         │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                                                                 │
@@ -182,10 +182,10 @@ nrv is an agent-native GTM (Go-To-Market) execution platform. It gives GTM engin
 
 | Component | What It Does | Technology |
 |-----------|-------------|------------|
-| **nrv CLI** | Thin client — auth, API calls, local config | Python 3.10+, Click, httpx |
-| **nrv Skills** | GTM intelligence, workflow logic, data transformation | Python, CLAUDE.md skill format |
-| **nrv MCP Server** | Exposes nrv capabilities as MCP tools (optional) | Python, MCP SDK |
-| **Local Config** | Stores auth token, tenant ID, preferences | `~/.nrv/config.toml`, `~/.nrv/credentials` |
+| **nrev-lite CLI** | Thin client — auth, API calls, local config | Python 3.10+, Click, httpx |
+| **nrev-lite Skills** | GTM intelligence, workflow logic, data transformation | Python, CLAUDE.md skill format |
+| **nrv MCP Server** | Exposes nrev-lite capabilities as MCP tools (optional) | Python, MCP SDK |
+| **Local Config** | Stores auth token, tenant ID, preferences | `~/.nrev-lite/config.toml`, `~/.nrev-lite/credentials` |
 
 ### 3.2 Server-Side Components
 
@@ -209,18 +209,18 @@ nrv is an agent-native GTM (Go-To-Market) execution platform. It gives GTM engin
 The CLI uses the **localhost loopback** OAuth flow — the same pattern used by `gh auth login`, `vercel login`, and `gcloud auth login`.
 
 ```
-User runs: nrv auth login
+User runs: nrev-lite auth login
 
 Step 1: CLI starts temporary HTTP server on localhost:PORT
-Step 2: CLI opens browser → https://api.nrv.TLD/auth/google
+Step 2: CLI opens browser → https://api.nrev_lite.TLD/auth/google
         (with redirect_uri=http://localhost:PORT/callback)
 Step 3: User authenticates with Google in browser
-Step 4: Google redirects to nrv server with auth code
-Step 5: nrv server exchanges code for Google tokens
-Step 6: nrv server creates/finds user, creates tenant if new
-Step 7: nrv server issues JWT (access + refresh tokens)
-Step 8: nrv server redirects to http://localhost:PORT/callback?token=JWT
-Step 9: CLI receives JWT, stores in ~/.nrv/credentials
+Step 4: Google redirects to nrev-lite server with auth code
+Step 5: nrev-lite server exchanges code for Google tokens
+Step 6: nrev-lite server creates/finds user, creates tenant if new
+Step 7: nrev-lite server issues JWT (access + refresh tokens)
+Step 8: nrev-lite server redirects to http://localhost:PORT/callback?token=JWT
+Step 9: CLI receives JWT, stores in ~/.nrev-lite/credentials
 Step 10: CLI displays "✓ Authenticated as user@gmail.com (tenant: xyz)"
 ```
 
@@ -228,12 +228,12 @@ Step 10: CLI displays "✓ Authenticated as user@gmail.com (tenant: xyz)"
 For headless environments (SSH, containers) where a browser can't be opened:
 
 ```
-User runs: nrv auth login --headless
+User runs: nrev-lite auth login --headless
 
-Step 1: CLI requests device code from nrv server
-Step 2: CLI displays: "Visit https://api.nrv.TLD/device and enter code: ABCD-1234"
+Step 1: CLI requests device code from nrev-lite server
+Step 2: CLI displays: "Visit https://api.nrev_lite.TLD/device and enter code: ABCD-1234"
 Step 3: User visits URL, authenticates with Google
-Step 4: CLI polls nrv server for token completion
+Step 4: CLI polls nrev-lite server for token completion
 Step 5: Once authenticated, CLI stores JWT
 ```
 
@@ -242,9 +242,9 @@ Step 5: Once authenticated, CLI stores JWT
 Standard web OAuth:
 
 ```
-Step 1: User visits app.nrv.TLD → clicks "Sign in with Google"
+Step 1: User visits app.nrev_lite.TLD → clicks "Sign in with Google"
 Step 2: Redirects to Google OAuth consent screen
-Step 3: Google redirects back to app.nrv.TLD/auth/callback
+Step 3: Google redirects back to app.nrev_lite.TLD/auth/callback
 Step 4: Server exchanges code for tokens, creates session
 Step 5: User lands on dashboard
 ```
@@ -255,10 +255,10 @@ Whether from CLI or web, new users go through onboarding:
 
 ```
 CLI version (interactive):
-  $ nrv auth login
+  $ nrev-lite auth login
   ✓ Authenticated as sayanta@nrev.com
 
-  Welcome to nrv! Let's set up your GTM workspace.
+  Welcome to nrev-lite! Let's set up your GTM workspace.
 
   Company name: nRev
   Company domain: nrev.com
@@ -271,9 +271,9 @@ CLI version (interactive):
   ✓ 200 free credits added to your account
 
   Next steps:
-    nrv keys add apollo     # Connect your Apollo key (free usage)
-    nrv keys add rocketreach # Connect your RocketReach key
-    nrv setup-claude         # Install Claude Code skills
+    nrev-lite keys add apollo     # Connect your Apollo key (free usage)
+    nrev-lite keys add rocketreach # Connect your RocketReach key
+    nrev-lite setup-claude         # Install Claude Code skills
 ```
 
 Web version: Same fields, rendered as a multi-step form.
@@ -281,7 +281,7 @@ Web version: Same fields, rendered as a multi-step form.
 ### 4.4 Credential Storage
 
 ```
-~/.nrv/
+~/.nrev-lite/
 ├── config.toml          # tenant_id, default provider prefs, MCP config
 ├── credentials          # JWT access token + refresh token (file permissions 600)
 └── skills/              # Installed skill files
@@ -297,12 +297,12 @@ name = "nRev"
 email = "sayanta@nrev.com"
 
 [providers]
-# "nrv" = use platform keys (costs credits)
+# "nrev-lite" = use platform keys (costs credits)
 # "byok" = use your own key
-# "native" = use user's own MCP connector (free, no nrv involvement)
+# "native" = use user's own MCP connector (free, no nrev-lite involvement)
 apollo = "byok"
-rocketreach = "nrv"
-google_search = "nrv"
+rocketreach = "nrev-lite"
+google_search = "nrev-lite"
 hubspot = "native"
 
 [preferences]
@@ -317,7 +317,7 @@ spend_cap_monthly = 500  # credits
 ### 5.1 Base URL
 
 ```
-https://api.nrv.TLD/api/v1/
+https://api.nrev_lite.TLD/api/v1/
 ```
 
 ### 5.2 Authentication
@@ -328,7 +328,7 @@ All API requests (except auth endpoints) require a JWT Bearer token:
 Authorization: Bearer eyJhbGciOiJSUzI1NiIs...
 ```
 
-JWTs are issued by the nrv server, signed with RS256, and contain:
+JWTs are issued by the nrev-lite server, signed with RS256, and contain:
 
 ```json
 {
@@ -343,7 +343,7 @@ JWTs are issued by the nrv server, signed with RS256, and contain:
 
 - Access tokens: 24-hour expiry
 - Refresh tokens: 30-day expiry, rotated on use
-- Stored in HttpOnly cookies (web) or `~/.nrv/credentials` (CLI)
+- Stored in HttpOnly cookies (web) or `~/.nrev-lite/credentials` (CLI)
 
 ### 5.3 Rate Limiting
 
@@ -371,7 +371,7 @@ X-Credits-Remaining: 142
     "details": {
       "required": 3,
       "balance": 1,
-      "topup_url": "https://app.nrv.TLD/credits"
+      "topup_url": "https://app.nrev_lite.TLD/credits"
     }
   }
 }
@@ -398,7 +398,7 @@ Standard error codes:
 
 ### 6.1 Core Concept
 
-The execution engine is the heart of nrv's cloud. It receives a standardized request from the CLI/skills, routes it to one or more providers, handles all the complexity (auth, rate limits, pagination, retries), normalizes the response, and writes results to the tenant's interactive tables.
+The execution engine is the heart of nrev-lite's cloud. It receives a standardized request from the CLI/skills, routes it to one or more providers, handles all the complexity (auth, rate limits, pagination, retries), normalizes the response, and writes results to the tenant's interactive tables.
 
 ### 6.2 Request Flow
 
@@ -465,7 +465,7 @@ class BaseProvider(ABC):
 
     @abstractmethod
     def normalize(self, raw_response: dict, operation: str) -> dict:
-        """Normalize provider-specific response to nrv schema."""
+        """Normalize provider-specific response to nrev-lite schema."""
         pass
 ```
 
@@ -622,11 +622,11 @@ Users query their tables through the CLI or skills:
 
 ```bash
 # Direct SQL query
-nrv query "SELECT name, email, company FROM contacts WHERE icp_score > 80 ORDER BY created_at DESC LIMIT 20"
+nrev-lite query "SELECT name, email, company FROM contacts WHERE icp_score > 80 ORDER BY created_at DESC LIMIT 20"
 
 # Skill-driven (Claude Code)
 "Show me all contacts from Series B companies in fintech that we enriched this week"
-→ Skill translates to SQL → nrv query → results displayed
+→ Skill translates to SQL → nrev-lite query → results displayed
 ```
 
 #### Custom Columns
@@ -634,8 +634,8 @@ nrv query "SELECT name, email, company FROM contacts WHERE icp_score > 80 ORDER 
 Users can add custom columns to any core table:
 
 ```bash
-nrv table contacts add-column "outreach_status" text default 'not_contacted'
-nrv table contacts add-column "deal_size" numeric
+nrev-lite table contacts add-column "outreach_status" text default 'not_contacted'
+nrev-lite table contacts add-column "deal_size" numeric
 ```
 
 This is stored as JSONB in an `extensions` column, keeping the core schema stable while allowing per-tenant customization.
@@ -734,7 +734,7 @@ CREATE TABLE credit_ledger (
 Users can set monthly or per-session spend caps:
 
 ```toml
-# ~/.nrv/config.toml
+# ~/.nrev-lite/config.toml
 [preferences]
 spend_cap_monthly = 500    # credits per month
 spend_cap_session = 50     # credits per Claude Code session
@@ -783,10 +783,10 @@ Response:
 Stored in **AWS Secrets Manager**:
 
 ```
-/nrv/platform-keys/apollo      → Apollo API key
-/nrv/platform-keys/rocketreach → RocketReach API key
-/nrv/platform-keys/rapidapi    → RapidAPI key
-/nrv/platform-keys/parallel_web → Parallel Web key
+/nrev-lite/platform-keys/apollo      → Apollo API key
+/nrev-lite/platform-keys/rocketreach → RocketReach API key
+/nrev-lite/platform-keys/rapidapi    → RapidAPI key
+/nrev-lite/platform-keys/parallel_web → Parallel Web key
 ```
 
 - Only the Execution Engine (ECS Fargate task role) has IAM permission to read these secrets
@@ -800,7 +800,7 @@ User-provided keys are encrypted with **AWS KMS** using a tenant-scoped encrypti
 ```python
 # Encryption
 kms.encrypt(
-    KeyId="alias/nrv-byok",
+    KeyId="alias/nrev-lite-byok",
     Plaintext=user_api_key,
     EncryptionContext={
         "tenant_id": "nrev-a8f3c2e1",
@@ -836,37 +836,37 @@ Decryption only happens in memory during execution, never logged, never written 
 
 ---
 
-## 10. CLI Package (nrv)
+## 10. CLI Package (nrev-lite)
 
 ### 10.1 Installation
 
 ```bash
-pip install nrv
+pip install nrev-lite
 # or
-pip install git+https://github.com/sayanta-ghosh/nrv.git
+pip install git+https://github.com/sayanta-ghosh/nrev_lite.git
 ```
 
 ### 10.2 Package Structure
 
 ```
-nrv/
+nrev-lite/
 ├── pyproject.toml
 ├── src/
-│   └── nrv/
+│   └── nrev-lite/
 │       ├── __init__.py
-│       ├── __main__.py           # Entry point: python -m nrv
+│       ├── __main__.py           # Entry point: python -m nrev_lite
 │       ├── cli/
 │       │   ├── __init__.py
 │       │   ├── main.py           # Click CLI group
-│       │   ├── auth.py           # nrv auth login/logout/status
-│       │   ├── execute.py        # nrv enrich, nrv search
-│       │   ├── keys.py           # nrv keys add/remove/list
-│       │   ├── query.py          # nrv query <sql>
-│       │   ├── tables.py         # nrv table list/describe/add-column
-│       │   ├── dashboard.py      # nrv dashboard deploy/list/remove
-│       │   ├── credits.py        # nrv credits balance/history/topup
-│       │   ├── config.py         # nrv config get/set
-│       │   └── setup.py          # nrv setup-claude
+│       │   ├── auth.py           # nrev-lite auth login/logout/status
+│       │   ├── execute.py        # nrev-lite enrich, nrev-lite search
+│       │   ├── keys.py           # nrev-lite keys add/remove/list
+│       │   ├── query.py          # nrev-lite query <sql>
+│       │   ├── tables.py         # nrev-lite table list/describe/add-column
+│       │   ├── dashboard.py      # nrev-lite dashboard deploy/list/remove
+│       │   ├── credits.py        # nrev-lite credits balance/history/topup
+│       │   ├── config.py         # nrev-lite config get/set
+│       │   └── setup.py          # nrev-lite setup-claude
 │       │
 │       ├── client/
 │       │   ├── __init__.py
@@ -889,7 +889,7 @@ nrv/
 │       │
 │       ├── mcp/
 │       │   ├── __init__.py
-│       │   └── server.py         # MCP server exposing nrv tools
+│       │   └── server.py         # MCP server exposing nrev-lite tools
 │       │
 │       └── utils/
 │           ├── __init__.py
@@ -908,42 +908,42 @@ nrv/
 ### 10.3 CLI Commands
 
 ```
-nrv auth login              # Authenticate via Google OAuth (opens browser)
-nrv auth login --headless   # Authenticate via device code (for SSH)
-nrv auth logout             # Clear stored credentials
-nrv auth status             # Show current auth state
+nrev-lite auth login              # Authenticate via Google OAuth (opens browser)
+nrev-lite auth login --headless   # Authenticate via device code (for SSH)
+nrev-lite auth logout             # Clear stored credentials
+nrev-lite auth status             # Show current auth state
 
-nrv enrich person --email john@acme.com
-nrv enrich company --domain acme.com
-nrv enrich batch --file leads.csv --fields name,email,company
+nrev-lite enrich person --email john@acme.com
+nrev-lite enrich company --domain acme.com
+nrev-lite enrich batch --file leads.csv --fields name,email,company
 
-nrv search people --title "VP Sales" --industry fintech --size 51-200
-nrv search companies --industry "AI" --funding "Series B"
+nrev-lite search people --title "VP Sales" --industry fintech --size 51-200
+nrev-lite search companies --industry "AI" --funding "Series B"
 
-nrv query "SELECT * FROM contacts WHERE icp_score > 80"
+nrev-lite query "SELECT * FROM contacts WHERE icp_score > 80"
 
-nrv table list
-nrv table describe contacts
-nrv table contacts add-column outreach_status text
+nrev-lite table list
+nrev-lite table describe contacts
+nrev-lite table contacts add-column outreach_status text
 
-nrv keys add apollo         # Securely upload your Apollo key
-nrv keys add rocketreach
-nrv keys list               # Show configured keys (hints only)
-nrv keys remove apollo
+nrev-lite keys add apollo         # Securely upload your Apollo key
+nrev-lite keys add rocketreach
+nrev-lite keys list               # Show configured keys (hints only)
+nrev-lite keys remove apollo
 
-nrv credits balance         # Show current credit balance
-nrv credits history         # Show recent credit transactions
-nrv credits topup           # Open browser to top-up page
+nrev-lite credits balance         # Show current credit balance
+nrev-lite credits history         # Show recent credit transactions
+nrev-lite credits topup           # Open browser to top-up page
 
-nrv config get              # Show all config
-nrv config set providers.apollo=byok
-nrv config set preferences.spend_cap_monthly=500
+nrev-lite config get              # Show all config
+nrev-lite config set providers.apollo=byok
+nrev-lite config set preferences.spend_cap_monthly=500
 
-nrv dashboard deploy ./my-dashboard   # Deploy local dashboard to nrv cloud
-nrv dashboard list                    # List deployed dashboards
-nrv dashboard remove <name>           # Remove a deployed dashboard
+nrev-lite dashboard deploy ./my-dashboard   # Deploy local dashboard to nrev-lite cloud
+nrev-lite dashboard list                    # List deployed dashboards
+nrev-lite dashboard remove <name>           # Remove a deployed dashboard
 
-nrv setup-claude            # Install/update Claude Code skills
+nrev-lite setup-claude            # Install/update Claude Code skills
 ```
 
 ### 10.4 What the CLI Does vs What the Server Does
@@ -960,7 +960,7 @@ nrv setup-claude            # Install/update Claude Code skills
 | Caching | — | Deduplicates calls via Redis cache |
 | Data storage | — | Writes to Aurora PostgreSQL |
 | Dashboard build | Claude Code generates locally | — |
-| Dashboard hosting | `nrv dashboard deploy` uploads | S3 + CloudFront serves |
+| Dashboard hosting | `nrev-lite dashboard deploy` uploads | S3 + CloudFront serves |
 
 ---
 
@@ -984,7 +984,7 @@ Each skill is a Python file that Claude Code loads. It contains:
 ---
 skill: gtm_enrich
 description: |
-  Enrich people and companies using nrv's cloud execution engine.
+  Enrich people and companies using nrev-lite's cloud execution engine.
   Handles single enrichments, batch enrichments, and waterfall strategies.
   Automatically scores results against the tenant's ICP.
 triggers:
@@ -997,9 +997,9 @@ triggers:
 """
 
 # The skill code follows — functions that Claude Code can call
-# These functions use the nrv client library to call the server
+# These functions use the nrev-lite client library to call the server
 
-from nrv.client import NrvClient
+from nrev_lite.client import NrvClient
 
 async def enrich_person(email: str = None, linkedin: str = None,
                         name: str = None, company: str = None,
@@ -1071,25 +1071,25 @@ Step 6 (if user agrees):
 
 Users can configure how each provider's actions are handled:
 
-#### Mode 1: `nrv` (default for enrichment providers)
-All calls route through nrv's cloud. Full audit trail, credit billing, caching.
+#### Mode 1: `nrev-lite` (default for enrichment providers)
+All calls route through nrev-lite's cloud. Full audit trail, credit billing, caching.
 
 ```toml
 [providers]
-apollo = "nrv"       # Uses nrv's platform keys, costs credits
-rocketreach = "nrv"
+apollo = "nrev-lite"       # Uses nrev-lite's platform keys, costs credits
+rocketreach = "nrev-lite"
 ```
 
-#### Mode 2: `byok` (user's keys, nrv's infrastructure)
-Calls still route through nrv's cloud (rate limiting, caching, audit trail) but use the user's own API keys. No credit cost.
+#### Mode 2: `byok` (user's keys, nrev-lite's infrastructure)
+Calls still route through nrev-lite's cloud (rate limiting, caching, audit trail) but use the user's own API keys. No credit cost.
 
 ```toml
 [providers]
-apollo = "byok"      # User's Apollo key, stored encrypted in nrv vault
+apollo = "byok"      # User's Apollo key, stored encrypted in nrev-lite vault
 ```
 
 #### Mode 3: `native` (user's own MCP connector)
-nrv skills detect that the user has a native MCP connector installed and route calls directly through it. nrv is not involved — no audit trail, no credits, no caching.
+nrev-lite skills detect that the user has a native MCP connector installed and route calls directly through it. nrev-lite is not involved — no audit trail, no credits, no caching.
 
 ```toml
 [providers]
@@ -1104,11 +1104,11 @@ When a skill needs to call a provider, it checks the config:
 ```python
 async def route_action(provider: str, operation: str, params: dict):
     config = load_config()
-    mode = config.providers.get(provider, "nrv")
+    mode = config.providers.get(provider, "nrev-lite")
 
-    if mode == "nrv" or mode == "byok":
-        # Route through nrv cloud
-        return await nrv_client.execute(operation, params)
+    if mode == "nrev-lite" or mode == "byok":
+        # Route through nrev-lite cloud
+        return await nrev_client.execute(operation, params)
 
     elif mode == "native":
         # Route through user's native MCP connector
@@ -1118,23 +1118,23 @@ async def route_action(provider: str, operation: str, params: dict):
                 "operation": operation, "params": params}
 ```
 
-### 12.3 nrv MCP Server (Optional)
+### 12.3 nrev-lite MCP Server (Optional)
 
-For users who prefer MCP over CLI, nrv ships an optional MCP server:
+For users who prefer MCP over CLI, nrev-lite ships an optional MCP server:
 
 ```bash
-nrv mcp start
+nrev-lite mcp start
 # Starts MCP server on stdio, exposable to Claude Code
 ```
 
-This exposes nrv operations as MCP tools:
+This exposes nrev-lite operations as MCP tools:
 
 ```json
 {
   "tools": [
     {
-      "name": "nrv_enrich_person",
-      "description": "Enrich a person using nrv's cloud (Apollo, RocketReach, etc.)",
+      "name": "nrev_enrich_person",
+      "description": "Enrich a person using nrev-lite's cloud (Apollo, RocketReach, etc.)",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1155,27 +1155,27 @@ This exposes nrv operations as MCP tools:
 
 ### 13.1 How Dashboards Work
 
-The dashboard flow is unique to nrv:
+The dashboard flow is unique to nrev-lite:
 
 ```
 Step 1: User asks Claude Code to build a dashboard
   "Build me a dashboard showing this week's enriched contacts by ICP score"
 
 Step 2: Claude Code (using gtm_dashboard skill):
-  a) Queries nrv tables: GET /api/v1/query
+  a) Queries nrev-lite tables: GET /api/v1/query
   b) Generates a self-contained HTML/JS dashboard locally
      (using Chart.js, or a lightweight React app)
   c) Saves to ./dashboards/contacts-icp-scores/
 
 Step 3: User previews locally (opens in browser)
 
-Step 4: User deploys to nrv cloud
-  $ nrv dashboard deploy ./dashboards/contacts-icp-scores/
-  ✓ Deployed: https://dashboards.nrv.TLD/nrev-a8f3c2e1/contacts-icp-scores
+Step 4: User deploys to nrev-lite cloud
+  $ nrev-lite dashboard deploy ./dashboards/contacts-icp-scores/
+  ✓ Deployed: https://dashboards.nrev_lite.TLD/nrev-a8f3c2e1/contacts-icp-scores
 
 Step 5: Dashboard is live
   - Served via CloudFront from S3
-  - Fetches data from nrv API (with embedded read-only token)
+  - Fetches data from nrev-lite API (with embedded read-only token)
   - Auto-refreshes on configurable interval
   - Shareable URL (with optional password protection)
 ```
@@ -1183,7 +1183,7 @@ Step 5: Dashboard is live
 ### 13.2 Dashboard Deployment Architecture
 
 ```
-nrv dashboard deploy ./my-dashboard/
+nrev-lite dashboard deploy ./my-dashboard/
   │
   ├─ 1. CLI bundles the directory (index.html + assets)
   ├─ 2. CLI uploads to: POST /api/v1/dashboards/deploy
@@ -1193,10 +1193,10 @@ nrv dashboard deploy ./my-dashboard/
   │     a) Validates the bundle (security scan, size limits)
   │     b) Generates a read-only API token scoped to this dashboard
   │     c) Injects the token into the dashboard's config
-  │     d) Uploads to S3: s3://nrv-dashboards/{tenant_id}/{dashboard_name}/
+  │     d) Uploads to S3: s3://nrev-lite-dashboards/{tenant_id}/{dashboard_name}/
   │     e) Invalidates CloudFront cache for this path
   │
-  └─ 4. Returns URL: https://dashboards.nrv.TLD/{tenant_id}/{dashboard_name}
+  └─ 4. Returns URL: https://dashboards.nrev_lite.TLD/{tenant_id}/{dashboard_name}
 ```
 
 ### 13.3 Dashboard Data Access
@@ -1217,24 +1217,24 @@ Users can interact with their tables through Claude Code:
 
 ```bash
 # List all tables
-nrv table list
+nrev-lite table list
 → contacts (2,847 rows), companies (412 rows), enrichment_log (8,291 rows)
 
 # Describe a table
-nrv table describe contacts
+nrev-lite table describe contacts
 → id (uuid), tenant_id (text), email (text), name (text), title (text),
   company (text), company_domain (text), phone (text), linkedin (text),
   icp_score (numeric), enrichment_sources (jsonb), extensions (jsonb),
   created_at (timestamptz), updated_at (timestamptz)
 
 # Query with filters
-nrv query "SELECT name, email, icp_score FROM contacts WHERE icp_score > 80 AND company_domain LIKE '%fintech%' ORDER BY icp_score DESC"
+nrev-lite query "SELECT name, email, icp_score FROM contacts WHERE icp_score > 80 AND company_domain LIKE '%fintech%' ORDER BY icp_score DESC"
 
 # Add custom column
-nrv table contacts add-column "campaign_status" text default 'pending'
+nrev-lite table contacts add-column "campaign_status" text default 'pending'
 
 # Update records
-nrv query "UPDATE contacts SET extensions = extensions || '{\"campaign_status\": \"contacted\"}' WHERE id = '...'"
+nrev-lite query "UPDATE contacts SET extensions = extensions || '{\"campaign_status\": \"contacted\"}' WHERE id = '...'"
 ```
 
 ---
@@ -1277,7 +1277,7 @@ nrv query "UPDATE contacts SET extensions = extensions || '{\"campaign_status\":
               │            │            │
     ┌─────────┴──┐  ┌─────┴─────┐  ┌──┴──────────┐
     │ CloudFront  │  │    ALB     │  │  Amplify     │
-    │ Dashboards  │  │ api.nrv.* │  │  app.nrv.*   │
+    │ Dashboards  │  │ api.nrev_lite.* │  │  app.nrev_lite.*   │
     └─────┬──────┘  └─────┬─────┘  └──────────────┘
           │               │
     ┌─────┴──────┐  ┌─────┴──────────────────────┐
@@ -1372,7 +1372,7 @@ Response:
 ```
 
 #### `POST /api/v1/auth/callback`
-Exchanges OAuth code for nrv JWT tokens.
+Exchanges OAuth code for nrev-lite JWT tokens.
 
 ```json
 Request:
@@ -1420,7 +1420,7 @@ Response:
 {
   "device_code": "abc123",
   "user_code": "ABCD-1234",
-  "verification_uri": "https://app.nrv.TLD/device",
+  "verification_uri": "https://app.nrev_lite.TLD/device",
   "expires_in": 600,
   "interval": 5
 }
@@ -1739,7 +1739,7 @@ Response:
 {
   "dashboard": {
     "name": "contacts-icp-scores",
-    "url": "https://dashboards.nrv.TLD/nrev-a8f3c2e1/contacts-icp-scores",
+    "url": "https://dashboards.nrev_lite.TLD/nrev-a8f3c2e1/contacts-icp-scores",
     "status": "deployed",
     "created_at": "2026-03-15T10:30:00Z"
   }
@@ -2047,10 +2047,10 @@ CREATE INDEX idx_dashboards_tenant ON dashboards(tenant_id);
 - [ ] Single execution endpoint (no parallelization yet)
 - [ ] Credit ledger: debit on execute, balance check
 - [ ] Signup bonus (200 credits)
-- [ ] CLI: `nrv auth login`, `nrv enrich person`, `nrv credits balance`
+- [ ] CLI: `nrev-lite auth login`, `nrev-lite enrich person`, `nrev-lite credits balance`
 - [ ] Basic RLS setup
 
-**Deliverable:** User can `nrv auth login` → `nrv enrich person --email x` → see credits deducted.
+**Deliverable:** User can `nrev-lite auth login` → `nrev-lite enrich person --email x` → see credits deducted.
 
 ### Phase 2: Multi-Provider + Skills (Weeks 4-6)
 **Goal:** Multiple providers with parallelization, skills working in Claude Code.
@@ -2064,10 +2064,10 @@ CREATE INDEX idx_dashboards_tenant ON dashboards(tenant_id);
 - [ ] Response cache (Redis)
 - [ ] Retry logic with backoff
 - [ ] BYOK key management (KMS encryption)
-- [ ] CLI: `nrv keys add`, `nrv search`, `nrv config`
+- [ ] CLI: `nrev-lite keys add`, `nrev-lite search`, `nrev-lite config`
 - [ ] Skills: gtm_enrich, gtm_search, gtm_score
 - [ ] Knowledge files for skills
-- [ ] `nrv setup-claude` command
+- [ ] `nrev-lite setup-claude` command
 
 **Deliverable:** Claude Code can run full enrichment workflows with skills.
 
@@ -2079,7 +2079,7 @@ CREATE INDEX idx_dashboards_tenant ON dashboards(tenant_id);
 - [ ] Custom columns (extensions JSONB)
 - [ ] Batch execution (async via SQS + Lambda)
 - [ ] Batch status polling
-- [ ] CLI: `nrv table`, `nrv query`
+- [ ] CLI: `nrev-lite table`, `nrev-lite query`
 - [ ] Dashboard skill (Claude Code generates dashboards)
 - [ ] Pagination handler for provider responses
 
@@ -2090,7 +2090,7 @@ CREATE INDEX idx_dashboards_tenant ON dashboards(tenant_id);
 
 - [ ] Dashboard deploy pipeline (CLI → S3 → CloudFront)
 - [ ] Read-only dashboard tokens
-- [ ] CLI: `nrv dashboard deploy/list/remove`
+- [ ] CLI: `nrev-lite dashboard deploy/list/remove`
 - [ ] Web application (Next.js)
   - [ ] Google OAuth login
   - [ ] Usage dashboard
@@ -2136,7 +2136,7 @@ CREATE INDEX idx_dashboards_tenant ON dashboards(tenant_id);
 
 | # | Question | Status | Decision |
 |---|----------|--------|----------|
-| 1 | Domain name — nrv.ai? nrev.lite? getnrv.com? | Open | Decide when purchasing domain |
+| 1 | Domain name — nrev_lite.ai? nrev.lite? getnrev_lite.com? | Open | Decide when purchasing domain |
 | 2 | AWS region — us-east-1 default? | Open | Depends on user base location |
 | 3 | Free tier reset — one-time 200 credits or monthly? | Open | Start with one-time, add monthly plan later |
 | 4 | Max dashboard storage per tenant | Open | Start with 50MB, increase on plan |
@@ -2155,13 +2155,13 @@ CREATE INDEX idx_dashboards_tenant ON dashboards(tenant_id);
 | 6 | Python throughout (CLI + server) | 2026-03-15 | One language, faster development for solo team |
 | 7 | Next.js for web app | 2026-03-15 | Best React framework, SSR, good DX |
 | 8 | CDK for infrastructure | 2026-03-15 | Python-native, AWS-native, version controlled |
-| 9 | Name: nrv | 2026-03-15 | Short, memorable, derived from nRev |
+| 9 | Name: nrev-lite | 2026-03-15 | Short, memorable, derived from nRev |
 
 ---
 
 ## Appendix A: Naming Note
 
-The name "nrv" can be changed later with minimal impact:
+The name "nrev-lite" can be changed later with minimal impact:
 
 - **API URL**: Configured via environment variable / Route 53. Change DNS → done.
 - **CLI package**: Rename on PyPI. Users `pip install new-name`.
@@ -2177,7 +2177,7 @@ The only sticky point is PyPI package name — once published, the old name rema
 
 ## Appendix B: Comparable Products
 
-| Product | Model | Key Difference from nrv |
+| Product | Model | Key Difference from nrev-lite |
 |---------|-------|------------------------|
 | Deepline | CLI + cloud gateway | No dashboard hosting, no free tier, Node.js required |
 | Clay | No-code spreadsheet | Expensive per-row pricing, vendor lock-in |
@@ -2185,7 +2185,7 @@ The only sticky point is PyPI package name — once published, the old name rema
 | Databar | API + webhook | No Claude Code integration |
 | Apollo | Direct API | Single provider, no orchestration |
 
-nrv's unique position: **Claude Code-native GTM platform with interactive tables and deployable dashboards.**
+nrev-lite's unique position: **Claude Code-native GTM platform with interactive tables and deployable dashboards.**
 
 ---
 

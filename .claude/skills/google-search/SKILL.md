@@ -2,7 +2,7 @@
 
 ## When to Use Google Search
 
-Google search via `nrv_google_search` is the most versatile GTM intelligence tool. Use it when:
+Google search via `nrev_google_search` is the most versatile GTM intelligence tool. Use it when:
 
 - **Finding people**: LinkedIn profiles by title/company/location
 - **Finding content**: LinkedIn posts, tweets, Reddit threads, YouTube videos
@@ -19,13 +19,13 @@ Google search via `nrv_google_search` is the most versatile GTM intelligence too
 
 ### Step 1: Get the pattern from the server
 ```
-nrv_search_patterns(platform="linkedin_jobs")
+nrev_search_patterns(platform="linkedin_jobs")
 → Returns: site_prefix, query_template, examples, tips, recommended_params
 ```
 
 ### Step 2: Construct the query using the pattern
 ```
-nrv_google_search(
+nrev_google_search(
     query='site:linkedin.com/jobs/view "Stripe"',
     tbs="qdr:m",
     num_results=50
@@ -33,7 +33,7 @@ nrv_google_search(
 ```
 
 ### Available Platforms
-Call `nrv_search_patterns()` with no args for the full list. Key ones:
+Call `nrev_search_patterns()` with no args for the full list. Key ones:
 - `linkedin_profiles`, `linkedin_posts`, `linkedin_jobs`, `linkedin_companies`
 - `twitter_posts`, `twitter_profiles`
 - `reddit_discussions`
@@ -68,7 +68,7 @@ Pass `site="linkedin.com/in"` instead of embedding `site:` in the query.
 ### queries (Bulk Search)
 Pass multiple queries for concurrent execution:
 ```
-nrv_google_search(queries=["Acme funding", "Acme hiring", "Acme reviews"])
+nrev_google_search(queries=["Acme funding", "Acme hiring", "Acme reviews"])
 ```
 
 ## Common Mistakes to Avoid

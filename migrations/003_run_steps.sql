@@ -36,4 +36,4 @@ CREATE POLICY tenant_isolation ON run_steps
 ALTER TABLE run_steps FORCE ROW LEVEL SECURITY;
 
 -- Grant to API role
-GRANT SELECT, INSERT, UPDATE, DELETE ON run_steps TO nrv_api;
+GRANT SELECT, INSERT, UPDATE, DELETE ON run_steps TO nrev_lite_api;

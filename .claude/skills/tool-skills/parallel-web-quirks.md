@@ -209,7 +209,7 @@ Parallel has **7 distinct APIs**. Picking the right one matters:
 
 **Best practice:** Always start with `preview` to validate your schema (10 candidates, $0.10), then scale up with `core` or `pro`.
 
-**Critical for GTM workflows:** When building lists of businesses NOT in Apollo/RocketReach (local businesses, D2C brands, niche verticals), FindAll discovers them and Task enriches them. Do NOT route these through `nrv_enrich_company` — Apollo/RocketReach won't have them.
+**Critical for GTM workflows:** When building lists of businesses NOT in Apollo/RocketReach (local businesses, D2C brands, niche verticals), FindAll discovers them and Task enriches them. Do NOT route these through `nrev_enrich_company` — Apollo/RocketReach won't have them.
 
 ## API #6: Chat (Web-Grounded Conversations)
 
@@ -277,7 +277,7 @@ Need to research a company/person/topic?
 └── Need deep competitive/market analysis → Task (pro/ultra)
 
 Need to build a prospect list?
-├── Standard B2B companies → Apollo/RocketReach (via nrv_enrich)
+├── Standard B2B companies → Apollo/RocketReach (via nrev_enrich)
 ├── Non-standard businesses (local, D2C, niche) → FindAll → Task
 ├── Alumni network → RocketReach previous_employer → Task for context
 └── Hiring signals → Search (job board queries) → Extract
@@ -320,9 +320,9 @@ x-api-key: $PARALLEL_API_KEY
 ```
 Or: `Authorization: Bearer $PARALLEL_API_KEY`
 
-## nrv Integration
+## nrev-lite Integration
 
-In nrv, Parallel Web is accessed through:
-- `nrv_scrape_page` — wraps Extract API (provide URL + objective)
-- `nrv_search_web` — wraps Search API
-- For Task, FindAll, Monitor — use `nrv_execute_action` or direct API calls through the server proxy
+In nrev-lite, Parallel Web is accessed through:
+- `nrev_scrape_page` — wraps Extract API (provide URL + objective)
+- `nrev_search_web` — wraps Search API
+- For Task, FindAll, Monitor — use `nrev_execute_action` or direct API calls through the server proxy

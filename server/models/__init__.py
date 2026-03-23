@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models for the nrv platform.
+"""SQLAlchemy ORM models for the nrev-lite platform.
 
 Re-exports all models from their new modular locations for backward
 compatibility. New code should import directly from the relevant module.

@@ -1,5 +1,5 @@
 -- ============================================================
--- nrv Database Schema — Initial Migration
+-- nrev-lite Database Schema — Initial Migration
 -- Version: 001
 -- Date: 2026-03-15
 -- ============================================================
@@ -279,20 +279,20 @@ ALTER TABLE dashboards FORCE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nrv_api') THEN
-        CREATE ROLE nrv_api LOGIN PASSWORD 'nrv_api_local_dev';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nrev_lite_api') THEN
+        CREATE ROLE nrev_lite_api LOGIN PASSWORD 'nrev_lite_api_local_dev';
     END IF;
 END
 $$;
 
-GRANT CONNECT ON DATABASE nrv TO nrv_api;
-GRANT USAGE ON SCHEMA public TO nrv_api;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nrv_api;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nrv_api;
+GRANT CONNECT ON DATABASE nrev_lite TO nrev_lite_api;
+GRANT USAGE ON SCHEMA public TO nrev_lite_api;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nrev_lite_api;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nrev_lite_api;
 
 -- Ensure future tables also get grants
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO nrv_api;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO nrv_api;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO nrev_lite_api;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO nrev_lite_api;
 
 -- ============================================================
 -- Done

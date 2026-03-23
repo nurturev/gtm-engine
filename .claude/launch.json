@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "nrv-server",
+      "name": "nrev-lite-server",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "uvicorn", "server.app:app", "--reload", "--env-file", "../.env"],
       "port": 8000

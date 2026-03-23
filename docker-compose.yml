@@ -4,18 +4,18 @@ services:
   # ── PostgreSQL (simulates Aurora Serverless v2 locally) ──
   postgres:
     image: postgres:15-alpine
-    container_name: nrv-postgres
+    container_name: nrev_lite-postgres
     environment:
-      POSTGRES_DB: nrv
-      POSTGRES_USER: nrv
-      POSTGRES_PASSWORD: nrv_local_dev
+      POSTGRES_DB: nrev_lite
+      POSTGRES_USER: nrev_lite
+      POSTGRES_PASSWORD: nrev_lite_local_dev
     ports:
       - "5432:5432"
     volumes:
-      - nrv_pgdata:/var/lib/postgresql/data
+      - nrev_lite_pgdata:/var/lib/postgresql/data
       - ./migrations/001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nrv -d nrv"]
+      test: ["CMD-SHELL", "pg_isready -U nrev_lite -d nrev_lite"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -23,7 +23,7 @@ services:
   # ── Redis (simulates ElastiCache locally) ──
   redis:
     image: redis:7-alpine
-    container_name: nrv-redis
+    container_name: nrev_lite-redis
     ports:
       - "6379:6379"
     healthcheck:
@@ -32,14 +32,14 @@ services:
       timeout: 3s
       retries: 5
 
-  # ── nrv API Server ──
+  # ── nrev_lite API Server ──
   api:
     build:
       context: .
       dockerfile: Dockerfile.server
-    container_name: nrv-api
+    container_name: nrev_lite-api
     environment:
-      DATABASE_URL: postgresql+asyncpg://nrv:nrv_local_dev@postgres:5432/nrv
+      DATABASE_URL: postgresql+asyncpg://nrev_lite:nrev_lite_local_dev@postgres:5432/nrev_lite
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET_KEY: dev-secret-key-change-in-production
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
@@ -57,4 +57,4 @@ services:
     command: uvicorn server.app:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
-  nrv_pgdata:
+  nrev_lite_pgdata:

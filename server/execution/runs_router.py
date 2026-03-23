@@ -217,6 +217,75 @@ async def get_workflow_metadata(
 # CSV download for a workflow's results
 # ------------------------------------------------------------------
 
+@router.get("/runs/{workflow_id}/steps/{step_id}/csv")
+async def download_step_csv(
+    workflow_id: str,
+    step_id: str,
+    request: Request,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> StreamingResponse:
+    """Download result rows from a single workflow step as CSV."""
+    tenant, db = await _get_tenant_flexible(request, token, db)
+    await set_tenant_context(db, tenant.id)
+
+    result = await db.execute(
+        select(RunStep).where(
+            RunStep.id == step_id,
+            RunStep.workflow_id == workflow_id,
+            RunStep.tenant_id == tenant.id,
+        )
+    )
+    step = result.scalar_one_or_none()
+    if not step:
+        raise HTTPException(status_code=404, detail="Step not found")
+
+    summary = step.result_summary or {}
+    rows = summary.get("results", [])
+
+    # For single-record results (person/company enrichment), wrap in a list
+    if not rows:
+        for key in ("person", "company", "profile", "data"):
+            if key in summary and isinstance(summary[key], dict):
+                rows = [summary[key]]
+                break
+
+    if not rows:
+        output = io.StringIO()
+        output.write("No result data in this step\n")
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=step-{step_id[:8]}.csv"},
+        )
+
+    # Union all column names preserving order
+    all_cols: list[str] = []
+    seen: set[str] = set()
+    for row in rows:
+        for k in row.keys():
+            if k not in seen:
+                all_cols.append(k)
+                seen.add(k)
+
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=all_cols, extrasaction="ignore")
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)
+
+    output.seek(0)
+    tool = step.tool_name or "step"
+    safe_tool = "".join(c if c.isalnum() or c in "-_" else "" for c in tool)[:30]
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={safe_tool}-{step_id[:8]}.csv"},
+    )
+
+
 @router.get("/runs/{workflow_id}/csv")
 async def download_workflow_csv(
     workflow_id: str,

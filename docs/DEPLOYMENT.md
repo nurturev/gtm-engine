@@ -1,4 +1,4 @@
-# nrv API Server — Production Deployment Guide
+# nrev-lite API Server — Production Deployment Guide
 
 > **Version:** 1.1
 > **Date:** March 2026
@@ -51,7 +51,7 @@ All decisions below were made during the gap analysis (March 2026).
 
 ## 2. Org Pattern Alignment
 
-nrv was built independently and has some patterns that differ from the established org patterns in Workflow Studio and other services. For V1, we keep nrv's existing patterns and align in V2.
+nrev-lite was built independently and has some patterns that differ from the established org patterns in Workflow Studio and other services. For V1, we keep nrv's existing patterns and align in V2.
 
 ### Reference Projects
 
@@ -60,7 +60,7 @@ nrv was built independently and has some patterns that differ from the establish
 
 ### Pattern Comparison
 
-| Area | Org Pattern (Workflow Studio) | nrv Current (V1) | V2 Alignment |
+| Area | Org Pattern (Workflow Studio) | nrev-lite Current (V1) | V2 Alignment |
 |------|------|------|------|
 | **Redis env vars** | `REDIS_HOST` + `REDIS_PORT` (separate) | `REDIS_URL` (single URL) | Migrate to separate vars |
 | **Redis client** | `redis` lib, SingletonBorg, SSL, 5s timeout, health check interval 30s | `redis.asyncio` (aioredis), connected at app startup | Adopt SingletonBorg + SSL config |
@@ -73,12 +73,12 @@ nrv was built independently and has some patterns that differ from the establish
 | **Health checks** | `/healthCheck` (204 No Content) + `/readiness` (204). Lifespan initializes all clients at startup. | `/health` (200 JSON body) | Add `/readiness`, consider 204 |
 | **App initialization** | Lifespan context manager: `DBClient()`, `RedisClient()`, `SNS()`, `DuckDBClient()`, `AsyncRedisClient()` | Lifespan: DB pool verify + Redis connect | Align startup pattern |
 | **Container port** | 8080 (all org services) | 8000 (FastAPI default) | Keep 8000 for V1 (Helm maps 80→8000) |
-| **Secrets** | Kubernetes Secrets with `{APP}-secret` naming | Same pattern, `nrv-api-secret` | Already aligned |
-| **Ingress DNS** | `{service}.public.{env}.nurturev.com` | `nrv-api.public.{env}.nurturev.com` | Already aligned |
+| **Secrets** | Kubernetes Secrets with `{APP}-secret` naming | Same pattern, `nrev-lite-api-secret` | Already aligned |
+| **Ingress DNS** | `{service}.public.{env}.nurturev.com` | `nrev-lite-api.public.{env}.nurturev.com` | Already aligned |
 
 ### V1 Principle
 
-> If nrv already implements something differently, **keep it for V1**. Don't refactor working code to match org patterns during the first production deployment. Track alignment items in V2.
+> If nrev-lite already implements something differently, **keep it for V1**. Don't refactor working code to match org patterns during the first production deployment. Track alignment items in V2.
 
 ---
 
@@ -87,12 +87,12 @@ nrv was built independently and has some patterns that differ from the establish
 ```
                     ┌──────────────────────────┐
                     │  User's Machine           │
-                    │  Claude Code + nrv CLI    │
+                    │  Claude Code + nrev-lite CLI    │
                     └────────────┬─────────────┘
                                  │ HTTPS + JWT Bearer
                     ┌────────────▼─────────────┐
                     │  EKS Cluster (nginx)      │
-                    │  Ingress → nrv-api pods   │
+                    │  Ingress → nrev-lite-api pods   │
                     └────────────┬─────────────┘
                                  │
           ┌──────────────────────┼──────────────────────┐
@@ -109,9 +109,9 @@ nrv was built independently and has some patterns that differ from the establish
 - **Reused**: ElastiCache Redis clusters, EKS clusters, nginx ingress controller, VPC/subnets, NAT gateway
 
 **Networking:**
-- Ingress (public) → nginx ingress controller → ClusterIP service → nrv-api pods
-- nrv-api pods (private subnet) → RDS, ElastiCache (private subnet)
-- nrv-api pods → external provider APIs (outbound via NAT gateway)
+- Ingress (public) → nginx ingress controller → ClusterIP service → nrev-lite-api pods
+- nrev-lite-api pods (private subnet) → RDS, ElastiCache (private subnet)
+- nrev-lite-api pods → external provider APIs (outbound via NAT gateway)
 
 ---
 
@@ -121,10 +121,10 @@ nrv was built independently and has some patterns that differ from the establish
 
 - [ ] RDS PostgreSQL 15 instance created via AWS CLI (see [Section 7](#7-database-rds-postgresql))
 - [ ] Existing ElastiCache Redis endpoint confirmed accessible (see [Section 8](#8-redis-elasticache))
-- [ ] ECR repository created: `nrv-api` (staging + prod regions)
+- [ ] ECR repository created: `nrev-lite-api` (staging + prod regions)
 - [ ] Google Cloud OAuth credentials created (see [Section 9](#9-authentication-google-oauth))
 - [ ] Google OAuth redirect URI whitelisted: `https://{domain}/api/v1/auth/callback`
-- [ ] DNS record created: `nrv-api.public.{env}.nurturev.com` → EKS ingress
+- [ ] DNS record created: `nrev-lite-api.public.{env}.nurturev.com` → EKS ingress
 - [ ] Kubernetes namespace exists (`staging` / `prod`)
 - [ ] Kubernetes Secrets created (see [Section 10](#10-secrets-management))
 - [ ] IAM role created for ServiceAccount (KMS access if using BYOK encryption)
@@ -133,7 +133,7 @@ nrv was built independently and has some patterns that differ from the establish
 
 ### Code changes required before first deploy
 
-- [ ] Update default server URL in `src/nrv/utils/config.py` (`DEFAULT_API_BASE_URL`)
+- [ ] Update default server URL in `src/nrev_lite/utils/config.py` (`DEFAULT_API_BASE_URL`)
 - [ ] Move `_pending_auth` dict to Redis in `server/auth/router.py`
 - [ ] Move `_device_codes` dict to Redis in `server/auth/router.py`
 - [ ] Add batch size cap (25 records) in `server/execution/router.py`
@@ -151,7 +151,7 @@ nrv was built independently and has some patterns that differ from the establish
 
 Workflow Studio uses a multi-stage Dockerfile with gunicorn + uvicorn workers, hash-verified deps, port 8080, and worker recycling (max-requests 1000, jitter 100). See: `/Users/nikhilojha/Projects/workflow_studio/Dockerfile_server`.
 
-### nrv V1 Approach
+### nrev-lite V1 Approach
 
 For V1, keep the existing single-stage build with direct uvicorn on port 8000. The Helm chart maps port 80→8000, so external behavior is identical.
 
@@ -185,14 +185,14 @@ Changes from current:
 **Build and push:**
 ```bash
 # Staging (ap-south-1)
-docker build -f Dockerfile.server -t 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrv-api:latest .
+docker build -f Dockerfile.server -t 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api:latest .
 aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 979176640062.dkr.ecr.ap-south-1.amazonaws.com
-docker push 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrv-api:latest
+docker push 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api:latest
 
 # Prod (us-east-1)
-docker build -f Dockerfile.server -t 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest .
+docker build -f Dockerfile.server -t 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrev-lite-api:latest .
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 979176640062.dkr.ecr.us-east-1.amazonaws.com
-docker push 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest
+docker push 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrev-lite-api:latest
 ```
 
 ---
@@ -212,9 +212,9 @@ All org services use the same Helm chart structure from `/Users/nikhilojha/Proje
 - Resources: 200m/500m CPU, 512Mi memory for small services
 - Lifecycle: preStop sleep 30, terminationGracePeriodSeconds 60
 
-### nrv Differences from Org Pattern
+### nrev-lite Differences from Org Pattern
 
-| Setting | Org Standard | nrv |
+| Setting | Org Standard | nrev-lite |
 |---------|-------------|-----|
 | Container port | 8080 | 8000 |
 | Health endpoint | `/healthCheck` | `/health` |
@@ -228,8 +228,8 @@ These are acceptable for V1. The base Helm templates are parameterized — they 
 ```yaml
 apiVersion: v1
 appVersion: "0.1.0"
-description: Helm chart for nrv GTM API server
-name: nrv-api
+description: Helm chart for nrev-lite GTM API server
+name: nrev-lite-api
 version: 1.0.0
 
 dependencies:
@@ -243,7 +243,7 @@ dependencies:
 
 ```yaml
 appConf:
-  appName: nrv-api
+  appName: nrev-lite-api
   env:
   # --- Core ---
   - name: ENVIRONMENT
@@ -254,18 +254,18 @@ appConf:
     value: "ap-south-1"
 
   # --- Database (RDS PostgreSQL) ---
-  # nrv uses a single DATABASE_URL (differs from org pattern of separate vars).
+  # nrev-lite uses a single DATABASE_URL (differs from org pattern of separate vars).
   # DB password is embedded in the URL. For V2, split into separate vars matching
   # org pattern: POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DATABASE, POSTGRES_USER,
   # POSTGRES_PASSWORD (via secretKeyRef).
   - name: DATABASE_URL
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: DATABASE_URL
 
   # --- Redis (ElastiCache — reuse existing cluster) ---
-  # nrv uses a single REDIS_URL (differs from org pattern of REDIS_HOST + REDIS_PORT).
+  # nrev-lite uses a single REDIS_URL (differs from org pattern of REDIS_HOST + REDIS_PORT).
   # Org pattern (Workflow Studio): REDIS_HOST, REDIS_PORT, REDIS_SSL as separate vars.
   # For V2, split to match org pattern.
   # Existing staging ElastiCache: staging-cache-sooatg.serverless.aps1.cache.amazonaws.com
@@ -276,63 +276,63 @@ appConf:
   - name: GOOGLE_CLIENT_ID
     value: "<staging-google-client-id>"
   - name: GOOGLE_REDIRECT_URI
-    value: "https://nrv-api.public.staging.nurturev.com/api/v1/auth/callback"
+    value: "https://nrev-lite-api.public.staging.nurturev.com/api/v1/auth/callback"
   - name: CORS_ALLOWED_ORIGINS
-    value: "https://nrv-api.public.staging.nurturev.com"
+    value: "https://nrev-lite-api.public.staging.nurturev.com"
 
   # --- Secrets (via Kubernetes Secrets) ---
   # Follows org pattern: {appName}-secret with secretKeyRef
   - name: JWT_SECRET_KEY
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: JWT_SECRET_KEY
   - name: GOOGLE_CLIENT_SECRET
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: GOOGLE_CLIENT_SECRET
 
   # --- Provider API Keys (all optional, via Kubernetes Secrets) ---
   - name: APOLLO_API_KEY
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: APOLLO_API_KEY
   - name: ROCKETREACH_API_KEY
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: ROCKETREACH_API_KEY
   - name: X_RAPIDAPI_KEY
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: X_RAPIDAPI_KEY
   - name: PARALLEL_KEY
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: PARALLEL_KEY
   - name: PREDICTLEADS_API_KEY
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: PREDICTLEADS_API_KEY
   - name: COMPOSIO_API_KEY
     valueFrom:
       secretKeyRef:
-        name: nrv-api-secret
+        name: nrev-lite-api-secret
         key: COMPOSIO_API_KEY
 
   # --- Image ---
   image:
     pullPolicy: Always
-    repository: 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrv-api
+    repository: 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api
     tag: latest
 
   # --- IAM Role (org pattern: ServiceAccount with IRSA annotation) ---
-  iamrole: arn:aws:iam::979176640062:role/nrv-api-staging-role
+  iamrole: arn:aws:iam::979176640062:role/nrev-lite-api-staging-role
 
   # --- Networking (org pattern: nginx ingress, {service}.public.{env}.nurturev.com) ---
   ingress:
@@ -341,21 +341,21 @@ appConf:
       kubernetes.io/ingress.class: nginx
       ingressClass: nginx
     rules:
-    - host: nrv-api.public.staging.nurturev.com
+    - host: nrev-lite-api.public.staging.nurturev.com
       port: 80
 
   labels:
-    appName: nrv-api
+    appName: nrev-lite-api
     env: staging
 
-  # --- Ports (nrv uses 8000, not org standard 8080) ---
+  # --- Ports (nrev-lite uses 8000, not org standard 8080) ---
   ports:
   - name: http-0
     port: 80
     protocol: TCP
     target_port: 8000
 
-  # --- Health Checks (nrv uses /health, not org standard /healthCheck) ---
+  # --- Health Checks (nrev-lite uses /health, not org standard /healthCheck) ---
   healthcheck: true
   healthProbe:
     failureThreshold: 3
@@ -428,21 +428,21 @@ Same structure as staging with these differences:
 | `AWS_DEFAULT_REGION` | `ap-south-1` | `us-east-1` |
 | `DATABASE_URL` | staging RDS endpoint (via secret) | prod RDS endpoint (via secret) |
 | `REDIS_URL` | `staging-cache-sooatg.serverless.aps1.cache.amazonaws.com` | `prod-cache-msnit6.serverless.use1.cache.amazonaws.com` |
-| `GOOGLE_REDIRECT_URI` | `https://nrv-api.public.staging.nurturev.com/...` | `https://nrv-api.public.prod.nurturev.com/...` |
+| `GOOGLE_REDIRECT_URI` | `https://nrev-lite-api.public.staging.nurturev.com/...` | `https://nrev-lite-api.public.prod.nurturev.com/...` |
 | `CORS_ALLOWED_ORIGINS` | staging domain | prod domain |
-| `image.repository` | `...ecr.ap-south-1.../nrv-api` | `...ecr.us-east-1.../nrv-api` |
+| `image.repository` | `...ecr.ap-south-1.../nrev-lite-api` | `...ecr.us-east-1.../nrev-lite-api` |
 | `iamrole` | staging IAM role ARN | prod IAM role ARN |
-| `ingress.rules[0].host` | `nrv-api.public.staging.nurturev.com` | `nrv-api.public.prod.nurturev.com` |
+| `ingress.rules[0].host` | `nrev-lite-api.public.staging.nurturev.com` | `nrev-lite-api.public.prod.nurturev.com` |
 | `labels.env` | `staging` | `prod` |
 
 ### deploy-staging.sh
 
 ```bash
 #!/bin/bash
-SERVICE_NAME="nrv-api"
+SERVICE_NAME="nrev-lite-api"
 NAMESPACE="staging"
 VALUES_FILE="values-staging.yaml"
-SECRET_FILE="nrv-api-secret-staging.yaml"
+SECRET_FILE="nrev-lite-api-secret-staging.yaml"
 
 echo "Configuring kubectl for staging cluster..."
 aws eks update-kubeconfig --name staging-eks --kubeconfig ~/.kube/staging-eks
@@ -467,7 +467,7 @@ echo "kubectl logs -f \$(kubectl get pods -n ${NAMESPACE} -l appName=${SERVICE_N
 
 ### Org Pattern Reference
 
-Workflow Studio uses Supabase-hosted PostgreSQL with separate env vars (`POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE`). nrv uses self-managed RDS with a single `DATABASE_URL` connection string consumed by SQLAlchemy async. For V1, keep `DATABASE_URL`; split into separate vars in V2 to align with org pattern.
+Workflow Studio uses Supabase-hosted PostgreSQL with separate env vars (`POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE`). nrev-lite uses self-managed RDS with a single `DATABASE_URL` connection string consumed by SQLAlchemy async. For V1, keep `DATABASE_URL`; split into separate vars in V2 to align with org pattern.
 
 ### RDS Instance Configuration
 
@@ -482,7 +482,7 @@ Workflow Studio uses Supabase-hosted PostgreSQL with separate env vars (`POSTGRE
 | DB subnet group | Existing private subnets | Existing private subnets |
 | Security group | Allow 5432 from EKS pod CIDR | Allow 5432 from EKS pod CIDR |
 | Master username | `postgres` | `postgres` |
-| Database name | `nrv` | `nrv` |
+| Database name | `nrev-lite` | `nrev-lite` |
 
 ### RDS Creation via AWS CLI
 
@@ -490,8 +490,8 @@ Workflow Studio uses Supabase-hosted PostgreSQL with separate env vars (`POSTGRE
 ```bash
 # 1. Create a security group for the RDS instance
 aws ec2 create-security-group \
-  --group-name nrv-rds-staging-sg \
-  --description "Security group for nrv RDS staging" \
+  --group-name nrev-lite-rds-staging-sg \
+  --description "Security group for nrev-lite RDS staging" \
   --vpc-id <staging-vpc-id> \
   --region ap-south-1
 
@@ -505,7 +505,7 @@ aws ec2 authorize-security-group-ingress \
 
 # 3. Create the RDS instance
 aws rds create-db-instance \
-  --db-instance-identifier nrv-db-staging \
+  --db-instance-identifier nrev-lite-db-staging \
   --db-instance-class db.t3.micro \
   --engine postgres \
   --engine-version 15 \
@@ -513,7 +513,7 @@ aws rds create-db-instance \
   --master-user-password '<strong-password>' \
   --allocated-storage 20 \
   --storage-type gp3 \
-  --db-name nrv \
+  --db-name nrev-lite \
   --vpc-security-group-ids <sg-id-from-step-1> \
   --db-subnet-group-name <existing-db-subnet-group> \
   --backup-retention-period 7 \
@@ -521,16 +521,16 @@ aws rds create-db-instance \
   --no-publicly-accessible \
   --storage-encrypted \
   --region ap-south-1 \
-  --tags Key=Environment,Value=staging Key=Service,Value=nrv-api
+  --tags Key=Environment,Value=staging Key=Service,Value=nrev-lite-api
 
 # 4. Wait for instance to be available
 aws rds wait db-instance-available \
-  --db-instance-identifier nrv-db-staging \
+  --db-instance-identifier nrev-lite-db-staging \
   --region ap-south-1
 
 # 5. Get the endpoint
 aws rds describe-db-instances \
-  --db-instance-identifier nrv-db-staging \
+  --db-instance-identifier nrev-lite-db-staging \
   --query 'DBInstances[0].Endpoint.Address' \
   --output text \
   --region ap-south-1
@@ -539,8 +539,8 @@ aws rds describe-db-instances \
 **Prod (us-east-1):**
 ```bash
 aws ec2 create-security-group \
-  --group-name nrv-rds-prod-sg \
-  --description "Security group for nrv RDS prod" \
+  --group-name nrev-lite-rds-prod-sg \
+  --description "Security group for nrev-lite RDS prod" \
   --vpc-id <prod-vpc-id> \
   --region us-east-1
 
@@ -552,7 +552,7 @@ aws ec2 authorize-security-group-ingress \
   --region us-east-1
 
 aws rds create-db-instance \
-  --db-instance-identifier nrv-db-prod \
+  --db-instance-identifier nrev-lite-db-prod \
   --db-instance-class db.t3.small \
   --engine postgres \
   --engine-version 15 \
@@ -560,7 +560,7 @@ aws rds create-db-instance \
   --master-user-password '<strong-password>' \
   --allocated-storage 50 \
   --storage-type gp3 \
-  --db-name nrv \
+  --db-name nrev-lite \
   --vpc-security-group-ids <sg-id> \
   --db-subnet-group-name <existing-db-subnet-group> \
   --backup-retention-period 14 \
@@ -568,7 +568,7 @@ aws rds create-db-instance \
   --no-publicly-accessible \
   --storage-encrypted \
   --region us-east-1 \
-  --tags Key=Environment,Value=prod Key=Service,Value=nrv-api
+  --tags Key=Environment,Value=prod Key=Service,Value=nrev-lite-api
 ```
 
 ### Initial Database Setup
@@ -577,24 +577,24 @@ After RDS instance is created:
 
 ```bash
 # Connect to RDS (may need bastion/port-forward if not publicly accessible)
-psql -h <rds-endpoint> -U postgres -d nrv
+psql -h <rds-endpoint> -U postgres -d nrev_lite
 
 # Create application role
-CREATE ROLE nrv_api WITH LOGIN PASSWORD '<strong-password>';
+CREATE ROLE nrev_lite_api WITH LOGIN PASSWORD '<strong-password>';
 
 # Apply migration tracking first
-psql -h <rds-endpoint> -U postgres -d nrv -f migrations/000_schema_migrations.sql
+psql -h <rds-endpoint> -U postgres -d nrev-lite -f migrations/000_schema_migrations.sql
 
 # Apply all migrations in order
 for f in migrations/001_*.sql migrations/002_*.sql migrations/003_*.sql \
          migrations/004_*.sql migrations/005_*.sql migrations/006_*.sql \
          migrations/007_*.sql migrations/008_*.sql; do
   echo "Applying $f..."
-  psql -h <rds-endpoint> -U postgres -d nrv -f "$f"
+  psql -h <rds-endpoint> -U postgres -d nrev-lite -f "$f"
 done
 
 # Record all migrations
-psql -h <rds-endpoint> -U postgres -d nrv -f migrations/000_schema_migrations.sql
+psql -h <rds-endpoint> -U postgres -d nrev-lite -f migrations/000_schema_migrations.sql
 ```
 
 ### Migration Version Tracking
@@ -622,7 +622,7 @@ ON CONFLICT (version) DO NOTHING;
 ### Verify RLS is Active
 
 ```sql
-SET ROLE nrv_api;
+SET ROLE nrev_lite_api;
 SET app.current_tenant = 'test-tenant-id';
 SELECT * FROM contacts;  -- Should return empty
 RESET ROLE;
@@ -636,13 +636,13 @@ RESET ROLE;
 
 Workflow Studio connects to ElastiCache via separate `REDIS_HOST` + `REDIS_PORT` env vars with SSL enabled by default. The Redis client uses SingletonBorg pattern, 5s socket timeout, health check interval 30s. Key prefixes and TTLs are centralized in `constants/redis_constants.py`. See: `/Users/nikhilojha/Projects/workflow_studio/infrastructure/redis_client.py`.
 
-### nrv V1 Approach
+### nrev-lite V1 Approach
 
-nrv uses a single `REDIS_URL` env var (e.g., `rediss://host:6379/0`) with `redis.asyncio`. For V1, keep this. For V2, adopt org pattern (separate vars, SingletonBorg, centralized key constants).
+nrev-lite uses a single `REDIS_URL` env var (e.g., `rediss://host:6379/0`) with `redis.asyncio`. For V1, keep this. For V2, adopt org pattern (separate vars, SingletonBorg, centralized key constants).
 
 ### Reusing Existing ElastiCache Clusters
 
-nrv will reuse the same ElastiCache clusters already used by other org services. No new Redis infrastructure to create.
+nrev-lite will reuse the same ElastiCache clusters already used by other org services. No new Redis infrastructure to create.
 
 | Environment | Endpoint (from existing Helm values) | TLS |
 |-------------|--------------------------------------|-----|
@@ -677,8 +677,8 @@ kubectl exec -it <any-existing-pod> -n staging -- \
 1. Go to Google Cloud Console → APIs & Services → Credentials
 2. Create OAuth 2.0 Client ID (Web application)
 3. Add authorized redirect URIs:
-   - Staging: `https://nrv-api.public.staging.nurturev.com/api/v1/auth/callback`
-   - Prod: `https://nrv-api.public.prod.nurturev.com/api/v1/auth/callback`
+   - Staging: `https://nrev-lite-api.public.staging.nurturev.com/api/v1/auth/callback`
+   - Prod: `https://nrev-lite-api.public.prod.nurturev.com/api/v1/auth/callback`
    - Dev: `http://localhost:8000/api/v1/auth/callback`
 4. Configure OAuth consent screen:
    - Scopes: `email`, `profile`, `openid`
@@ -718,21 +718,21 @@ Add rate limiting on `POST /api/v1/auth/device/token`:
 
 All org services use Kubernetes Secrets with naming convention `{appName}-secret`. Secrets are applied via `kubectl apply -f` from YAML files that are NOT committed to git. Secret values are referenced in Helm values via `valueFrom.secretKeyRef`. See any `values-staging.yaml` in `/Users/nikhilojha/Projects/helm-charts/`.
 
-### nrv Secret Template
+### nrev-lite Secret Template
 
-Create `nrv-api-secret-staging.yaml` (NOT committed to git):
+Create `nrev-lite-api-secret-staging.yaml` (NOT committed to git):
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: nrv-api-secret
+  name: nrev-lite-api-secret
   namespace: staging
 type: Opaque
 stringData:
   JWT_SECRET_KEY: "<generate: python3 -c 'import secrets; print(secrets.token_urlsafe(48))'>"
   GOOGLE_CLIENT_SECRET: "<from Google Cloud Console>"
-  DATABASE_URL: "postgresql+asyncpg://nrv_api:<password>@<rds-staging-endpoint>:5432/nrv"
+  DATABASE_URL: "postgresql+asyncpg://nrev_lite_api:<password>@<rds-staging-endpoint>:5432/nrv"
   APOLLO_API_KEY: "<from Apollo.io>"
   ROCKETREACH_API_KEY: "<from RocketReach>"
   X_RAPIDAPI_KEY: "<from RapidAPI>"
@@ -741,7 +741,7 @@ stringData:
   COMPOSIO_API_KEY: "<from Composio>"
 ```
 
-Same structure for `nrv-api-secret-prod.yaml` with production values.
+Same structure for `nrev-lite-api-secret-prod.yaml` with production values.
 
 **Note:** `DATABASE_URL` is in the secret because it contains the DB password. This differs from the org pattern where `POSTGRES_PASSWORD` is the only DB-related secret. For V2, when we split into separate vars, only the password will be in the secret.
 
@@ -758,21 +758,21 @@ Same structure for `nrv-api-secret-prod.yaml` with production values.
 
 ### Default Server URL
 
-Before publishing to PyPI, update `src/nrv/utils/config.py`:
+Before publishing to PyPI, update `src/nrev_lite/utils/config.py`:
 
 ```python
 # Change from:
 DEFAULT_API_BASE_URL = "http://localhost:8000"
 
 # Change to:
-DEFAULT_API_BASE_URL = "https://nrv-api.public.prod.nurturev.com"
+DEFAULT_API_BASE_URL = "https://nrev-lite-api.public.prod.nurturev.com"
 ```
 
 Users can still override via:
 ```bash
-nrv config set server.url https://custom-url.com
+nrev-lite config set server.url https://custom-url.com
 # or
-export NRV_SERVER_URL=https://custom-url.com
+export NREV_LITE_SERVER_URL=https://custom-url.com
 ```
 
 ### CORS Configuration
@@ -796,53 +796,53 @@ if settings.ENVIRONMENT == "development":
 
 ```bash
 # 1. Create ECR repository
-aws ecr create-repository --repository-name nrv-api --region ap-south-1
+aws ecr create-repository --repository-name nrev-lite-api --region ap-south-1
 
 # 2. Build and push Docker image
-docker build -f Dockerfile.server -t 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrv-api:latest .
+docker build -f Dockerfile.server -t 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api:latest .
 aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 979176640062.dkr.ecr.ap-south-1.amazonaws.com
-docker push 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrv-api:latest
+docker push 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api:latest
 
 # 3. Set up database (RDS — see Section 7 for full AWS CLI steps)
 # After RDS is available:
-psql -h <rds-staging-endpoint> -U postgres -d nrv -c "CREATE ROLE nrv_api WITH LOGIN PASSWORD '<password>';"
-psql -h <rds-staging-endpoint> -U postgres -d nrv -f migrations/000_schema_migrations.sql
+psql -h <rds-staging-endpoint> -U postgres -d nrev-lite -c "CREATE ROLE nrev_lite_api WITH LOGIN PASSWORD '<password>';"
+psql -h <rds-staging-endpoint> -U postgres -d nrev-lite -f migrations/000_schema_migrations.sql
 for f in migrations/00[1-8]_*.sql; do
-  psql -h <rds-staging-endpoint> -U postgres -d nrv -f "$f"
+  psql -h <rds-staging-endpoint> -U postgres -d nrev-lite -f "$f"
 done
-psql -h <rds-staging-endpoint> -U postgres -d nrv -f migrations/000_schema_migrations.sql
+psql -h <rds-staging-endpoint> -U postgres -d nrev-lite -f migrations/000_schema_migrations.sql
 
 # 4. Apply Kubernetes Secret
-cd /Users/nikhilojha/Projects/helm-charts/nrv-api
-kubectl apply -f nrv-api-secret-staging.yaml -n staging
+cd /Users/nikhilojha/Projects/helm-charts/nrev-lite-api
+kubectl apply -f nrev-lite-api-secret-staging.yaml -n staging
 
 # 5. Deploy via Helm
 aws eks update-kubeconfig --name staging-eks --kubeconfig ~/.kube/staging-eks
 cp ~/.kube/staging-eks ~/.kube/config
 helm dependency update .
-helm upgrade --install nrv-api . -n staging -f values-staging.yaml --debug --set appConf.image.tag=latest
+helm upgrade --install nrev-lite-api . -n staging -f values-staging.yaml --debug --set appConf.image.tag=latest
 
 # 6. Verify
-kubectl get pods -n staging -l appName=nrv-api
-curl https://nrv-api.public.staging.nurturev.com/health
+kubectl get pods -n staging -l appName=nrev-lite-api
+curl https://nrev-lite-api.public.staging.nurturev.com/health
 ```
 
 ### Subsequent Deployments
 
 ```bash
 # Build, push, restart
-docker build -f Dockerfile.server -t 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrv-api:latest .
-docker push 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrv-api:latest
-kubectl rollout restart deploy nrv-api -n staging
+docker build -f Dockerfile.server -t 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api:latest .
+docker push 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api:latest
+kubectl rollout restart deploy nrev-lite-api -n staging
 ```
 
 ### Useful Commands
 
 ```bash
-kubectl get pods -n staging -l appName=nrv-api
-kubectl logs -f $(kubectl get pods -n staging -l appName=nrv-api -o jsonpath='{.items[0].metadata.name}') -n staging
-kubectl rollout restart deploy nrv-api -n staging
-kubectl scale deploy nrv-api --replicas=2 -n staging
+kubectl get pods -n staging -l appName=nrev-lite-api
+kubectl logs -f $(kubectl get pods -n staging -l appName=nrev-lite-api -o jsonpath='{.items[0].metadata.name}') -n staging
+kubectl rollout restart deploy nrev-lite-api -n staging
+kubectl scale deploy nrev-lite-api --replicas=2 -n staging
 ```
 
 ---
@@ -851,27 +851,27 @@ kubectl scale deploy nrv-api --replicas=2 -n staging
 
 ```bash
 # 1. Health check
-curl https://nrv-api.public.{env}.nurturev.com/health
+curl https://nrev-lite-api.public.{env}.nurturev.com/health
 # Expected: {"status": "ok", "version": "0.1.0"}
 
 # 2. Auth flow
-nrv config set server.url https://nrv-api.public.{env}.nurturev.com
-nrv auth login
+nrev-lite config set server.url https://nrev-lite-api.public.{env}.nurturev.com
+nrev-lite auth login
 
 # 3. Status check
-nrv status
+nrev-lite status
 
 # 4. Test enrichment (if provider keys configured)
-nrv enrich person --email test@example.com
+nrev-lite enrich person --email test@example.com
 
 # 5. Redis connectivity (from pod — uses existing ElastiCache)
 kubectl exec -it <pod-name> -n staging -- python3 -c "
 import asyncio, redis.asyncio as aioredis
 async def check():
     r = aioredis.from_url('rediss://staging-cache-sooatg.serverless.aps1.cache.amazonaws.com:6379/0')
-    await r.set('nrv:test', 'ok')
-    print('Redis OK:', await r.get('nrv:test'))
-    await r.delete('nrv:test')
+    await r.set('nrev-lite:test', 'ok')
+    print('Redis OK:', await r.get('nrev-lite:test'))
+    await r.delete('nrev-lite:test')
     await r.close()
 asyncio.run(check())
 "
@@ -922,7 +922,7 @@ asyncio.run(check())
 - [ ] **CI/CD pipeline**: GitHub Actions — lint → test → build Docker → push ECR → helm upgrade
 - [ ] **Alembic migrations**: Replace raw SQL + tracking table with proper framework
 - [ ] **Monitoring/APM**: Datadog or OpenTelemetry
-- [ ] **IAM role for ServiceAccount**: Create `nrv-api-{env}-role` with KMS permissions for BYOK key encryption (V1 uses Fernet fallback)
+- [ ] **IAM role for ServiceAccount**: Create `nrev-lite-api-{env}-role` with KMS permissions for BYOK key encryption (V1 uses Fernet fallback)
 - [ ] **Multi-replica**: Enable HPA, move batch result store to Redis
 
 ---
@@ -933,7 +933,7 @@ Files that need modification before V1 deploy:
 
 | File | Change |
 |------|--------|
-| `src/nrv/utils/config.py:16` | Change `DEFAULT_API_BASE_URL` to prod URL |
+| `src/nrev_lite/utils/config.py:16` | Change `DEFAULT_API_BASE_URL` to prod URL |
 | `server/auth/router.py` | Move `_pending_auth` and `_device_codes` to Redis |
 | `server/auth/router.py` | Add rate limiting on device token endpoint |
 | `server/execution/router.py` | Add batch size cap (25 records) |
@@ -945,10 +945,10 @@ New files to create:
 
 | File | Purpose |
 |------|---------|
-| `helm-charts/nrv-api/Chart.yaml` | Helm chart definition |
-| `helm-charts/nrv-api/values-staging.yaml` | Staging environment values |
-| `helm-charts/nrv-api/values-prod.yaml` | Prod environment values |
-| `helm-charts/nrv-api/deploy-staging.sh` | Staging deploy script |
-| `helm-charts/nrv-api/deploy-prod.sh` | Prod deploy script |
+| `helm-charts/nrev-lite-api/Chart.yaml` | Helm chart definition |
+| `helm-charts/nrev-lite-api/values-staging.yaml` | Staging environment values |
+| `helm-charts/nrev-lite-api/values-prod.yaml` | Prod environment values |
+| `helm-charts/nrev-lite-api/deploy-staging.sh` | Staging deploy script |
+| `helm-charts/nrev-lite-api/deploy-prod.sh` | Prod deploy script |
 | `migrations/000_schema_migrations.sql` | Migration tracking table |
 | `.github/workflows/deploy.yml` | CI/CD pipeline (copy from existing projects) |

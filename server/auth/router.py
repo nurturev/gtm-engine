@@ -47,7 +47,7 @@ GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_SCOPES = "openid email profile"
 
 # Cookie settings for console browser sessions
-_COOKIE_NAME = "nrv_session"
+_COOKIE_NAME = "nrev_session"
 _COOKIE_MAX_AGE = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60  # seconds
 _COOKIE_SECURE = settings.ENVIRONMENT != "development"  # HTTPS only in prod
 
@@ -188,7 +188,7 @@ _LOGIN_PAGE_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sign In — nrv</title>
+<title>Sign In — nrev-lite</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -210,7 +210,7 @@ h1{font-size:28px;margin-bottom:8px;color:#fff}
 </head>
 <body>
 <div class="card">
-<h1>nrv</h1>
+<h1>nrev-lite</h1>
 <p class="subtitle">Sign in to your GTM console</p>
 $error_html
 <a class="btn" href="$auth_url">
@@ -275,7 +275,7 @@ async def google_callback(
 
     Google redirects here after user consents. We exchange the code for
     tokens, create/find the user, then redirect the browser to the CLI's
-    localhost callback with the nrv tokens as query params.
+    localhost callback with the nrev-lite tokens as query params.
     """
     # Look up where the CLI is listening (do this early so we can redirect errors)
     pending = await _pop_pending_auth(state) if state else {}

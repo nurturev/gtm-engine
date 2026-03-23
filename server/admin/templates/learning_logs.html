@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nrev-lite Admin — Learning Logs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #e0e0e0; }
+        .header { background: #111; padding: 16px 24px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 18px; color: #fff; }
+        .header .stats { font-size: 13px; color: #888; }
+        .header .stats span { color: #4ade80; font-weight: 600; }
+        .filters { padding: 12px 24px; background: #111; border-bottom: 1px solid #222; display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #333; background: #1a1a1a; color: #aaa; cursor: pointer; font-size: 13px; text-decoration: none; }
+        .filter-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+        .filter-btn:hover { border-color: #555; }
+        .content { padding: 24px; }
+        .log-card { background: #151515; border: 1px solid #222; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+        .log-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .log-header:hover { background: #1a1a1a; }
+        .log-meta { display: flex; gap: 12px; align-items: center; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .badge-search_pattern { background: #1e3a5f; color: #60a5fa; }
+        .badge-api_quirk { background: #3b1f1f; color: #f87171; }
+        .badge-enrichment_strategy { background: #1f3b1f; color: #4ade80; }
+        .badge-scraping_pattern { background: #3b2f1f; color: #fbbf24; }
+        .badge-data_mapping { background: #2f1f3b; color: #c084fc; }
+        .badge-provider_behavior { background: #1f2f3b; color: #67e8f9; }
+        .badge-pending { background: #332800; color: #fbbf24; }
+        .badge-approved { background: #0a3622; color: #4ade80; }
+        .badge-rejected { background: #3b1111; color: #f87171; }
+        .badge-merged { background: #1e3a5f; color: #60a5fa; }
+        .platform-name { color: #aaa; font-size: 13px; }
+        .confidence { color: #888; font-size: 12px; }
+        .log-detail { display: none; padding: 0 16px 16px; }
+        .log-detail.open { display: block; }
+        .discovery-box { background: #0d0d0d; border: 1px solid #222; border-radius: 6px; padding: 12px; margin: 8px 0; font-family: monospace; font-size: 12px; white-space: pre-wrap; overflow-x: auto; color: #ccc; max-height: 300px; overflow-y: auto; }
+        .evidence-list { margin-top: 8px; }
+        .evidence-item { padding: 6px 0; border-bottom: 1px solid #1a1a1a; font-size: 12px; color: #999; }
+        .evidence-item a { color: #60a5fa; text-decoration: none; }
+        .actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .btn-approve { background: #166534; color: #4ade80; }
+        .btn-approve:hover { background: #15803d; }
+        .btn-reject { background: #7f1d1d; color: #f87171; }
+        .btn-reject:hover { background: #991b1b; }
+        .btn-merge { background: #1e40af; color: #60a5fa; }
+        .btn-merge:hover { background: #1d4ed8; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .empty { text-align: center; padding: 60px; color: #555; }
+        .section-label { font-size: 11px; color: #666; text-transform: uppercase; margin-top: 12px; margin-bottom: 4px; }
+        .timestamp { color: #555; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Learning Logs</h1>
+        <div class="stats">
+            <span>{{ status_counts.get('pending', 0) }}</span> pending &middot;
+            <span>{{ status_counts.get('approved', 0) }}</span> approved &middot;
+            <span>{{ knowledge_count }}</span> live knowledge entries
+        </div>
+    </div>
+
+    <div class="filters">
+        <a class="filter-btn {% if active_status == 'pending' %}active{% endif %}"
+           href="?status=pending&category={{ active_category }}">Pending</a>
+        <a class="filter-btn {% if active_status == 'approved' %}active{% endif %}"
+           href="?status=approved&category={{ active_category }}">Approved</a>
+        <a class="filter-btn {% if active_status == 'merged' %}active{% endif %}"
+           href="?status=merged&category={{ active_category }}">Merged</a>
+        <a class="filter-btn {% if active_status == 'rejected' %}active{% endif %}"
+           href="?status=rejected&category={{ active_category }}">Rejected</a>
+        <a class="filter-btn {% if active_status == 'all' %}active{% endif %}"
+           href="?status=all&category={{ active_category }}">All</a>
+        <span style="border-left: 1px solid #333; margin: 0 4px;"></span>
+        <a class="filter-btn {% if active_category == 'all' %}active{% endif %}"
+           href="?status={{ active_status }}&category=all">All Types</a>
+        <a class="filter-btn {% if active_category == 'search_pattern' %}active{% endif %}"
+           href="?status={{ active_status }}&category=search_pattern">Search</a>
+        <a class="filter-btn {% if active_category == 'api_quirk' %}active{% endif %}"
+           href="?status={{ active_status }}&category=api_quirk">API Quirk</a>
+        <a class="filter-btn {% if active_category == 'enrichment_strategy' %}active{% endif %}"
+           href="?status={{ active_status }}&category=enrichment_strategy">Enrichment</a>
+    </div>
+
+    <div class="content">
+        {% if not logs %}
+        <div class="empty">No learning logs found for this filter.</div>
+        {% endif %}
+
+        {% for log in logs %}
+        <div class="log-card" id="card-{{ log.id }}">
+            <div class="log-header" onclick="toggleDetail('{{ log.id }}')">
+                <div class="log-meta">
+                    <span class="badge badge-{{ log.category }}">{{ log.category }}</span>
+                    {% if log.platform %}
+                    <span class="platform-name">{{ log.platform }}</span>
+                    {% endif %}
+                    <span class="confidence">{{ "%.0f"|format(log.confidence * 100) }}% confidence</span>
+                    <span class="badge badge-{{ log.status }}">{{ log.status }}</span>
+                </div>
+                <span class="timestamp">{{ log.created_at.strftime('%Y-%m-%d %H:%M') if log.created_at else '' }}</span>
+            </div>
+            <div class="log-detail" id="detail-{{ log.id }}">
+                {% if log.user_prompt %}
+                <div class="section-label">User Intent</div>
+                <div style="font-size: 14px; color: #e0e0e0; background: #1a1a2e; border-left: 3px solid #2563eb; padding: 10px 14px; border-radius: 4px; margin: 8px 0; font-style: italic;">"{{ log.user_prompt }}"</div>
+                {% endif %}
+
+                <div class="section-label">Discovery</div>
+                <div class="discovery-box">{{ log.discovery | tojson(indent=2) }}</div>
+
+                {% if log.evidence %}
+                <div class="section-label">Evidence ({{ log.evidence | length }} items)</div>
+                <div class="evidence-list">
+                    {% for e in log.evidence[:5] %}
+                    <div class="evidence-item">
+                        {% if e.url %}<a href="{{ e.url }}" target="_blank">{{ e.url[:80] }}</a><br>{% endif %}
+                        {% if e.title %}{{ e.title[:100] }}{% endif %}
+                        {% if e.source_query %}<br>Query: {{ e.source_query }}{% endif %}
+                    </div>
+                    {% endfor %}
+                    {% if log.evidence | length > 5 %}
+                    <div class="evidence-item">... and {{ log.evidence | length - 5 }} more</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if log.tool_name %}
+                <div class="section-label">Tool</div>
+                <div style="font-size: 13px; color: #aaa;">{{ log.tool_name }}</div>
+                {% endif %}
+
+                {% if log.notes %}
+                <div class="section-label">Admin Notes</div>
+                <div style="font-size: 13px; color: #aaa;">{{ log.notes }}</div>
+                {% endif %}
+
+                {% if log.status == 'pending' %}
+                <div class="actions">
+                    <button class="btn btn-approve" onclick="reviewLog('{{ log.id }}', 'approved')">Approve</button>
+                    <button class="btn btn-reject" onclick="reviewLog('{{ log.id }}', 'rejected')">Reject</button>
+                </div>
+                {% elif log.status == 'approved' %}
+                <div class="actions">
+                    <button class="btn btn-merge" onclick="mergeLog('{{ log.id }}')">Merge to Live Knowledge</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function toggleDetail(id) {
+            const el = document.getElementById('detail-' + id);
+            el.classList.toggle('open');
+        }
+
+        async function reviewLog(id, status) {
+            const notes = status === 'rejected' ? prompt('Rejection reason (optional):') : null;
+            const resp = await fetch('/api/v1/learning-logs/' + id, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({status, notes}),
+            });
+            if (resp.ok) location.reload();
+            else alert('Error: ' + (await resp.json()).detail);
+        }
+
+        async function mergeLog(id) {
+            if (!confirm('Merge this learning into live knowledge? All users will be able to access it.')) return;
+            const resp = await fetch('/api/v1/learning-logs/' + id + '/merge', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+            });
+            if (resp.ok) location.reload();
+            else alert('Error: ' + (await resp.json()).detail);
+        }
+    </script>
+</body>
+</html>

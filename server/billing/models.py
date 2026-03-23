@@ -15,11 +15,13 @@ class CreditLedger(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     tenant_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)
+    user_id: Mapped[str | None] = mapped_column(Text)
     entry_type: Mapped[str] = mapped_column(Text, nullable=False)  # credit|debit|hold|release
     amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     balance_after: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     operation: Mapped[str | None] = mapped_column(Text)
     reference_id: Mapped[str | None] = mapped_column(Text)
+    workflow_id: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>nrv &mdash; {{ tenant_name }}</title>
+    <title>nrev-lite &mdash; {{ tenant_name }}</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link href="https://unpkg.com/tabulator-tables@6.3/dist/css/tabulator_midnight.min.css" rel="stylesheet">
     <script src="https://unpkg.com/tabulator-tables@6.3/dist/js/tabulator.min.js"></script>
@@ -130,6 +130,28 @@
         .filter-btn:hover { color: #e0e0e6; background: #252536; }
         .filter-btn.active { background: #818cf8; color: white; }
 
+        /* Connection drawer */
+        .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 900; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+        .drawer-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; background: #12121a; border-left: 1px solid #1e1e2e; z-index: 901; transform: translateX(100%); transition: transform 0.25s ease; display: flex; flex-direction: column; }
+        .drawer-panel.open { transform: translateX(0); }
+        .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #1e1e2e; flex-shrink: 0; }
+        .drawer-body { padding: 24px; overflow-y: auto; flex: 1; }
+        .drawer-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 12px; font-weight: 600; }
+        .drawer-account-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #0f0f17; border: 1px solid #1e1e2e; border-radius: 10px; margin-bottom: 8px; }
+        .drawer-account-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .drawer-account-avatar { width: 28px; height: 28px; border-radius: 50%; background: #1e1b4b; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #818cf8; flex-shrink: 0; }
+        .drawer-account-email { font-size: 13px; color: #e0e0e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .drawer-account-entity { font-size: 10px; color: #4b5563; margin-top: 1px; }
+        .drawer-add-btn { width: 100%; padding: 12px; margin-top: 16px; border-radius: 10px; border: 1px dashed #2e2e3e; background: transparent; color: #818cf8; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+        .drawer-add-btn:hover { background: #1a1a26; border-color: #818cf8; }
+        .drawer-close { background: none; border: none; color: #6b7280; font-size: 22px; cursor: pointer; padding: 4px 8px; border-radius: 6px; line-height: 1; }
+        .drawer-close:hover { background: #1e1e2e; color: #e0e0e6; }
+        .conn-card.connected, .conn-card.pending { cursor: pointer; }
+        .conn-account-summary { font-size: 11px; color: #6b7280; margin-top: 6px; margin-bottom: 4px; }
+        .conn-account-summary .acct-email { color: #818cf8; }
+        @media (max-width: 600px) { .drawer-panel { width: 100%; } }
+
         /* Usage bars */
         .usage-bar-container { display: flex; align-items: center; gap: 8px; }
         .usage-bar { height: 6px; border-radius: 3px; background: #1e1e2e; flex: 1; overflow: hidden; }
@@ -174,7 +196,7 @@
     <div id="toast" class="toast"></div>
 
     <div class="topbar">
-        <h1><span>{{ tenant_name }}</span> &mdash; nrv</h1>
+        <h1><span>{{ tenant_name }}</span> &mdash; nrev-lite</h1>
         <div class="meta">
             <div class="credit-bar-wrap">
                 {% set credit_pct = ((usage.balance|default(0)) / (usage.balance|default(0) + usage.spend_this_month|default(0) + 0.001) * 100)|int %}
@@ -188,6 +210,17 @@
                 </div>
             </div>
             <span class="tag tag-{{ status }}">{{ status }}</span>
+            {% if current_user %}
+            <div style="display:flex;align-items:center;gap:8px;margin-left:8px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#1e1b4b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#818cf8;">
+                    {{ (current_user.name or current_user.email)[0]|upper }}
+                </div>
+                <div style="font-size:12px;color:#9ca3af;line-height:1.3;">
+                    <div style="color:#e0e0e6;font-weight:500;">{{ current_user.name or current_user.email.split('@')[0] }}</div>
+                    <div>{{ current_user.role|default('member') }}</div>
+                </div>
+            </div>
+            {% endif %}
             <a href="/api/v1/auth/logout" style="color:#888;font-size:13px;text-decoration:none;margin-left:16px;">Sign out</a>
         </div>
     </div>
@@ -217,6 +250,10 @@
             <a href="/console/{{ tenant_id }}?tab=dashboards" class="tab {% if active_tab == 'dashboards' %}active{% endif %}">
                 Dashboards
                 <span class="tab-badge">{{ dashboards_summary.total_dashboards|default(0) }}</span>
+            </a>
+            <a href="/console/{{ tenant_id }}?tab=team" class="tab {% if active_tab == 'team' %}active{% endif %}">
+                Team
+                <span class="tab-badge">{{ team_members|length }}</span>
             </a>
         </div>
 
@@ -356,7 +393,7 @@
 
             <div class="conn-grid">
                 {% for conn in connections %}
-                <div class="conn-card {% if conn.status == 'active' %}connected{% elif conn.status in ['pending', 'pending_oauth'] %}pending{% endif %}" data-category="{{ conn.category }}">
+                <div class="conn-card {% if conn.status == 'active' %}connected{% elif conn.status in ['pending', 'pending_oauth'] %}pending{% endif %}" data-category="{{ conn.category }}" {% if conn.status == 'active' %}onclick="openDrawer('{{ conn.app_id }}')"{% endif %}>
                     <div class="conn-header">
                         <div class="conn-logo">
                             <img src="{{ {
@@ -390,25 +427,35 @@
                         </div>
                     </div>
                     <div class="conn-desc">{{ conn.description }}</div>
+                    {% if conn.status == 'active' and conn.accounts %}
+                    <div class="conn-account-summary">
+                        <span class="dot" style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;margin-right:4px;"></span>
+                        {{ conn.accounts|length }} account{{ 's' if conn.accounts|length != 1 else '' }}
+                        &mdash;
+                        {% for acct in conn.accounts[:2] %}
+                        <span class="acct-email">{{ acct.email or 'tenant' }}</span>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                        {% if conn.accounts|length > 2 %}
+                        <span style="color:#4b5563;">+{{ conn.accounts|length - 2 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                     <div class="conn-footer">
                         {% if conn.status == 'active' %}
-                            <div class="conn-stats">
-                                <span class="dot"></span>
-                                Connected &middot; {{ conn.total_calls }} calls
-                            </div>
-                            <button class="btn btn-danger btn-sm" onclick="disconnectApp('{{ conn.app_id }}', '{{ conn.name }}')">Disconnect</button>
+                            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDrawer('{{ conn.app_id }}')">Manage</button>
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();connectApp('{{ conn.app_id }}')">+ Add Account</button>
                         {% elif conn.status == 'pending_oauth' %}
                             <span class="tag tag-pending pulse">Authorizing...</span>
-                            <button class="btn btn-primary btn-sm" onclick="connectApp('{{ conn.app_id }}')">Retry</button>
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();connectApp('{{ conn.app_id }}')">Retry</button>
                         {% elif conn.status == 'pending' %}
                             <span class="tag tag-pending">Pending</span>
-                            <button class="btn btn-primary btn-sm" onclick="connectApp('{{ conn.app_id }}')">Authorize</button>
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();connectApp('{{ conn.app_id }}')">Authorize</button>
                         {% elif conn.status == 'disconnected' %}
                             <span class="tag tag-disconnected">Expired</span>
-                            <button class="btn btn-primary btn-sm" onclick="connectApp('{{ conn.app_id }}')">Reconnect</button>
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();connectApp('{{ conn.app_id }}')">Reconnect</button>
                         {% else %}
                             <div class="conn-stats" style="opacity:0.4">Not connected</div>
-                            <button class="btn btn-primary btn-sm" onclick="connectApp('{{ conn.app_id }}')">Connect</button>
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();connectApp('{{ conn.app_id }}')">Connect</button>
                         {% endif %}
                     </div>
                 </div>
@@ -430,16 +477,40 @@
                         Claude can read your Slack channels, update Google Sheets, manage HubSpot contacts, and more.
                     </p>
                     <div style="background:#0f0f17;padding:12px 14px;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:#818cf8;margin-bottom:8px;">
-                        Entity ID: nrv-{{ tenant_id }}
+                        Entity ID: nrev-{{ tenant_id }}
                     </div>
                     <div style="font-size:11px;color:#4b5563;">
                         To use connected tools in Claude Code, run:
                         <code style="color:#818cf8;background:#0f0f17;padding:2px 6px;border-radius:4px;font-size:11px;">
-                            claude mcp add --transport sse composio-tools 'https://backend.composio.dev/v3/mcp/YOUR_KEY/mcp?user_id=nrv-{{ tenant_id }}'
+                            claude mcp add --transport sse composio-tools 'https://backend.composio.dev/v3/mcp/YOUR_KEY/mcp?user_id=nrev-{{ tenant_id }}'
                         </code>
                         <br><span style="color:#fbbf24;">Replace YOUR_KEY with your Composio API key. Never share the full URL.</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Connection Drawer (shared across all cards) -->
+        <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+        <div class="drawer-panel" id="drawerPanel">
+            <div class="drawer-header">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="conn-logo" id="drawerIcon" style="width:36px;height:36px;border-radius:10px;background:#1a1a26;display:flex;align-items:center;justify-content:center;"></div>
+                    <div>
+                        <div class="conn-name" id="drawerAppName" style="font-weight:600;font-size:15px;color:#f0f0f5;"></div>
+                        <div class="conn-category" id="drawerAppCategory" style="font-size:11px;color:#6b7280;"></div>
+                    </div>
+                </div>
+                <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+            </div>
+            <div class="drawer-body">
+                <div id="drawerDesc" style="font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.5;"></div>
+                <div class="drawer-section-title">Connected Accounts</div>
+                <div id="drawerAccountsList"></div>
+                <div id="drawerEmptyState" style="display:none;text-align:center;padding:20px;color:#4b5563;font-size:13px;">
+                    No accounts connected yet.
+                </div>
+                <button class="drawer-add-btn" id="drawerAddBtn" onclick="event.stopPropagation();">+ Add Another Account</button>
             </div>
         </div>
 
@@ -599,8 +670,53 @@
             </div>
             {% endif %}
 
-            <!-- Credit Ledger -->
-            {% if ledger_entries %}
+            <!-- Credit Ledger — grouped by workflow -->
+            {% if ledger_groups %}
+            <div class="section">
+                <div class="section-header">
+                    <h2>Recent Transactions</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Operations</th>
+                            <th>Credits</th>
+                            <th>Balance After</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grp in ledger_groups %}
+                        <tr>
+                            <td style="font-size:11px;color:#6b7280">{{ grp.date.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td style="font-size:11px;color:#818cf8;">{{ grp.user_email or '&mdash;' }}</td>
+                            <td>
+                                {% if grp.type == 'credit' %}
+                                <span class="tag tag-byok">credit</span>
+                                {% elif grp.type == 'workflow' %}
+                                <span class="tag" style="background:#1e1b4b;color:#818cf8;font-size:10px;padding:2px 8px;">workflow</span>
+                                {% else %}
+                                <span class="tag" style="background:#1e1e2e;color:#9ca3af;font-size:10px;padding:2px 8px;">operation</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size:12px;color:#9ca3af">{{ grp.operations }}</td>
+                            <td>
+                                {% if grp.type == 'credit' %}
+                                <span class="ledger-amount-credit">+{{ "%.1f"|format(grp.total_credits) }} cr</span>
+                                {% else %}
+                                <span class="ledger-amount-debit">-{{ "%.1f"|format(grp.total_credits) }} cr</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.1f"|format(grp.balance_after) }} cr</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif ledger_entries %}
+            <!-- Fallback: raw entries if no grouped data -->
             <div class="section">
                 <div class="section-header">
                     <h2>Recent Transactions</h2>
@@ -613,7 +729,6 @@
                             <th>Amount</th>
                             <th>Balance After</th>
                             <th>Operation</th>
-                            <th>Description</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -638,7 +753,6 @@
                             </td>
                             <td>{{ "%.1f"|format(entry.balance_after|float) }} cr</td>
                             <td style="font-size:12px;color:#9ca3af">{{ entry.operation or '&mdash;' }}</td>
-                            <td style="font-size:12px;color:#6b7280">{{ entry.description or '&mdash;' }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -746,6 +860,10 @@
                                         {{ wf.step_count }} step{{ 's' if wf.step_count != 1 else '' }}
                                         &middot;
                                         {{ "%.1f"|format(wf.total_duration_ms / 1000) }}s
+                                        {% if wf.user_email %}
+                                        &middot;
+                                        <span style="color:#818cf8;">{{ wf.user_email }}</span>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -762,7 +880,7 @@
                         <!-- Tools used badges -->
                         <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
                             {% for tool in wf.tools_used %}
-                            <span style="background:#1a1a26;color:#9ca3af;font-size:10px;padding:2px 8px;border-radius:4px;">{{ tool.replace('nrv_', '') }}</span>
+                            <span style="background:#1a1a26;color:#9ca3af;font-size:10px;padding:2px 8px;border-radius:4px;">{{ tool.replace('nrev_', '') }}</span>
                             {% endfor %}
                         </div>
                     </div>
@@ -781,7 +899,7 @@
                     <div style="font-size:32px;margin-bottom:12px;">&#x1F50D;</div>
                     <h3 style="margin-bottom:8px;color:#f0f0f5;">No runs yet</h3>
                     <p style="color:#6b7280;font-size:13px;">
-                        When you use nrv tools in Claude Code, each session will appear here as a workflow
+                        When you use nrev-lite tools in Claude Code, each session will appear here as a workflow
                         with its individual tool invocations as steps.
                     </p>
                 </div>
@@ -877,7 +995,7 @@
                     <h3 style="margin-bottom:8px;color:#f0f0f5;">No datasets yet</h3>
                     <p style="color:#6b7280;font-size:13px;max-width:400px;margin:0 auto;">
                         Datasets are persistent tables that workflows write to over time.
-                        Use <code style="color:#818cf8;">nrv_create_dataset</code> in a workflow to create one.
+                        Use <code style="color:#818cf8;">nrev_create_dataset</code> in a workflow to create one.
                     </p>
                 </div>
                 {% endif %}
@@ -967,6 +1085,98 @@
             {% endif %}
         </div>
 
+        <!-- ============================================ -->
+        <!-- TAB: Team                                     -->
+        <!-- ============================================ -->
+        <div class="tab-content {% if active_tab == 'team' %}active{% endif %}" id="tab-team">
+            <div class="stats-row" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="stat-card">
+                    <div class="label">Team Members</div>
+                    <div class="value">{{ team_members|length }}</div>
+                    <div class="sub">in this tenant</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Tenant Domain</div>
+                    <div class="value" style="font-size:16px;">{{ tenant_name }}</div>
+                    <div class="sub">shared workspace</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>Members</h2>
+                </div>
+                {% if team_members %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in team_members %}
+                        <tr{% if current_user and current_user.id == m.id %} style="background:#0f0f1a;"{% endif %}>
+                            <td style="width:40px;">
+                                {% if m.avatar_url %}
+                                <img src="{{ m.avatar_url }}" style="width:28px;height:28px;border-radius:50%;" alt="">
+                                {% else %}
+                                <div style="width:28px;height:28px;border-radius:50%;background:#1e1b4b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#818cf8;">
+                                    {{ m.name[0]|upper }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td style="font-weight:500;color:#f0f0f5;">
+                                {{ m.name }}
+                                {% if current_user and current_user.id == m.id %}
+                                <span style="font-size:10px;color:#818cf8;margin-left:6px;">(you)</span>
+                                {% endif %}
+                            </td>
+                            <td style="color:#9ca3af;">{{ m.email }}</td>
+                            <td>
+                                {% if m.role == 'owner' %}
+                                <span class="tag" style="background:#1e1b4b;color:#818cf8;">owner</span>
+                                {% elif m.role == 'admin' %}
+                                <span class="tag" style="background:#064e3b;color:#34d399;">admin</span>
+                                {% else %}
+                                <span class="tag" style="background:#1e1e2e;color:#9ca3af;">member</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size:12px;color:#6b7280;">{{ m.created_at.strftime('%b %d, %Y') if m.created_at else '&mdash;' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="card" style="text-align:center;padding:40px 20px;">
+                    <div style="font-size:32px;margin-bottom:12px;">&#x1F465;</div>
+                    <h3 style="margin-bottom:8px;color:#f0f0f5;">No team members found</h3>
+                    <p style="color:#6b7280;font-size:13px;">
+                        Users with the same business domain email will automatically join this tenant.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="section">
+                <div class="card" style="border-color:#1e1b4b;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                        <div style="font-size:18px;">&#x1F4A1;</div>
+                        <strong>How team membership works</strong>
+                    </div>
+                    <p style="font-size:13px;color:#6b7280;line-height:1.5;">
+                        Users who sign up with a business email (e.g. <code style="color:#818cf8;">@{{ tenant_name.lower() }}</code>)
+                        are automatically added to this tenant. Each user can connect their own app accounts
+                        (Google Sheets, Slack, etc.) independently &mdash; Claude will prefer your own connection
+                        when executing actions.
+                    </p>
+                </div>
+            </div>
+        </div>
+
     </div> <!-- /.container -->
 
     <script>
@@ -1047,13 +1257,14 @@
 
         // ---- Connections ----
 
+        const APP_CONNECTIONS = {{ connections | tojson }};
+        let _drawerAppId = null;
+
         function filterConnections(category) {
             const cards = document.querySelectorAll('.conn-card');
             const btns = document.querySelectorAll('.filter-btn');
-
             btns.forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-
             cards.forEach(card => {
                 if (category === 'all' || card.dataset.category === category) {
                     card.style.display = '';
@@ -1061,6 +1272,98 @@
                     card.style.display = 'none';
                 }
             });
+        }
+
+        function openDrawer(appId) {
+            const app = APP_CONNECTIONS.find(c => c.app_id === appId);
+            if (!app) return;
+            _drawerAppId = appId;
+
+            document.getElementById('drawerAppName').textContent = app.name;
+            document.getElementById('drawerAppCategory').textContent = app.category.charAt(0).toUpperCase() + app.category.slice(1);
+            document.getElementById('drawerDesc').textContent = app.description;
+            document.getElementById('drawerIcon').innerHTML = '<span style="font-size:20px;">' + app.icon + '</span>';
+            document.getElementById('drawerAddBtn').onclick = function(e) { e.stopPropagation(); connectApp(appId); };
+
+            _renderDrawerAccounts(app);
+
+            document.getElementById('drawerBackdrop').classList.add('open');
+            document.getElementById('drawerPanel').classList.add('open');
+        }
+
+        function _renderDrawerAccounts(app) {
+            const listEl = document.getElementById('drawerAccountsList');
+            const emptyEl = document.getElementById('drawerEmptyState');
+            const accounts = app.accounts || [];
+            listEl.innerHTML = '';
+
+            if (accounts.length === 0) {
+                emptyEl.style.display = 'block';
+                return;
+            }
+            emptyEl.style.display = 'none';
+
+            accounts.forEach(function(acct) {
+                const row = document.createElement('div');
+                row.className = 'drawer-account-row';
+                row.id = 'acct-' + acct.connection_id;
+                const email = acct.email || 'Tenant connection';
+                const initial = email.charAt(0).toUpperCase();
+                const statusColor = acct.status === 'ACTIVE' ? '#34d399' : '#fbbf24';
+                const statusLabel = acct.status === 'ACTIVE' ? 'Active' : acct.status;
+
+                row.innerHTML =
+                    '<div class="drawer-account-info">' +
+                        '<div class="drawer-account-avatar">' + initial + '</div>' +
+                        '<div>' +
+                            '<div class="drawer-account-email">' + email + '</div>' +
+                            '<div class="drawer-account-entity">' +
+                                '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + statusColor + ';margin-right:4px;"></span>' +
+                                statusLabel +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();disconnectAccount(\'' + acct.connection_id + '\',\'' + email.replace(/'/g, "\\'") + '\',\'' + app.app_id + '\')">Disconnect</button>';
+                listEl.appendChild(row);
+            });
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawerBackdrop').classList.remove('open');
+            document.getElementById('drawerPanel').classList.remove('open');
+            _drawerAppId = null;
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDrawer();
+        });
+
+        async function disconnectAccount(connectionId, email, appId) {
+            if (!confirm('Disconnect ' + email + '?')) return;
+            try {
+                const resp = await fetch('/api/v1/connections/' + connectionId, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders(),
+                });
+                if (resp.ok || resp.status === 204) {
+                    showToast(email + ' disconnected', 'success');
+                    // Update local data
+                    const app = APP_CONNECTIONS.find(c => c.app_id === appId);
+                    if (app) {
+                        app.accounts = (app.accounts || []).filter(a => a.connection_id !== connectionId);
+                        _renderDrawerAccounts(app);
+                        if (app.accounts.length === 0) {
+                            closeDrawer();
+                            setTimeout(function() { location.reload(); }, 800);
+                        }
+                    }
+                } else {
+                    const data = await resp.json().catch(function() { return {}; });
+                    showToast('Error: ' + (data.detail || 'Disconnect failed'), 'error');
+                }
+            } catch (e) {
+                showToast('Network error: ' + e.message, 'error');
+            }
         }
 
         async function connectApp(appId) {
@@ -1077,16 +1380,14 @@
                         var connId = data.connection_id;
                         var popup = window.open(
                             data.redirect_url,
-                            'nrv_oauth',
+                            'nrev_oauth',
                             'width=600,height=700,scrollbars=yes'
                         );
-                        // Poll for: (a) connection becoming ACTIVE, or (b) popup closing
                         var attempts = 0;
-                        var maxAttempts = 120; // 2 minutes at 1s intervals
+                        var maxAttempts = 120;
                         var pollTimer = setInterval(async function() {
                             attempts++;
                             var popupClosed = !popup || popup.closed;
-                            // Check connection status via API
                             try {
                                 var checkResp = await fetch('/api/v1/connections', {
                                     headers: getAuthHeaders(),
@@ -1102,8 +1403,7 @@
                                     setTimeout(function() { location.reload(); }, 1000);
                                     return;
                                 }
-                            } catch(e) { /* ignore fetch errors during polling */ }
-                            // If popup closed without connecting, just reload to update status
+                            } catch(e) {}
                             if (popupClosed) {
                                 clearInterval(pollTimer);
                                 location.reload();
@@ -1127,18 +1427,23 @@
         }
 
         async function disconnectApp(appId, appName) {
+            const app = APP_CONNECTIONS.find(c => c.app_id === appId);
+            if (app && app.accounts && app.accounts.length > 1) {
+                openDrawer(appId);
+                return;
+            }
+            if (app && app.accounts && app.accounts.length === 1) {
+                await disconnectAccount(app.accounts[0].connection_id, app.accounts[0].email || appName, appId);
+                return;
+            }
+            // Fallback for legacy connections without accounts data
             if (!confirm('Disconnect ' + appName + '?')) return;
             try {
-                const listResp = await fetch('/api/v1/connections', {
-                    headers: getAuthHeaders(),
-                });
+                const listResp = await fetch('/api/v1/connections', { headers: getAuthHeaders() });
                 const listData = await listResp.json();
                 const conn = (listData.connections || []).find(c => c.app_id === appId);
                 if (conn) {
-                    await fetch('/api/v1/connections/' + conn.id, {
-                        method: 'DELETE',
-                        headers: getAuthHeaders(),
-                    });
+                    await fetch('/api/v1/connections/' + conn.id, { method: 'DELETE', headers: getAuthHeaders() });
                     showToast(appName + ' disconnected', 'success');
                     setTimeout(() => location.reload(), 1000);
                 } else {
@@ -1173,7 +1478,7 @@
                         const data = await resp.json();
                         if (data.steps) {
                             _loadedWorkflows[workflowId] = data.steps;
-                            renderWorkflowSteps(shortId, data.steps);
+                            renderWorkflowSteps(shortId, data.steps, workflowId);
                         } else {
                             document.getElementById('wf-loading-' + shortId).textContent = 'No steps found';
                         }
@@ -1187,7 +1492,7 @@
             }
         }
 
-        function renderWorkflowSteps(shortId, steps) {
+        function renderWorkflowSteps(shortId, steps, wfId) {
             const wrapper = document.getElementById('wf-steps-' + shortId).querySelector('div');
             if (!steps.length) {
                 wrapper.innerHTML = '<div style="text-align:center;padding:16px;color:#6b7280;font-size:12px;">No steps recorded</div>';
@@ -1199,7 +1504,7 @@
             html += '<tbody>';
 
             steps.forEach(function(step, idx) {
-                const toolDisplay = (step.tool_name || '').replace('nrv_', '');
+                const toolDisplay = (step.tool_name || '').replace('nrev_', '');
                 const statusClass = step.status === 'success' ? 'tag-active' : step.status === 'failed' ? 'tag-disconnected' : 'tag-pending';
                 const duration = step.duration_ms ? (step.duration_ms / 1000).toFixed(1) + 's' : '—';
                 const credits = step.credits_charged > 0 ? step.credits_charged.toFixed(1) + ' cr' : '—';
@@ -1236,6 +1541,7 @@
                 if (hasData) {
                     const count = hasResults ? rs.results.length + ' rows' : '1 record';
                     html += '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleStepData(\'' + stepDataId + '\')" style="font-size:10px;padding:3px 10px;">' + count + ' &#x25BC;</button>';
+                    html += ' <a href="/api/v1/runs/' + wfId + '/steps/' + step.id + '/csv" class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;text-decoration:none;color:#60a5fa;" title="Download CSV">&#x2B73; CSV</a>';
                 } else if (rs.error) {
                     html += '<span style="font-size:10px;color:#fca5a5;">error</span>';
                 } else {

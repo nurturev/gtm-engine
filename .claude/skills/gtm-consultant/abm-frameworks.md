@@ -40,21 +40,21 @@
 
 **Implication:** You must influence buyers BEFORE they reach out. Deliver relevant content during their anonymous research phase.
 
-## ABM with nrv
+## ABM with nrev-lite
 
 **Account identification:**
-- `nrv_google_search` to find companies matching ICP criteria (industry awards, conference speakers, job postings)
-- `nrv_enrich_company` for firmographic and technographic validation
-- `nrv_search_patterns(use_case="company_research")` for discovery queries
+- `nrev_google_search` to find companies matching ICP criteria (industry awards, conference speakers, job postings)
+- `nrev_enrich_company` for firmographic and technographic validation
+- `nrev_search_patterns(use_case="company_research")` for discovery queries
 
 **Contact mapping:**
-- `nrv_enrich_person` to find and enrich key stakeholders at target accounts
+- `nrev_enrich_person` to find and enrich key stakeholders at target accounts
 - Map the buying committee: Champion, Economic Buyer, Technical Evaluator, End Users
 
 **Engagement orchestration:**
-- `nrv_execute_action` to push contacts to CRM (HubSpot/Salesforce)
-- `nrv_execute_action` to send personalized messages via Slack/Gmail
-- `nrv_execute_action` to log activities in project management tools
+- `nrev_execute_action` to push contacts to CRM (HubSpot/Salesforce)
+- `nrev_execute_action` to send personalized messages via Slack/Gmail
+- `nrev_execute_action` to log activities in project management tools
 
 ## TOPO's Account-Based Everything (ABE)
 Coordination of personalized marketing, sales development, sales, and CS to drive engagement with targeted accounts.

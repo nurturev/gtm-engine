@@ -8,7 +8,7 @@ Each step is production-grade:
 - **Rate limiter**: Redis token-bucket per provider per tenant (prevents upstream bans)
 - **Cache**: Redis response cache with deterministic keys (avoids duplicate API spend)
 - **Retry**: Exponential backoff with jitter (handles transient failures gracefully)
-- **Normalizer**: Maps provider-specific schemas to the nrv standard schema
+- **Normalizer**: Maps provider-specific schemas to the nrev-lite standard schema
 """
 
 from __future__ import annotations
@@ -162,6 +162,9 @@ def calculate_cost(operation: str, params: dict[str, Any]) -> float:
     - Search (per page):       1 credit per 25 results requested
                                e.g., per_page=25 → 1 credit, per_page=100 → 4 credits
                                Pages beyond page 1 cost the same per page
+    - Search (bulk queries):   1 credit per query in the queries array
+                               e.g., queries=["a","b","c"] → 3 credits
+                               Each query is a separate API call to the provider
     - Bulk enrichment:         1 credit per record in the batch
                                e.g., 10 records → 10 credits
 
@@ -176,6 +179,12 @@ def calculate_cost(operation: str, params: dict[str, Any]) -> float:
         per_page = max(1, min(per_page, 100))  # clamp to 1-100
         import math
         page_cost = math.ceil(per_page / 25) * base
+
+        # Bulk queries: each query is a separate API call, charge per query
+        queries = params.get("queries")
+        if queries and isinstance(queries, list) and len(queries) > 1:
+            return page_cost * len(queries)
+
         return page_cost
 
     if operation in BULK_OPERATIONS:
@@ -186,10 +195,15 @@ def calculate_cost(operation: str, params: dict[str, Any]) -> float:
             count = len(params.get("domains", []))
         return max(1.0, count * base)
 
+    # Bulk queries on any operation: charge per query
+    queries = params.get("queries")
+    if queries and isinstance(queries, list) and len(queries) > 1:
+        return base * len(queries)
+
     return base
 
 # Platform API keys loaded from environment (fallback when no BYOK key).
-# These are the nrv platform keys — used when a tenant hasn't added their own.
+# These are the nrev-lite platform keys — used when a tenant hasn't added their own.
 # NEVER logged, NEVER returned to users, NEVER exposed in any response.
 _PLATFORM_KEYS: dict[str, str] = {}
 
@@ -263,7 +277,7 @@ async def resolve_api_key(
     raise ProviderError(
         provider_name,
         f"No API key found for provider '{provider_name}'. "
-        f"Add one with: nrv keys add {provider_name}",
+        f"Add one with: nrev-lite keys add {provider_name}",
     )
 
 
@@ -282,7 +296,7 @@ async def execute_single(
     3. Check the rate limiter (reject if over limit)
     4. Look up the API key (BYOK or platform)
     5. Call the provider with retry + exponential backoff
-    6. Normalize the response to nrv schema
+    6. Normalize the response to nrev-lite schema
     7. Store in cache for future requests
     8. Return the result
 

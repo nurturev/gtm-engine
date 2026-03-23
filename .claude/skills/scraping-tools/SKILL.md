@@ -8,9 +8,9 @@ URL batches at scale. Handles JS rendering, anti-bot, and PDFs.
 
 ### scrape_page — Extract content from URLs (up to 10 per call)
 ```
-nrv web scrape https://acme.com/about
-nrv web scrape https://acme.com/pricing --objective "pricing information"
-nrv web scrape https://acme.com/pricing --full-content --json-output
+nrev-lite web scrape https://acme.com/about
+nrev-lite web scrape https://acme.com/pricing --objective "pricing information"
+nrev-lite web scrape https://acme.com/pricing --full-content --json-output
 ```
 Returns: markdown excerpts or full content for each URL.
 
@@ -26,7 +26,7 @@ the provider auto-batches into groups of 10 with concurrency control.
 
 ### search_web — AI-powered web search with objectives
 ```
-nrv execute search_web --provider parallel_web \
+nrev-lite execute search_web --provider parallel_web \
   --params '{"objective": "Find recent funding rounds for SaaS companies in India"}'
 ```
 Returns: URLs with excerpts, ranked by relevance to objective.
@@ -41,7 +41,7 @@ Returns: URLs with excerpts, ranked by relevance to objective.
 
 ### extract_structured — Task API for LLM-powered extraction (async)
 ```
-nrv web extract https://acme.com/pricing \
+nrev-lite web extract https://acme.com/pricing \
     --prompt "Extract pricing tiers with name, price, features"
 ```
 Returns: Structured output with citations and confidence scores.
@@ -55,7 +55,7 @@ Returns: Structured output with citations and confidence scores.
 
 ### batch_extract — Task Groups for high-volume batch processing
 ```
-nrv execute batch_extract --provider parallel_web \
+nrev-lite execute batch_extract --provider parallel_web \
   --params '{"items": ["company1.com", "company2.com", ...], "processor": "base"}'
 ```
 Returns: Results for all items. Batches of 500, polls until complete.

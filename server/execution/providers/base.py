@@ -32,7 +32,7 @@ class BaseProvider(ABC):
             api_key: The decrypted API key to use.
 
         Returns:
-            Normalised result dict conforming to the nrv schema.
+            Normalised result dict conforming to the nrev-lite schema.
 
         Raises:
             ProviderError: If the upstream API returns an error.

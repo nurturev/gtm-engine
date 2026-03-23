@@ -56,14 +56,14 @@ For future migrations (e.g., `009_new_feature.sql`):
 
 ```bash
 # 1. Check if already applied
-psql -h <endpoint> -U postgres -d nrv -c \
+psql -h <endpoint> -U postgres -d nrev-lite -c \
   "SELECT version FROM schema_migrations WHERE version = '009';"
 
 # 2. Apply migration
-psql -h <endpoint> -U postgres -d nrv -f migrations/009_new_feature.sql
+psql -h <endpoint> -U postgres -d nrev-lite -f migrations/009_new_feature.sql
 
 # 3. Record it
-psql -h <endpoint> -U postgres -d nrv -c \
+psql -h <endpoint> -U postgres -d nrev-lite -c \
   "INSERT INTO schema_migrations (version, filename) VALUES ('009', '009_new_feature.sql');"
 ```
 
@@ -82,11 +82,11 @@ psql -h <endpoint> -U postgres -d nrv -c \
 
 ```bash
 # Against local Docker PostgreSQL
-docker exec -i nrv-postgres psql -U nrv -d nrv < migrations/000_schema_migrations.sql
-docker exec -i nrv-postgres psql -U nrv -d nrv -c "SELECT * FROM schema_migrations ORDER BY version;"
+docker exec -i nrev-lite-postgres psql -U nrev-lite -d nrev-lite < migrations/000_schema_migrations.sql
+docker exec -i nrev-lite-postgres psql -U nrev-lite -d nrev-lite -c "SELECT * FROM schema_migrations ORDER BY version;"
 # Should show 8 rows (001 through 008)
 
 # Run again — should be idempotent
-docker exec -i nrv-postgres psql -U nrv -d nrv < migrations/000_schema_migrations.sql
+docker exec -i nrev-lite-postgres psql -U nrev-lite -d nrev-lite < migrations/000_schema_migrations.sql
 # No errors
 ```

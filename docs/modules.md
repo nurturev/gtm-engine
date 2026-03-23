@@ -1,6 +1,6 @@
-# nrv Server Module Boundary Documentation
+# nrev-lite Server Module Boundary Documentation
 
-This document describes the modular architecture of the nrv server. Each module
+This document describes the modular architecture of the nrev-lite server. Each module
 is a self-contained package under `server/` with clear boundaries. The **Core**
 module is the only shared dependency — other modules must not import from each
 other directly.
@@ -56,7 +56,7 @@ Provider proxy and execution engine for enrichment / search operations.
 | `rate_limiter.py` | Redis token-bucket rate limiter |
 | `retry.py` | Exponential backoff retry helper |
 | `cache.py` | Redis response cache |
-| `normalizer.py` | Response normalisation to nrv schema |
+| `normalizer.py` | Response normalisation to nrev-lite schema |
 | `schemas.py` | Pydantic v2 schemas for execute requests / responses |
 
 **Exports:** router, `ExecuteRequest`, `ExecuteResponse`.

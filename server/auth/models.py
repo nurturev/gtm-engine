@@ -10,7 +10,7 @@ from server.core.database import Base
 
 
 class Tenant(Base):
-    """A tenant (organisation) on the nrv platform."""
+    """A tenant (organisation) on the nrev-lite platform."""
 
     __tablename__ = "tenants"
 

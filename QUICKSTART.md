@@ -1,4 +1,4 @@
-# nrv Quickstart — Tester Guide
+# nrev-lite Quickstart — Tester Guide
 
 ## Prerequisites
 
@@ -10,8 +10,8 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/sayanta-ghosh/nrv.git
-cd nrv
+git clone https://github.com/sayanta-ghosh/nrev-lite.git
+cd nrev-lite
 
 # Start infrastructure
 docker compose up -d postgres redis
@@ -20,8 +20,8 @@ docker compose up -d postgres redis
 pip3 install -e .
 
 # Verify installation
-nrv --version
-nrv --help
+nrev-lite --version
+nrev-lite --help
 ```
 
 ## 2. Start the server
@@ -43,15 +43,15 @@ curl http://localhost:8000/health
 ```bash
 # This opens your browser for Google OAuth
 # It creates a new tenant with 200 free credits
-nrv auth login
+nrev-lite auth login
 
 # Check your account
-nrv status
+nrev-lite status
 ```
 
 You should see:
 ```
-╭────────────── nrv status ──────────────╮
+╭────────────── nrev-lite status ──────────────╮
 │ Email:   you@company.com               │
 │ Tenant:  company-a1b2c3d4              │
 │ Token:   valid                         │
@@ -67,9 +67,9 @@ You should see:
 # Platform keys are pre-configured for Apollo, RocketReach, PredictLeads
 # BYOK keys make calls FREE (no credits charged)
 
-nrv keys add apollo        # Paste your Apollo API key
-nrv keys add rocketreach   # Paste your RocketReach API key
-nrv keys list              # Verify
+nrev-lite keys add apollo        # Paste your Apollo API key
+nrev-lite keys add rocketreach   # Paste your RocketReach API key
+nrev-lite keys list              # Verify
 ```
 
 ## 5. Try the workflows
@@ -78,55 +78,55 @@ nrv keys list              # Verify
 
 ```bash
 # By title + company
-nrv search people --title "VP Sales" --company "Google" --limit 10
+nrev-lite search people --title "VP Sales" --company "Google" --limit 10
 
 # By title + domain
-nrv search people --title "CTO,VP Engineering" --domain stripe.com
+nrev-lite search people --title "CTO,VP Engineering" --domain stripe.com
 
 # By school (alumni search — auto-uses RocketReach)
-nrv search people --school "IIT Kharagpur" --title "Director,VP,Head"
+nrev-lite search people --school "IIT Kharagpur" --title "Director,VP,Head"
 
 # By past company (alumni search)
-nrv search people --past-company "Mindtickle" --title "VP Sales,Head of Growth"
+nrev-lite search people --past-company "Mindtickle" --title "VP Sales,Head of Growth"
 
 # With explicit provider
-nrv search people --title "CRO" --provider rocketreach --limit 20
+nrev-lite search people --title "CRO" --provider rocketreach --limit 20
 
 # Raw JSON output
-nrv search people --title "CMO" --company "Salesforce" --json-output
+nrev-lite search people --title "CMO" --company "Salesforce" --json-output
 ```
 
 ### Search for companies
 
 ```bash
-nrv search companies --name "Stripe"
-nrv search companies --industry "SaaS" --size "50-200"
+nrev-lite search companies --name "Stripe"
+nrev-lite search companies --industry "SaaS" --size "50-200"
 ```
 
 ### Enrich a person
 
 ```bash
 # By email
-nrv enrich person --email john@stripe.com
+nrev-lite enrich person --email john@stripe.com
 
 # By name + company
-nrv enrich person --name "John Doe" --domain stripe.com
+nrev-lite enrich person --name "John Doe" --domain stripe.com
 
 # By LinkedIn URL
-nrv enrich person --linkedin https://linkedin.com/in/johndoe
+nrev-lite enrich person --linkedin https://linkedin.com/in/johndoe
 
 # With phone + personal email
-nrv enrich person --email john@acme.com --reveal-phone --reveal-emails
+nrev-lite enrich person --email john@acme.com --reveal-phone --reveal-emails
 
 # Dry run (shows what would be sent)
-nrv enrich person --email test@example.com --dry-run
+nrev-lite enrich person --email test@example.com --dry-run
 ```
 
 ### Enrich a company
 
 ```bash
-nrv enrich company --domain stripe.com
-nrv enrich company --domain https://www.salesforce.com  # auto-cleaned
+nrev-lite enrich company --domain stripe.com
+nrev-lite enrich company --domain https://www.salesforce.com  # auto-cleaned
 ```
 
 ### Batch enrichment
@@ -137,22 +137,22 @@ nrv enrich company --domain https://www.salesforce.com  # auto-cleaned
 # john@acme.com,John,Doe,acme.com
 # jane@stripe.com,Jane,Smith,stripe.com
 
-nrv enrich batch --file emails.csv
-nrv enrich batch --file emails.csv --dry-run  # preview first
+nrev-lite enrich batch --file emails.csv
+nrev-lite enrich batch --file emails.csv --dry-run  # preview first
 ```
 
 ### Check credits
 
 ```bash
-nrv credits balance
-nrv credits history --limit 10
+nrev-lite credits balance
+nrev-lite credits history --limit 10
 ```
 
 ## 6. Use with Claude Code (optional)
 
 ```bash
 # Install Claude Code skills + CLAUDE.md
-nrv setup-claude
+nrev-lite setup-claude
 
 # Then in Claude Code, you can say:
 # "Find VP Sales at fintech companies in California"
@@ -179,12 +179,12 @@ nrv setup-claude
 
 ## Troubleshooting
 
-**"Not logged in"**: Run `nrv auth login`
+**"Not logged in"**: Run `nrev-lite auth login`
 
 **"Could not connect to server"**: Make sure the server is running on port 8000
 
-**"Session expired"**: Run `nrv auth login` again (tokens last 24 hours)
+**"Session expired"**: Run `nrev-lite auth login` again (tokens last 24 hours)
 
 **Search returns 0 results**: Try broader title filters, or check the provider. Apollo and RocketReach have different data coverage.
 
-**Credits running low**: Check with `nrv credits balance`. Add BYOK keys to get free calls.
+**Credits running low**: Check with `nrev-lite credits balance`. Add BYOK keys to get free calls.

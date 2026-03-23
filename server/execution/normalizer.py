@@ -1,6 +1,6 @@
-"""Response normalisation to nrv schema.
+"""Response normalisation to nrev-lite schema.
 
-Maps provider-specific response formats to a consistent nrv schema.
+Maps provider-specific response formats to a consistent nrev-lite schema.
 Handles all Apollo response types including search results (which return
 lists of people/companies) and bulk enrichment results.
 """
@@ -16,7 +16,7 @@ from typing import Any
 
 
 def normalize_person(raw: dict[str, Any], provider: str) -> dict[str, Any]:
-    """Normalize a person enrichment/search result to the nrv schema.
+    """Normalize a person enrichment/search result to the nrev-lite schema.
 
     Handles both single enrichment responses and search results
     (which contain a list of people).
@@ -73,7 +73,7 @@ def normalize_person(raw: dict[str, Any], provider: str) -> dict[str, Any]:
 
 
 def _normalize_rr_person(person: dict[str, Any]) -> dict[str, Any]:
-    """Normalize a single RocketReach person object to the nrv schema."""
+    """Normalize a single RocketReach person object to the nrev-lite schema."""
     # Extract best email
     emails = person.get("emails") or []
     primary_email = None
@@ -158,7 +158,7 @@ def _normalize_rr_person(person: dict[str, Any]) -> dict[str, Any]:
 
 
 def _normalize_apollo_person(person: dict[str, Any]) -> dict[str, Any]:
-    """Normalize a single Apollo person object to the nrv schema."""
+    """Normalize a single Apollo person object to the nrev-lite schema."""
     org = person.get("organization") or {}
 
     # Extract phone numbers from the array format Apollo uses
@@ -209,7 +209,7 @@ def _normalize_apollo_person(person: dict[str, Any]) -> dict[str, Any]:
 
 
 def normalize_company(raw: dict[str, Any], provider: str) -> dict[str, Any]:
-    """Normalize a company enrichment/search result to the nrv schema."""
+    """Normalize a company enrichment/search result to the nrev-lite schema."""
     if provider == "apollo":
         # Search results have an "organizations" array
         if "organizations" in raw and isinstance(raw["organizations"], list):
@@ -251,7 +251,7 @@ def normalize_company(raw: dict[str, Any], provider: str) -> dict[str, Any]:
 
 
 def _normalize_rr_company(company: dict[str, Any]) -> dict[str, Any]:
-    """Normalize a single RocketReach company object to the nrv schema."""
+    """Normalize a single RocketReach company object to the nrev-lite schema."""
     loc_parts = [
         company.get("city"),
         company.get("region"),
@@ -283,7 +283,7 @@ def _normalize_rr_company(company: dict[str, Any]) -> dict[str, Any]:
 
 
 def _normalize_apollo_company(org: dict[str, Any]) -> dict[str, Any]:
-    """Normalize a single Apollo organization object to the nrv schema."""
+    """Normalize a single Apollo organization object to the nrev-lite schema."""
     result: dict[str, Any] = {
         "id": org.get("id"),
         "name": org.get("name"),
@@ -317,10 +317,10 @@ def _normalize_apollo_company(org: dict[str, Any]) -> dict[str, Any]:
 
 
 def normalize_predictleads(raw: dict[str, Any], operation: str) -> dict[str, Any]:
-    """Normalize any PredictLeads response to nrv schema.
+    """Normalize any PredictLeads response to nrev-lite schema.
 
     PredictLeads data is already flattened from JSON:API in the provider.
-    This function maps it to the standard nrv field names.
+    This function maps it to the standard nrev-lite field names.
     """
     if operation == "enrich_company":
         return _normalize_predictleads_company(raw)

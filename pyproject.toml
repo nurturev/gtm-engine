@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nrv"
+name = "nrev-lite"
 version = "0.1.0"
-description = "nrv — agent-native GTM execution platform"
+description = "nrev-lite — agent-native GTM execution platform"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
@@ -39,17 +39,17 @@ dev = [
     "httpx",
     "ruff>=0.3.0",
 ]
-all = ["nrv[dev]"]
+all = ["nrev-lite[dev]"]
 
 [project.scripts]
-nrv = "nrv.cli.main:cli"
+nrev-lite = "nrev_lite.cli.main:cli"
 
 [project.urls]
 Homepage = "https://nrev.ai"
-Repository = "https://github.com/sayanta-ghosh/nrv"
+Repository = "https://github.com/sayanta-ghosh/nrev-lite"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/nrv"]
+packages = ["src/nrev_lite"]
 
 [tool.ruff]
 target-version = "py310"

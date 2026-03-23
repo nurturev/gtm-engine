@@ -77,7 +77,7 @@ def _parse_dual_key(api_key: str) -> tuple[str, str]:
     raise ProviderError(
         "predictleads",
         "PredictLeads requires both API token and API key. "
-        "Store as: nrv keys add predictleads --key 'TOKEN:::KEY'",
+        "Store as: nrev-lite keys add predictleads --key 'TOKEN:::KEY'",
     )
 
 

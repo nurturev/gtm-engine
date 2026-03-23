@@ -4,14 +4,14 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """nrv API configuration.
+    """nrev-lite API configuration.
 
     All values are loaded from environment variables or a .env file.
     Required fields must be set before the application starts.
     """
 
     # --- Database ---
-    DATABASE_URL: str = "postgresql+asyncpg://nrv:nrv@localhost:5432/nrv"
+    DATABASE_URL: str = "postgresql+asyncpg://nrev_lite:nrev_lite@localhost:5432/nrev_lite"
 
     # --- Redis ---
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     AWS_REGION: str = "us-east-1"
 
     # --- Platform API Keys (optional, used as fallback when no BYOK key) ---
-    # These are the nrv-managed keys for providers. Tenants without BYOK keys
+    # These are the nrev-lite-managed keys for providers. Tenants without BYOK keys
     # use these and pay credits. NEVER exposed to users.
     APOLLO_API_KEY: str | None = None
     ROCKETREACH_API_KEY: str | None = None

@@ -290,7 +290,7 @@ class RapidAPIGoogleProvider(BaseProvider):
     def _normalize_search(
         self, raw: dict[str, Any], query: str
     ) -> dict[str, Any]:
-        """Normalize RapidAPI search response to nrv schema.
+        """Normalize RapidAPI search response to nrev-lite schema.
 
         Handles both API response formats:
         - Old: {"data": [{"title": "...", "url": "...", ...}]}

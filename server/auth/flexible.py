@@ -18,7 +18,7 @@ from server.auth.models import Tenant
 from server.core.config import settings
 from server.core.database import get_db, set_tenant_context
 
-_COOKIE_NAME = "nrv_session"
+_COOKIE_NAME = "nrev_session"
 
 
 async def get_tenant_flexible(

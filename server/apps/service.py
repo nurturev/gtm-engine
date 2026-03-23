@@ -197,7 +197,7 @@ def get_content_type(path: str) -> str:
     return "application/octet-stream"
 
 
-def inject_nrv_context(html: str, app_token: str, api_base: str) -> str:
+def inject_nrev_context(html: str, app_token: str, api_base: str) -> str:
     """Inject NRV context variables into HTML files for client-side data access."""
     script = (
         f'<script>window.NRV_APP_TOKEN="{app_token}";'

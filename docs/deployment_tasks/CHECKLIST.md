@@ -33,8 +33,8 @@ Last updated: 2026-03-19
 - **Files changed:** `server/core/config.py`, `server/app.py`
 
 ### Task 05: Update default CLI server URL
-- [x] `DEFAULT_API_BASE_URL` changed to `https://nrv-api.public.prod.nurturev.com`
-- **File changed:** `src/nrv/utils/config.py`
+- [x] `DEFAULT_API_BASE_URL` changed to `https://nrev-lite-api.public.prod.nurturev.com`
+- **File changed:** `src/nrev_lite/utils/config.py`
 
 ### Task 06: Update Dockerfile for production
 - [x] Added `COPY migrations/ migrations/`
@@ -52,11 +52,11 @@ Last updated: 2026-03-19
 ## Infrastructure & Deployment
 
 ### Task 08: Create Helm chart
-- [x] `helm-charts/nrv-api/Chart.yaml` created
-- [x] `helm-charts/nrv-api/values-staging.yaml` created (with actual endpoints filled in)
-- [x] `helm-charts/nrv-api/values-prod.yaml` created
-- [x] `helm-charts/nrv-api/deploy-staging.sh` created and executable
-- [x] `helm-charts/nrv-api/deploy-prod.sh` created and executable
+- [x] `helm-charts/nrev-lite-api/Chart.yaml` created
+- [x] `helm-charts/nrev-lite-api/values-staging.yaml` created (with actual endpoints filled in)
+- [x] `helm-charts/nrev-lite-api/values-prod.yaml` created
+- [x] `helm-charts/nrev-lite-api/deploy-staging.sh` created and executable
+- [x] `helm-charts/nrev-lite-api/deploy-prod.sh` created and executable
 - [x] `helm dependency update .` succeeds
 - [x] `helm template` renders valid manifests (requires `-n staging` or `-n prod` due to base-template whitespace issue)
 - **Depends on:** Dockerfile finalized (Task 06 — done)
@@ -68,50 +68,50 @@ Last updated: 2026-03-19
 - [x] ECR repo created in us-east-1 (prod — deferred)
 
 #### RDS PostgreSQL (NEW — created)
-- [x] Security group `nrv-rds-staging-sg` (`sg-05e906c533dde1640`) created in staging VPC
+- [x] Security group `nrev-lite-rds-staging-sg` (`sg-05e906c533dde1640`) created in staging VPC
 - [x] Inbound rule: allow TCP 5432 from 172.31.0.0/16 (VPC CIDR)
 - [x] DB subnet group: reusing `default-vpc-06986ffdb4ac8e3c8`
-- [x] RDS instance `nrv-db-staging` created (db.t3.micro, PostgreSQL 15, 20GB gp3, encrypted, private)
-- [x] RDS endpoint: `nrv-db-staging.cbatxfojkdmv.ap-south-1.rds.amazonaws.com:5432`
-- [x] Role `nrv_api` created
+- [x] RDS instance `nrev-lite-db-staging` created (db.t3.micro, PostgreSQL 15, 20GB gp3, encrypted, private)
+- [x] RDS endpoint: `nrev-lite-db-staging.cbatxfojkdmv.ap-south-1.rds.amazonaws.com:5432`
+- [x] Role `nrev_lite_api` created
 - [x] `migrations/000_schema_migrations.sql` applied — tracking table with 8 records
 - [x] Migrations 001-008 applied in order — all clean
-- [x] RLS verified working (nrv_api role + tenant context filtering)
+- [x] RLS verified working (nrev_lite_api role + tenant context filtering)
 
 #### ElastiCache Redis (EXISTING — reuse)
 - [x] Confirmed staging ElastiCache endpoint accessible from EKS pods (other services already connect)
 - [x] TLS connection string: `rediss://staging-cache-sooatg.serverless.aps1.cache.amazonaws.com:6379/0`
 
 #### DNS
-- [x] `nrv-api.public.staging.nurturev.com` — covered by wildcard `*.public.staging.nurturev.com` → EKS ingress LB
+- [x] `nrev-lite-api.public.staging.nurturev.com` — covered by wildcard `*.public.staging.nurturev.com` → EKS ingress LB
 
 #### Google OAuth
 - [x] Google Cloud OAuth 2.0 credentials available (Client ID + Secret)
 - [x] Client ID `284137211338-qgr6elq9h9gl11jqrt89f4parvrnjnlr` set in Helm values-staging.yaml
 - [x] New OAuth client created in org's Google Cloud project (replaces Sayanta's personal project)
-- [x] **You must do:** Add redirect URI in Google Cloud Console: `https://nrv-api.public.staging.nurturev.com/api/v1/auth/callback`
+- [x] **You must do:** Add redirect URI in Google Cloud Console: `https://nrev-lite-api.public.staging.nurturev.com/api/v1/auth/callback`
 - [x] **You must do:** Add redirect URI: `http://localhost:8000/api/v1/auth/callback`
 - [x] OAuth consent screen configured: scopes `email`, `profile`, `openid` (already present in org project)
 
 #### IAM Role (deferred to V2 — Fernet encryption used instead of KMS)
-- [ ] IAM role `nrv-api-staging-role` created with EKS OIDC trust policy
+- [ ] IAM role `nrev-lite-api-staging-role` created with EKS OIDC trust policy
 - [ ] KMS permissions attached (for BYOK encryption)
 
 #### Kubernetes Secrets
 - [x] `JWT_SECRET_KEY` generated (unique per environment)
-- [x] `nrv-api-secret-staging.yaml` created with all values filled in (JWT, Google, DB, all provider keys)
+- [x] `nrev-lite-api-secret-staging.yaml` created with all values filled in (JWT, Google, DB, all provider keys)
 - [x] Secret applied to staging namespace
 
 ### Task 10: First deploy + verification
 - [x] Docker image built and pushed to staging ECR (`gtm-engine-staging`)
 - [x] Helm chart deployed to staging EKS namespace (Revision 2)
 - [x] Pod is Running and Ready (1/1, single replica)
-- [x] `curl https://nrv-api.public.staging.nurturev.com/health` returns `{"status":"ok","version":"0.1.0"}`
+- [x] `curl https://nrev-lite-api.public.staging.nurturev.com/health` returns `{"status":"ok","version":"0.1.0"}`
 - [x] `jinja2` dependency added to requirements-server.txt (was missing, caused startup failure)
 - [x] Readiness probe tuned: initialDelay 10s, period 10s (was 30s/120s)
-- [x] `nrv auth login` completes successfully — logged in as nikhil@nurturev.com (tenant: nurturev-08435881)
-- [x] `nrv status` shows authenticated user, server online, providers listed
-- [x] `nrv credits balance` returns successfully
+- [x] `nrev-lite auth login` completes successfully — logged in as nikhil@nurturev.com (tenant: nurturev-08435881)
+- [x] `nrev-lite status` shows authenticated user, server online, providers listed
+- [x] `nrev-lite credits balance` returns successfully
 - [x] Redis connectivity confirmed (app startup connects + pings Redis; auth state stored in Redis)
 - [x] Session survives pod restart — `nrv status` works after `kubectl rollout restart`
 

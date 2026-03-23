@@ -162,7 +162,7 @@ def _prepare_enrich_person(params: dict[str, Any]) -> dict[str, Any]:
 def _prepare_search_people(params: dict[str, Any]) -> dict[str, Any]:
     """Build the payload for POST /api/v2/person/search.
 
-    Key param mappings from nrv -> RocketReach:
+    Key param mappings from nrev-lite -> RocketReach:
         title/titles         -> query.current_title
         company/employer     -> query.current_employer
         domain               -> query.company_domain
@@ -310,7 +310,7 @@ def _prepare_enrich_company(params: dict[str, Any]) -> dict[str, Any]:
 def _prepare_search_companies(params: dict[str, Any]) -> dict[str, Any]:
     """Build the payload for POST /api/v2/company/search.
 
-    Key param mappings from nrv -> RocketReach:
+    Key param mappings from nrev-lite -> RocketReach:
         name/company       -> query.company_name
         domain             -> query.domain
         industry           -> query.industry
@@ -486,7 +486,7 @@ class RocketReachProvider(BaseProvider):
             raise ProviderError(
                 self.name,
                 "RocketReach API key is invalid or expired. "
-                "Update it with: nrv keys add rocketreach",
+                "Update it with: nrev-lite keys add rocketreach",
                 status_code=401,
             )
         if response.status_code == 403:

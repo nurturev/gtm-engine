@@ -1,17 +1,18 @@
 """Run step logger — middleware that records every API call to run_steps.
 
 The MCP client sends X-Workflow-Id and X-Tool-Name headers with every request.
-This middleware intercepts API calls and logs them as run steps, capturing:
-- Tool name, operation, provider
-- Sanitized params (no secrets)
-- Result summary (abbreviated)
-- Duration, status, credits charged
+For non-MCP callers (CLI, direct API), the middleware auto-generates a
+workflow_id per tenant session so ALL API calls get logged.
+
+Captures: tool name, operation, provider, sanitized params, result summary,
+duration, status, credits charged.
 """
 
 from __future__ import annotations
 
 import logging
 import time
+import uuid
 from typing import Any
 
 from fastapi import Request, Response
@@ -24,6 +25,9 @@ from server.execution.run_models import RunStep
 
 logger = logging.getLogger(__name__)
 
+# Auto-generated workflow IDs for non-MCP callers, keyed by tenant_id
+_auto_workflow_ids: dict[str, str] = {}
+
 # Paths that should be logged as run steps
 _LOGGED_PREFIXES = (
     "/api/v1/execute",
@@ -33,6 +37,11 @@ _LOGGED_PREFIXES = (
     "/api/v1/credits",
     "/api/v1/tables",
     "/api/v1/datasets",
+    "/api/v1/scripts",
+    "/api/v1/learning-logs",
+    "/api/v1/apps",
+    "/api/v1/dashboards",
+    "/api/v1/schedules",
 )
 
 # Paths to skip (health checks, auth, static, console pages)
@@ -41,21 +50,22 @@ _SKIP_PREFIXES = (
     "/api/v1/auth",
     "/api/v1/runs",
     "/console",
+    "/admin",
     "/api/v1/connections/initiate",
     "/api/v1/connections/callback",
 )
 
 # Map API paths to tool names when X-Tool-Name header is absent
 _PATH_TO_TOOL: dict[str, str] = {
-    "/api/v1/execute": "nrv_execute",
-    "/api/v1/connections/execute": "nrv_execute_action",
-    "/api/v1/connections/actions": "nrv_list_actions",
-    "/api/v1/connections": "nrv_list_connections",
-    "/api/v1/search/patterns": "nrv_search_patterns",
-    "/api/v1/credits": "nrv_credit_balance",
-    "/api/v1/keys": "nrv_provider_status",
-    "/api/v1/tables": "nrv_query_table",
-    "/api/v1/datasets": "nrv_list_datasets",
+    "/api/v1/execute": "nrev_execute",
+    "/api/v1/connections/execute": "nrev_execute_action",
+    "/api/v1/connections/actions": "nrev_list_actions",
+    "/api/v1/connections": "nrev_list_connections",
+    "/api/v1/search/patterns": "nrev_search_patterns",
+    "/api/v1/credits": "nrev_credit_balance",
+    "/api/v1/keys": "nrev_provider_status",
+    "/api/v1/tables": "nrev_query_table",
+    "/api/v1/datasets": "nrev_list_datasets",
 }
 
 
@@ -150,14 +160,14 @@ def _summarize_result(status_code: int, body: dict[str, Any] | None) -> dict[str
 
 
 class RunStepMiddleware(BaseHTTPMiddleware):
-    """Middleware that logs API calls as run steps when X-Workflow-Id is present."""
+    """Middleware that logs API calls as run steps.
+
+    MCP clients send X-Workflow-Id; for direct API callers, a per-tenant
+    auto-generated workflow_id ensures all calls are still tracked.
+    """
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        # Only log when workflow_id is present (MCP client sends this)
         workflow_id = request.headers.get("X-Workflow-Id")
-        if not workflow_id:
-            return await call_next(request)
-
         workflow_label = request.headers.get("X-Workflow-Label", "")
 
         path = request.url.path
@@ -172,6 +182,7 @@ class RunStepMiddleware(BaseHTTPMiddleware):
         # Extract tenant_id from JWT directly (can't rely on request.state
         # because our middleware may run before tenant_context_middleware)
         tenant_id: str | None = None
+        user_id: str | None = None
         auth_header = request.headers.get("authorization", "")
         if auth_header.startswith("Bearer "):
             try:
@@ -182,8 +193,27 @@ class RunStepMiddleware(BaseHTTPMiddleware):
                     options={"verify_exp": False},
                 )
                 tenant_id = payload.get("tenant_id")
+                user_id = payload.get("sub")
             except Exception:
                 pass
+
+        # Auto-generate workflow_id for non-MCP callers (CLI, direct API)
+        if not workflow_id and tenant_id:
+            workflow_id = _auto_workflow_ids.get(tenant_id)
+            if not workflow_id:
+                workflow_id = str(uuid.uuid4())
+                _auto_workflow_ids[tenant_id] = workflow_id
+            if not workflow_label:
+                workflow_label = "Direct API"
+
+        # If still no workflow_id (no auth), skip logging
+        if not workflow_id:
+            return await call_next(request)
+
+        # Store workflow_id and user_id on request.state so downstream
+        # handlers (e.g. execution router) can propagate to credit_ledger
+        request.state.workflow_id = workflow_id
+        request.state.user_id = user_id
 
         # Try to read request body for param summary
         params_summary: dict[str, Any] = {}
@@ -293,6 +323,7 @@ class RunStepMiddleware(BaseHTTPMiddleware):
                 await set_tenant_context(session, tenant_id)
                 step = RunStep(
                     tenant_id=tenant_id,
+                    user_id=user_id,
                     workflow_id=workflow_id,
                     workflow_label=workflow_label or None,
                     tool_name=tool_name,

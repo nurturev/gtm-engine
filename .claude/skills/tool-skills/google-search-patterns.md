@@ -1,7 +1,7 @@
 # Google Search Patterns — Site Operators & URL Structures
 
-## Always call nrv_search_patterns() first
-Before constructing any Google query, call `nrv_search_patterns()` to get the latest platform-specific URL patterns. The patterns below are reference — the server-side patterns are the source of truth and may be updated without a CLI release.
+## Always call nrev_search_patterns() first
+Before constructing any Google query, call `nrev_search_patterns()` to get the latest platform-specific URL patterns. The patterns below are reference — the server-side patterns are the source of truth and may be updated without a CLI release.
 
 ## Core Site: Operators by Platform
 
@@ -188,7 +188,7 @@ site:linkedin.com/in "VP Sales" AND ("Series B" OR "Series C") fintech
 # Exclude results
 site:linkedin.com/in CTO -recruiter -consultant
 
-# Time-restricted (use tbs parameter in nrv_google_search)
+# Time-restricted (use tbs parameter in nrev_google_search)
 # tbs=qdr:d  → past 24 hours
 # tbs=qdr:w  → past week
 # tbs=qdr:m  → past month

@@ -1,5 +1,5 @@
 -- Migration 007: Link dashboards to datasets + feedback table
--- Run: psql -U nrv -d nrv -f migrations/007_dashboard_datasets.sql
+-- Run: psql -U nrev_lite -d nrev_lite -f migrations/007_dashboard_datasets.sql
 
 BEGIN;
 
@@ -39,7 +39,7 @@ CREATE POLICY tenant_isolation ON feedback
     USING (tenant_id = current_setting('app.current_tenant', true)::text);
 
 -- Grants
-GRANT SELECT, INSERT, UPDATE, DELETE ON feedback TO nrv_api;
+GRANT SELECT, INSERT, UPDATE, DELETE ON feedback TO nrev_lite_api;
 
 COMMIT;
 

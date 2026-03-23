@@ -84,4 +84,4 @@ Referencing specific work (commits, PRs) increases response by 60%. Intent signa
 
 **Signal mapping:** 5 SDR hires = scaling outbound. RevOps hire = investing in tooling. 10+ sales reps = needs sales tools.
 
-Use `nrv_search_patterns(use_case="hiring_signals")` then `nrv_google_search` with site: filters for each ATS platform.
+Use `nrev_search_patterns(use_case="hiring_signals")` then `nrev_google_search` with site: filters for each ATS platform.

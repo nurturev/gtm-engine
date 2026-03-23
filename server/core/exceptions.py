@@ -1,10 +1,10 @@
-"""Custom exception classes for the nrv platform."""
+"""Custom exception classes for the nrev-lite platform."""
 
 from __future__ import annotations
 
 
 class NrvError(Exception):
-    """Base exception for all nrv application errors."""
+    """Base exception for all nrev-lite application errors."""
 
     def __init__(self, message: str = "An unexpected error occurred") -> None:
         self.message = message

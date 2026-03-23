@@ -8,7 +8,7 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -66,6 +66,7 @@ _batches: dict[str, dict[str, Any]] = {}
     dependencies=[Depends(require_credits(1.0))],
 )
 async def execute_operation(
+    request: Request,
     body: ExecuteRequest,
     tenant: Tenant = Depends(get_current_tenant),
     db: AsyncSession = Depends(get_db),
@@ -85,9 +86,11 @@ async def execute_operation(
     estimated_cost = calculate_cost(body.operation, body.params)
 
     # Step 1: Hold credits (hold the estimated cost upfront)
+    workflow_id = request.headers.get("X-Workflow-Id") or getattr(request.state, "workflow_id", None)
+    user_id = getattr(request.state, "user_id", None)
     hold_id: int | None = None
     try:
-        hold_id = await check_and_hold(db, tenant.id, estimated_cost, body.operation)
+        hold_id = await check_and_hold(db, tenant.id, estimated_cost, body.operation, workflow_id=workflow_id, user_id=user_id)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
@@ -248,6 +251,7 @@ async def estimate_cost(
     dependencies=[Depends(require_credits(1.0))],
 )
 async def execute_batch_endpoint(
+    request: Request,
     body: BatchExecuteRequest,
     tenant: Tenant = Depends(get_current_tenant),
     db: AsyncSession = Depends(get_db),
@@ -289,9 +293,11 @@ async def execute_batch_endpoint(
     )
 
     # Hold credits for the full batch
+    workflow_id = request.headers.get("X-Workflow-Id") or getattr(request.state, "workflow_id", None)
+    user_id = getattr(request.state, "user_id", None)
     hold_id: int | None = None
     try:
-        hold_id = await check_and_hold(db, tenant.id, total_estimated_cost, "batch")
+        hold_id = await check_and_hold(db, tenant.id, total_estimated_cost, "batch", workflow_id=workflow_id, user_id=user_id)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,

@@ -64,7 +64,7 @@ def encrypt_key(raw_key: str, tenant_id: str) -> bytes:
 
             kms = boto3.client("kms", region_name=settings.AWS_REGION)
             response = kms.encrypt(
-                KeyId="alias/nrv-tenant-keys",
+                KeyId="alias/nrev-lite-tenant-keys",
                 Plaintext=raw_key.encode("utf-8"),
                 EncryptionContext={"tenant_id": tenant_id},
             )

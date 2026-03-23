@@ -29,11 +29,11 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build --no-cache --platform linux/amd64 -t gtm-engine-staging . -f ./Dockerfile.server
-          docker tag gtm-engine-staging:latest 979176640062.dkr.ecr.ap-south-1.amazonaws.com/gtm-engine-staging:latest
-          docker push 979176640062.dkr.ecr.ap-south-1.amazonaws.com/gtm-engine-staging:latest
+          docker build --no-cache --platform linux/amd64 -t nrev-lite-api-staging . -f ./Dockerfile.server
+          docker tag nrev-lite-api-staging:latest 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api-staging:latest
+          docker push 979176640062.dkr.ecr.ap-south-1.amazonaws.com/nrev-lite-api-staging:latest
 
       - name: Deploy to Kubernetes
         run: |
           aws eks update-kubeconfig --name staging-eks --region ap-south-1
-          kubectl rollout restart deploy nrv-api -n staging
+          kubectl rollout restart deploy nrev-lite-api -n staging

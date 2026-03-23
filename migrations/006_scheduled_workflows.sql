@@ -28,4 +28,4 @@ CREATE POLICY tenant_isolation ON scheduled_workflows
 
 ALTER TABLE scheduled_workflows FORCE ROW LEVEL SECURITY;
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON scheduled_workflows TO nrv_api;
+GRANT SELECT, INSERT, UPDATE, DELETE ON scheduled_workflows TO nrev_lite_api;

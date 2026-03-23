@@ -1,4 +1,4 @@
-# Security Rules for nrv Development
+# Security Rules for nrev-lite Development
 
 When working with API keys or secrets:
 - Never log or print API key values

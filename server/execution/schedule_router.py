@@ -17,7 +17,7 @@ from server.execution.schedule_models import ScheduledWorkflow
 
 router = APIRouter(prefix="/api/v1/schedules", tags=["schedules"])
 
-_COOKIE_NAME = "nrv_session"
+_COOKIE_NAME = "nrev_session"
 
 
 async def _get_tenant(

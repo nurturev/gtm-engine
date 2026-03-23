@@ -147,6 +147,193 @@ def _render_metric_widget(widget: dict, rows: list[dict]) -> str:
     """
 
 
+def _render_stat_widget(widget: dict, rows: list[dict]) -> str:
+    """Render a stat widget — like metric but with optional comparison."""
+    title = _esc(widget.get("title", "Stat"))
+    column = widget.get("column")
+    aggregation = widget.get("aggregation", "count")
+
+    if aggregation == "count" or column is None:
+        value = len(rows)
+    else:
+        values = [r.get(column) for r in rows if r.get(column) is not None]
+        numeric = []
+        for v in values:
+            try:
+                numeric.append(float(v))
+            except (ValueError, TypeError):
+                pass
+        if aggregation == "sum":
+            value = sum(numeric) if numeric else 0
+        elif aggregation == "avg":
+            value = sum(numeric) / len(numeric) if numeric else 0
+        elif aggregation == "min":
+            value = min(numeric) if numeric else 0
+        elif aggregation == "max":
+            value = max(numeric) if numeric else 0
+        else:
+            value = len(rows)
+
+    if isinstance(value, float):
+        display = f"{value:,.1f}"
+    else:
+        display = f"{value:,}"
+
+    subtitle = _esc(widget.get("subtitle", ""))
+    subtitle_html = f'<div class="db-stat-sub">{subtitle}</div>' if subtitle else ""
+
+    return f"""
+    <div class="db-widget db-stat">
+        <div class="db-stat-label">{title}</div>
+        <div class="db-stat-value">{display}</div>
+        {subtitle_html}
+    </div>
+    """
+
+
+def _render_bar_chart_widget(widget: dict, rows: list[dict]) -> str:
+    """Render a horizontal bar chart as pure HTML/CSS (no JS libraries)."""
+    title = _esc(widget.get("title", "Chart"))
+    label_col = widget.get("label_column") or widget.get("label", "")
+    value_col = widget.get("value_column") or widget.get("value", "")
+    limit = widget.get("limit", 20)
+    sort_dir = widget.get("sort_dir", "desc")
+
+    if not label_col or not value_col:
+        # Try to auto-detect: first string-ish col as label, first numeric as value
+        if rows:
+            first = rows[0]
+            for k, v in first.items():
+                if not label_col and isinstance(v, str):
+                    label_col = k
+                if not value_col:
+                    try:
+                        float(v)
+                        value_col = k
+                    except (ValueError, TypeError):
+                        pass
+
+    if not label_col or not value_col:
+        return f'<div class="db-widget"><h3>{title}</h3><div class="db-empty">Cannot render chart: specify label_column and value_column.</div></div>'
+
+    # Extract and sort data
+    entries: list[tuple[str, float]] = []
+    for r in rows:
+        label = r.get(label_col)
+        val = r.get(value_col)
+        if label is not None and val is not None:
+            try:
+                entries.append((_esc(str(label)), float(val)))
+            except (ValueError, TypeError):
+                pass
+
+    entries.sort(key=lambda x: x[1], reverse=(sort_dir == "desc"))
+    entries = entries[:limit]
+
+    if not entries:
+        return f'<div class="db-widget"><h3>{title}</h3><div class="db-empty">No data for chart.</div></div>'
+
+    max_val = max(v for _, v in entries) if entries else 1
+    if max_val == 0:
+        max_val = 1
+
+    bars_html = []
+    for label, val in entries:
+        pct = (val / max_val) * 100
+        display_val = f"{val:,.1f}" if isinstance(val, float) and val != int(val) else f"{int(val):,}"
+        bars_html.append(
+            f'<div class="db-bar-row">'
+            f'<span class="db-bar-label">{label}</span>'
+            f'<div class="db-bar-track"><div class="db-bar-fill" style="width:{pct:.1f}%"></div></div>'
+            f'<span class="db-bar-val">{display_val}</span>'
+            f'</div>'
+        )
+
+    return f"""
+    <div class="db-widget db-bar-chart">
+        <h3>{title}</h3>
+        <div class="db-bars">{"".join(bars_html)}</div>
+    </div>
+    """
+
+
+def _render_pie_chart_widget(widget: dict, rows: list[dict]) -> str:
+    """Render a pie chart as pure CSS conic-gradient (no JS libraries)."""
+    title = _esc(widget.get("title", "Distribution"))
+    label_col = widget.get("label_column") or widget.get("label", "")
+    value_col = widget.get("value_column") or widget.get("value", "")
+    limit = widget.get("limit", 10)
+
+    if not label_col or not value_col:
+        if rows:
+            first = rows[0]
+            for k, v in first.items():
+                if not label_col and isinstance(v, str):
+                    label_col = k
+                if not value_col:
+                    try:
+                        float(v)
+                        value_col = k
+                    except (ValueError, TypeError):
+                        pass
+
+    if not label_col or not value_col:
+        return f'<div class="db-widget"><h3>{title}</h3><div class="db-empty">Cannot render chart: specify label_column and value_column.</div></div>'
+
+    entries: list[tuple[str, float]] = []
+    for r in rows:
+        label = r.get(label_col)
+        val = r.get(value_col)
+        if label is not None and val is not None:
+            try:
+                entries.append((_esc(str(label)), abs(float(val))))
+            except (ValueError, TypeError):
+                pass
+
+    entries.sort(key=lambda x: x[1], reverse=True)
+    entries = entries[:limit]
+
+    total = sum(v for _, v in entries)
+    if total == 0:
+        return f'<div class="db-widget"><h3>{title}</h3><div class="db-empty">No data for chart.</div></div>'
+
+    # Build conic-gradient stops
+    colors = [
+        "#667eea", "#764ba2", "#f093fb", "#4facfe", "#00f2fe",
+        "#43e97b", "#fa709a", "#fee140", "#a18cd1", "#fbc2eb",
+    ]
+    stops = []
+    legend_items = []
+    cumulative = 0.0
+    for i, (label, val) in enumerate(entries):
+        color = colors[i % len(colors)]
+        start_pct = (cumulative / total) * 100
+        cumulative += val
+        end_pct = (cumulative / total) * 100
+        stops.append(f"{color} {start_pct:.1f}% {end_pct:.1f}%")
+        pct_display = f"{(val / total) * 100:.1f}%"
+        legend_items.append(
+            f'<div class="db-pie-legend-item">'
+            f'<span class="db-pie-swatch" style="background:{color}"></span>'
+            f'<span class="db-pie-legend-label">{label}</span>'
+            f'<span class="db-pie-legend-val">{pct_display}</span>'
+            f'</div>'
+        )
+
+    gradient = ", ".join(stops)
+    legend_html = "".join(legend_items)
+
+    return f"""
+    <div class="db-widget db-pie-chart">
+        <h3>{title}</h3>
+        <div class="db-pie-container">
+            <div class="db-pie-circle" style="background: conic-gradient({gradient});"></div>
+            <div class="db-pie-legend">{legend_html}</div>
+        </div>
+    </div>
+    """
+
+
 def render_dashboard_html(
     dashboard_name: str,
     dataset_name: str,
@@ -172,9 +359,12 @@ def render_dashboard_html(
         wtype = widget.get("type", "table")
         if wtype == "table":
             widgets_html.append(_render_table_widget(widget, rows))
-        elif wtype == "metric":
-            widgets_html.append(_render_metric_widget(widget, rows))
-        # Future: bar_chart, etc.
+        elif wtype in ("metric", "stat"):
+            widgets_html.append(_render_stat_widget(widget, rows))
+        elif wtype == "bar_chart":
+            widgets_html.append(_render_bar_chart_widget(widget, rows))
+        elif wtype == "pie_chart":
+            widgets_html.append(_render_pie_chart_widget(widget, rows))
 
     if not widgets_html:
         widgets_html.append(
@@ -189,7 +379,7 @@ def render_dashboard_html(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{_esc(dashboard_name)} — nrv Dashboard</title>
+<title>{_esc(dashboard_name)} — nrev-lite Dashboard</title>
 <style>
     * {{ margin: 0; padding: 0; box-sizing: border-box; }}
     body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; }}
@@ -210,6 +400,23 @@ def render_dashboard_html(
     .db-metric {{ padding: 24px 20px; text-align: center; }}
     .db-metric-value {{ font-size: 42px; font-weight: 700; color: #fff; }}
     .db-metric-label {{ font-size: 13px; color: #888; margin-top: 6px; }}
+    .db-stat {{ padding: 24px 20px; text-align: center; }}
+    .db-stat-value {{ font-size: 42px; font-weight: 700; color: #fff; }}
+    .db-stat-label {{ font-size: 13px; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }}
+    .db-stat-sub {{ font-size: 12px; color: #666; margin-top: 6px; }}
+    .db-bars {{ padding: 12px 20px 20px; }}
+    .db-bar-row {{ display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }}
+    .db-bar-label {{ width: 120px; font-size: 12px; color: #ccc; text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+    .db-bar-track {{ flex: 1; height: 20px; background: #1a1a2e; border-radius: 4px; overflow: hidden; }}
+    .db-bar-fill {{ height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.3s; }}
+    .db-bar-val {{ width: 60px; font-size: 12px; color: #888; text-align: right; flex-shrink: 0; }}
+    .db-pie-container {{ display: flex; align-items: center; gap: 32px; padding: 16px 20px 24px; flex-wrap: wrap; }}
+    .db-pie-circle {{ width: 180px; height: 180px; border-radius: 50%; flex-shrink: 0; }}
+    .db-pie-legend {{ flex: 1; min-width: 150px; }}
+    .db-pie-legend-item {{ display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }}
+    .db-pie-swatch {{ width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }}
+    .db-pie-legend-label {{ color: #ccc; flex: 1; }}
+    .db-pie-legend-val {{ color: #888; }}
     .db-empty {{ padding: 40px; text-align: center; color: #666; }}
     .db-password-form {{ max-width: 360px; margin: 80px auto; text-align: center; }}
     .db-password-form h2 {{ margin-bottom: 16px; font-size: 18px; color: #fff; }}

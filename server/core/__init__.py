@@ -1,1 +1,1 @@
-"""Core module: shared infrastructure for all nrv server modules."""
+"""Core module: shared infrastructure for all nrev-lite server modules."""
