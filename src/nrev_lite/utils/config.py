@@ -6,7 +6,12 @@ import os
 from pathlib import Path
 from typing import Any
 
-import tomli
+import sys
+
+if sys.version_info >= (3, 11):
+    import tomllib as tomli
+else:
+    import tomli
 import tomli_w
 
 NREV_LITE_DIR = Path.home() / ".nrev-lite"
