@@ -29,12 +29,12 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build --platform linux/amd64 -t nrv-api . -f ./Dockerfile.server
-          docker tag nrv-api:latest 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest
-          docker push 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrv-api:latest
+          docker build --platform linux/amd64 -t nrev-lite-api . -f ./Dockerfile.server
+          docker tag nrev-lite-api:latest 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrev-lite-api:latest
+          docker push 979176640062.dkr.ecr.us-east-1.amazonaws.com/nrev-lite-api:latest
 
       - name: Deploy to Kubernetes
         run: |
           echo "${{ secrets.KUBECONFIG_PROD }}" > kubeconfig_prod
           export KUBECONFIG=kubeconfig_prod
-          kubectl rollout restart deploy nrv-api -n prod
+          kubectl rollout restart deploy nrev-lite-api -n prod

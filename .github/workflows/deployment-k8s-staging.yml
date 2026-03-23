@@ -36,4 +36,4 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           aws eks update-kubeconfig --name staging-eks --region ap-south-1
-          kubectl rollout restart deploy nrv-api -n staging
+          kubectl rollout restart deploy nrev-lite-api -n staging
