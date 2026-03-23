@@ -873,8 +873,9 @@ async def tenant_dashboard(
     # Render
     # ------------------------------------------------------------------
     return templates.TemplateResponse(
-        "tenant_dashboard.html",
-        {
+        request=request,
+        name="tenant_dashboard.html",
+        context={
             "request": request,
             "tenant_id": tenant.id,
             "tenant_name": tenant.name,

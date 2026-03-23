@@ -102,8 +102,9 @@ async def learning_logs_page(
     dk_count = await db.scalar(select(func.count(DynamicKnowledge.id)).where(DynamicKnowledge.enabled == True))  # noqa: E712
 
     return templates.TemplateResponse(
-        "learning_logs.html",
-        {
+        request=request,
+        name="learning_logs.html",
+        context={
             "request": request,
             "tenant": tenant,
             "logs": logs,
