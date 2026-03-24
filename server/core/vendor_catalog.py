@@ -110,24 +110,8 @@ VENDOR_CATALOG: dict[str, dict] = {
     },
 
     # ── Outreach ───────────────────────────────────────────────────────
-    "instantly": {
-        "category": "outreach",
-        "name": "Instantly",
-        "description": "Email campaign management, warmup, sending",
-        "operations": ["send_campaign"],
-        "credit_costs": {"send_campaign": 0},
-        "platform_key": False,
-        "byok": True,
-    },
-    "lemlist": {
-        "category": "outreach",
-        "name": "Lemlist",
-        "description": "Multi-channel outreach (email, LinkedIn, calls)",
-        "operations": ["send_campaign"],
-        "credit_costs": {"send_campaign": 0},
-        "platform_key": False,
-        "byok": True,
-    },
+    # Instantly and Lemlist removed from Data Providers —
+    # they are connected as Apps (OAuth via Composio) in the Apps tab.
 
     # ── LLM / AI Research ─────────────────────────────────────────────
     "openai": {
@@ -165,7 +149,7 @@ VENDOR_CATEGORIES = {
     "verification": {"name": "Verification", "icon": "✓", "description": "Email & data verification"},
     "search": {"name": "Search & Scraping", "icon": "🌐", "description": "Web search, SERP, content extraction"},
     "signals": {"name": "Signals & Intelligence", "icon": "📊", "description": "Company signals, job postings, tech stack"},
-    "outreach": {"name": "Outreach", "icon": "📧", "description": "Email campaigns, sequences, sending"},
+    # outreach category removed — Instantly/Lemlist are now in Apps tab (Composio OAuth)
     "llm": {"name": "LLM / AI Research", "icon": "🤖", "description": "AI models for research, summarization, row-wise analysis"},
 }
 
