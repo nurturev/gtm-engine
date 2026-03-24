@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 import csv
 import io
+import json as _json
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
@@ -39,6 +40,13 @@ class CreateDatasetRequest(BaseModel):
 class AppendRowsRequest(BaseModel):
     rows: list[dict[str, Any]]
     workflow_id: str | None = None
+
+
+class UpdateDatasetRequest(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    columns: list[dict[str, str]] | None = None
+    dedup_key: str | None = None
 
 
 class DeleteRowsRequest(BaseModel):
@@ -91,6 +99,7 @@ async def get_dataset(
     limit: int = Query(50, le=500),
     offset: int = Query(0, ge=0),
     order_by: str | None = None,
+    filters: str | None = Query(None, description="JSON-encoded key-value filter dict"),
     token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
@@ -98,11 +107,22 @@ async def get_dataset(
     tenant, db = await _get_tenant_flexible(request, token=token, db=db)
     # Determine if ref is a UUID or slug
     is_uuid = len(dataset_ref) == 36 and "-" in dataset_ref
+    # Parse filters from JSON string
+    parsed_filters = None
+    if filters:
+        try:
+            parsed_filters = _json.loads(filters)
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid filters format. Must be a JSON-encoded dict.",
+            )
     result = await svc.query_rows(
         db,
         tenant.id,
         dataset_id=dataset_ref if is_uuid else None,
         slug=dataset_ref if not is_uuid else None,
+        filters=parsed_filters,
         limit=limit,
         offset=offset,
         order_by=order_by,
@@ -184,6 +204,75 @@ async def delete_rows(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=result["error"],
         )
+    return result
+
+
+# ------------------------------------------------------------------
+# Update / Delete dataset
+# ------------------------------------------------------------------
+
+
+@router.patch("/{dataset_ref}")
+async def update_dataset(
+    request: Request,
+    dataset_ref: str,
+    body: UpdateDatasetRequest,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Update a dataset's name, description, columns, or dedup_key."""
+    tenant, db = await _get_tenant_flexible(request, token=token, db=db)
+    is_uuid = len(dataset_ref) == 36 and "-" in dataset_ref
+    ds = await svc.get_dataset(
+        db, tenant.id,
+        dataset_id=dataset_ref if is_uuid else None,
+        slug=dataset_ref if not is_uuid else None,
+    )
+    if not ds:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Dataset '{dataset_ref}' not found.",
+        )
+
+    result = await svc.update_dataset(
+        db,
+        tenant.id,
+        str(ds.id),
+        name=body.name,
+        description=body.description,
+        columns=body.columns,
+        dedup_key=body.dedup_key,
+    )
+    if "error" in result:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"],
+        )
+    return result
+
+
+@router.delete("/{dataset_ref}")
+async def delete_dataset(
+    request: Request,
+    dataset_ref: str,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Soft-delete (archive) a dataset. Data is preserved but hidden from listings."""
+    tenant, db = await _get_tenant_flexible(request, token=token, db=db)
+    is_uuid = len(dataset_ref) == 36 and "-" in dataset_ref
+    ds = await svc.get_dataset(
+        db, tenant.id,
+        dataset_id=dataset_ref if is_uuid else None,
+        slug=dataset_ref if not is_uuid else None,
+    )
+    if not ds:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Dataset '{dataset_ref}' not found.",
+        )
+
+    result = await svc.delete_dataset(db, tenant.id, str(ds.id))
     return result
 
 

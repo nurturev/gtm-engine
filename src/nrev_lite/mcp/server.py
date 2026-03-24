@@ -381,10 +381,11 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_create_dataset",
         "description": (
-            "Create a persistent dataset (table) that workflows can write to over time. "
-            "Ideal for accumulating data across scheduled runs (e.g. LinkedIn posts to comment on, "
-            "leads from weekly searches). If the dataset slug already exists, returns the existing one. "
-            "Set dedup_key to a column name to prevent duplicate rows (e.g. 'url' or 'email')."
+            "Create an empty persistent dataset (table) for workflows to write to over time. "
+            "If a dataset with the same slug already exists, returns the existing one (idempotent). "
+            "PREFER nrev_create_and_populate_dataset if you already have rows to add — it creates "
+            "and populates in a single call. Use this tool only when you need to create the dataset "
+            "structure first and add data later."
         ),
         "inputSchema": {
             "type": "object",
@@ -424,9 +425,11 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_append_rows",
         "description": (
-            "Append rows to a persistent dataset. Each row is a JSON object with key-value pairs. "
-            "If the dataset has a dedup_key, existing rows with matching keys are updated (upsert). "
-            "Use the dataset slug (from nrev_create_dataset) to identify the target."
+            "Append rows to an EXISTING persistent dataset. Each row is a JSON object. "
+            "If the dataset has a dedup_key, rows with matching key values are updated (upsert). "
+            "IMPORTANT: The 'dataset' parameter must be the slug (from nrev_create_dataset response's "
+            "'slug' field) or the dataset UUID. If unsure of the slug, call nrev_list_datasets first. "
+            "For creating a NEW dataset with initial data, use nrev_create_and_populate_dataset instead."
         ),
         "inputSchema": {
             "type": "object",
@@ -447,8 +450,9 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_query_dataset",
         "description": (
-            "Query rows from a persistent dataset with optional filters and pagination. "
-            "Returns the data that workflows have accumulated over time."
+            "Query rows from a persistent dataset with optional filters, sorting, and pagination. "
+            "Filters are key-value equality matches on row data (e.g. {\"status\": \"pending\"}). "
+            "Returns dataset metadata and matching rows."
         ),
         "inputSchema": {
             "type": "object",
@@ -483,12 +487,149 @@ TOOLS: list[dict[str, Any]] = [
         "name": "nrev_list_datasets",
         "description": (
             "List all persistent datasets for the current tenant. "
-            "Shows name, slug, row count, columns, and dedup config."
+            "Shows name, slug, row count, columns, and dedup config. "
+            "Call this to find dataset slugs before using nrev_append_rows or nrev_query_dataset."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {},
             "required": [],
+        },
+    },
+    {
+        "name": "nrev_create_and_populate_dataset",
+        "description": (
+            "Create a new persistent dataset AND immediately add rows to it in a single call. "
+            "This is the RECOMMENDED way to save workflow results. If the dataset already exists "
+            "(same slug), rows are appended/upserted to the existing dataset. Returns the dataset "
+            "slug and row counts. ALWAYS prefer this over separate create + append calls. "
+            "PROACTIVE: Suggest saving to a dataset whenever a workflow produces >5 structured "
+            "results (contacts, companies, URLs, posts) that the user might want to track, "
+            "query later, build a dashboard from, or use in scheduled workflows."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Human-readable name (e.g. 'VP Sales SaaS Leads Q1').",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "What this dataset is used for.",
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "type": {"type": "string"},
+                            "description": {"type": "string"},
+                        },
+                    },
+                    "description": "Column definitions. Helps with dashboards and data preview.",
+                },
+                "dedup_key": {
+                    "type": "string",
+                    "description": (
+                        "Column name for deduplication. Rows with matching values are updated "
+                        "instead of duplicated. Use 'email' for contacts, 'url' for web results, "
+                        "'domain' for companies, 'linkedin_url' for profiles."
+                    ),
+                },
+                "rows": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Array of row objects to add. Each object is a row with key-value pairs.",
+                },
+            },
+            "required": ["name", "rows"],
+        },
+    },
+    {
+        "name": "nrev_delete_dataset_rows",
+        "description": (
+            "Delete specific rows from a dataset by row ID, or delete all rows to reset it. "
+            "Use nrev_query_dataset first to find row IDs."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "dataset": {
+                    "type": "string",
+                    "description": "Dataset slug or UUID.",
+                },
+                "row_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Array of row UUIDs to delete. Use nrev_query_dataset to find IDs.",
+                },
+                "all_rows": {
+                    "type": "boolean",
+                    "description": "Set to true to delete ALL rows (reset the dataset). Default: false.",
+                    "default": False,
+                },
+            },
+            "required": ["dataset"],
+        },
+    },
+    {
+        "name": "nrev_update_dataset",
+        "description": (
+            "Update a dataset's metadata: name, description, columns, or dedup_key. "
+            "Only the provided fields are changed. Use the slug or UUID to identify the dataset."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "dataset": {
+                    "type": "string",
+                    "description": "Dataset slug or UUID.",
+                },
+                "name": {
+                    "type": "string",
+                    "description": "New human-readable name. Also updates the slug.",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "New description.",
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "type": {"type": "string"},
+                            "description": {"type": "string"},
+                        },
+                    },
+                    "description": "Updated column definitions.",
+                },
+                "dedup_key": {
+                    "type": "string",
+                    "description": "Updated dedup key column name.",
+                },
+            },
+            "required": ["dataset"],
+        },
+    },
+    {
+        "name": "nrev_delete_dataset",
+        "description": (
+            "Archive (soft-delete) a dataset. It will no longer appear in listings but "
+            "data is preserved and can be restored by an admin. Use with caution."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "dataset": {
+                    "type": "string",
+                    "description": "Dataset slug or UUID to archive.",
+                },
+            },
+            "required": ["dataset"],
         },
     },
     {
@@ -587,8 +728,10 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_list_actions",
         "description": (
-            "List all available actions for a connected app. Returns action names and "
-            "descriptions. Use this to discover what actions are available before executing. "
+            "Discover what actions are available for a connected app (e.g., send email, create "
+            "calendar event, update CRM record, post message). Returns action names and descriptions. "
+            "Call after nrev_list_connections confirms the app is connected. **Required step** — "
+            "never guess action names. "
             "Workflow: nrev_list_connections → nrev_list_actions → nrev_get_action_schema → nrev_execute_action"
         ),
         "inputSchema": {
@@ -597,9 +740,10 @@ TOOLS: list[dict[str, Any]] = [
                 "app_id": {
                     "type": "string",
                     "description": (
-                        "Catalog app key: gmail, slack, google_sheets, google_docs, "
-                        "hubspot, salesforce, linear, notion, clickup, asana, "
-                        "airtable, google_calendar, calendly, attio, google_drive"
+                        "App key: gmail, slack, microsoft_teams, google_sheets, google_docs, "
+                        "google_drive, airtable, hubspot, salesforce, attio, linear, notion, "
+                        "clickup, asana, google_calendar, calendly, cal_com, zoom, fireflies, "
+                        "fathom, instantly, posthog"
                     ),
                 },
             },
@@ -609,9 +753,11 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_get_action_schema",
         "description": (
-            "Get the parameter schema for a specific action. Returns parameter names, "
-            "types, descriptions, and which are required. Call this after nrev_list_actions "
-            "to know exactly what parameters to pass to nrev_execute_action."
+            "Get the exact parameter schema for a specific action. Returns parameter names, "
+            "types, descriptions, and which are required. **NEVER SKIP THIS STEP** — parameter "
+            "names are not guessable (e.g., Google Docs uses 'text_to_insert' not 'text', "
+            "Sheets 'ranges' is an array not a string). Call after nrev_list_actions, "
+            "before nrev_execute_action."
         ),
         "inputSchema": {
             "type": "object",
@@ -627,9 +773,10 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_execute_action",
         "description": (
-            "Execute an action on a connected app. The tenant must have an active OAuth "
-            "connection. Use nrev_list_actions to find available actions and "
-            "nrev_get_action_schema to get the required parameters before calling this."
+            "Execute an action on a connected app (send email, create calendar event, update "
+            "CRM, post message, etc.). The tenant must have an active OAuth connection. "
+            "Requires: nrev_list_actions to find the action name, then nrev_get_action_schema "
+            "to get exact parameters. Composio actions are free (no credits charged)."
         ),
         "inputSchema": {
             "type": "object",
@@ -654,8 +801,11 @@ TOOLS: list[dict[str, Any]] = [
         "name": "nrev_list_connections",
         "description": (
             "List all active OAuth connections for the current tenant. "
-            "Shows which apps (Gmail, Slack, Sheets, etc.) are connected and ready to use. "
-            "ALWAYS call this before nrev_execute_action to verify the app is connected."
+            "**Call this when the user mentions email, calendar, CRM, tasks, spreadsheets, "
+            "documents, or any external app** — it tells you which apps are connected and "
+            "ready to use via Composio. Also call before nrev_execute_action to verify "
+            "the app is connected. If a system MCP tool exists for the same app "
+            "(e.g., slack_send_message), prefer the system MCP."
         ),
         "inputSchema": {
             "type": "object",
@@ -1238,14 +1388,112 @@ def _handle_nrev_query_dataset(args: dict[str, Any]) -> dict[str, Any]:
         params["offset"] = args["offset"]
     if args.get("order_by"):
         params["order_by"] = args["order_by"]
-    # Note: filters are applied server-side via query params
-    # For now, basic passthrough. Complex JSONB filters go through the query endpoint.
+    if args.get("filters"):
+        params["filters"] = json.dumps(args["filters"])
 
     return _api_request("GET", f"/datasets/{dataset}", params=params)
 
 
 def _handle_nrev_list_datasets(args: dict[str, Any]) -> dict[str, Any]:
     return _api_request("GET", "/datasets")
+
+
+def _handle_nrev_create_and_populate_dataset(args: dict[str, Any]) -> dict[str, Any]:
+    name = args.get("name", "").strip()
+    if not name:
+        return {"error": "Parameter 'name' is required."}
+
+    rows = args.get("rows", [])
+    if not rows or not isinstance(rows, list):
+        return {"error": "Parameter 'rows' must be a non-empty array of objects."}
+
+    # Step 1: Create (or get existing) dataset
+    create_body: dict[str, Any] = {"name": name, "workflow_id": WORKFLOW_ID}
+    if args.get("description"):
+        create_body["description"] = args["description"]
+    if args.get("columns"):
+        create_body["columns"] = args["columns"]
+    if args.get("dedup_key"):
+        create_body["dedup_key"] = args["dedup_key"]
+
+    create_result = _api_request("POST", "/datasets", json_body=create_body)
+    if "error" in create_result:
+        return create_result
+
+    slug = create_result.get("slug", "")
+    if not slug:
+        return {"error": "Dataset creation succeeded but no slug was returned."}
+
+    # Step 2: Append rows
+    append_body: dict[str, Any] = {"rows": rows, "workflow_id": WORKFLOW_ID}
+    append_result = _api_request("POST", f"/datasets/{slug}/rows", json_body=append_body)
+    if "error" in append_result:
+        return {
+            "dataset": create_result,
+            "error": f"Dataset created but row append failed: {append_result['error']}",
+        }
+
+    # Merge results
+    return {
+        "dataset_id": create_result.get("id"),
+        "dataset_slug": slug,
+        "dataset_name": create_result.get("name"),
+        "dataset_status": create_result.get("status"),
+        "columns": create_result.get("columns"),
+        "dedup_key": create_result.get("dedup_key"),
+        "inserted": append_result.get("inserted", 0),
+        "updated": append_result.get("updated", 0),
+        "total_rows": append_result.get("total_rows", 0),
+    }
+
+
+def _handle_nrev_delete_dataset_rows(args: dict[str, Any]) -> dict[str, Any]:
+    dataset = args.get("dataset", "").strip()
+    if not dataset:
+        return {"error": "Parameter 'dataset' is required (slug or UUID)."}
+
+    row_ids = args.get("row_ids")
+    all_rows = args.get("all_rows", False)
+
+    if not row_ids and not all_rows:
+        return {"error": "Provide 'row_ids' (array of row UUIDs) or set 'all_rows' to true."}
+
+    body: dict[str, Any] = {}
+    if row_ids:
+        body["row_ids"] = row_ids
+    if all_rows:
+        body["all_rows"] = True
+
+    return _api_request("DELETE", f"/datasets/{dataset}/rows", json_body=body)
+
+
+def _handle_nrev_update_dataset(args: dict[str, Any]) -> dict[str, Any]:
+    dataset = args.get("dataset", "").strip()
+    if not dataset:
+        return {"error": "Parameter 'dataset' is required (slug or UUID)."}
+
+    body: dict[str, Any] = {}
+    if args.get("name") is not None:
+        body["name"] = args["name"]
+    if args.get("description") is not None:
+        body["description"] = args["description"]
+    if args.get("columns") is not None:
+        body["columns"] = args["columns"]
+    if args.get("dedup_key") is not None:
+        body["dedup_key"] = args["dedup_key"]
+
+    if not body:
+        return {"error": "Provide at least one field to update (name, description, columns, or dedup_key)."}
+
+    return _api_request("PATCH", f"/datasets/{dataset}", json_body=body)
+
+
+def _handle_nrev_delete_dataset(args: dict[str, Any]) -> dict[str, Any]:
+    dataset = args.get("dataset", "").strip()
+    if not dataset:
+        return {"error": "Parameter 'dataset' is required (slug or UUID)."}
+
+    return _api_request("DELETE", f"/datasets/{dataset}")
 
 
 def _handle_nrev_credit_balance(args: dict[str, Any]) -> dict[str, Any]:
@@ -1741,6 +1989,10 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrev_append_rows": _handle_nrev_append_rows,
     "nrev_query_dataset": _handle_nrev_query_dataset,
     "nrev_list_datasets": _handle_nrev_list_datasets,
+    "nrev_create_and_populate_dataset": _handle_nrev_create_and_populate_dataset,
+    "nrev_delete_dataset_rows": _handle_nrev_delete_dataset_rows,
+    "nrev_update_dataset": _handle_nrev_update_dataset,
+    "nrev_delete_dataset": _handle_nrev_delete_dataset,
     "nrev_credit_balance": _handle_nrev_credit_balance,
     "nrev_provider_status": _handle_nrev_provider_status,
     "nrev_search_patterns": _handle_nrev_search_patterns,

@@ -49,7 +49,13 @@ INTEGRATION_CATALOG = {
         "description": "Send and read emails, manage labels",
         "composio_app": "GMAIL",
     },
-    # microsoft_teams: not available in Composio yet
+    "microsoft_teams": {
+        "name": "Microsoft Teams",
+        "category": "communication",
+        "icon": "\U0001f465",
+        "description": "Chat, meetings, channels, and collaboration",
+        "composio_app": "MICROSOFT_TEAMS",
+    },
     # --- Data & Sheets ---
     "google_sheets": {
         "name": "Google Sheets",
@@ -94,7 +100,6 @@ INTEGRATION_CATALOG = {
         "description": "Access CRM data, manage leads and opportunities",
         "composio_app": "SALESFORCE",
     },
-    # pipedrive: no managed OAuth in Composio yet
     "attio": {
         "name": "Attio",
         "category": "crm",
@@ -102,8 +107,15 @@ INTEGRATION_CATALOG = {
         "description": "Relationship-first CRM for modern teams",
         "composio_app": "ATTIO",
     },
-    # instantly, lemlist, smartlead: API-key based, not OAuth — managed via Keys tab
-    # apollo, clearbit, zoominfo: API-key based — managed via Keys tab
+    # --- Outreach ---
+    "instantly": {
+        "name": "Instantly",
+        "category": "outreach",
+        "icon": "\u26a1",
+        "description": "Cold email campaigns, warmup, lead management",
+        "composio_app": "INSTANTLY",
+    },
+    # smartlead: NOT on Composio — has its own MCP server (SSE at mcp.smartlead.ai)
     # --- Project Management ---
     "linear": {
         "name": "Linear",
@@ -133,7 +145,6 @@ INTEGRATION_CATALOG = {
         "description": "Project and task management",
         "composio_app": "ASANA",
     },
-    # zapier, make: not available in Composio managed OAuth
     # --- Calendar ---
     "google_calendar": {
         "name": "Google Calendar",
@@ -148,6 +159,43 @@ INTEGRATION_CATALOG = {
         "icon": "\U0001f553",
         "description": "Meeting scheduling and booking links",
         "composio_app": "CALENDLY",
+    },
+    "cal_com": {
+        "name": "Cal.com",
+        "category": "calendar",
+        "icon": "\U0001f4c6",
+        "description": "Open-source scheduling, bookings, and event types",
+        "composio_app": "CAL",
+    },
+    # --- Meetings ---
+    "zoom": {
+        "name": "Zoom",
+        "category": "meetings",
+        "icon": "\U0001f4f9",
+        "description": "Video meetings, webinars, and recordings",
+        "composio_app": "ZOOM",
+    },
+    "fireflies": {
+        "name": "Fireflies.ai",
+        "category": "meetings",
+        "icon": "\U0001f3a4",
+        "description": "Meeting transcription, summaries, and search",
+        "composio_app": "FIREFLIES",
+    },
+    "fathom": {
+        "name": "Fathom",
+        "category": "meetings",
+        "icon": "\U0001f4dd",
+        "description": "AI meeting assistant — records, transcribes, summarizes",
+        "composio_app": "FATHOM",
+    },
+    # --- Analytics ---
+    "posthog": {
+        "name": "PostHog",
+        "category": "analytics",
+        "icon": "\U0001f994",
+        "description": "Product analytics, feature flags, session replay",
+        "composio_app": "POSTHOG",
     },
 }
 

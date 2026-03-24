@@ -63,7 +63,7 @@ nrev-lite auth login
 nrev-lite enrich person --email test@example.com
 ```
 
-## MCP Tools (29 tools)
+## MCP Tools (33 tools)
 
 | Tool | What It Does |
 |------|-------------|
@@ -78,10 +78,14 @@ nrev-lite enrich person --email test@example.com
 | `nrev_enrich_company` | Company enrichment (domain/name) |
 | `nrev_query_table` | Query data tables with filters |
 | `nrev_list_tables` | List available tables |
-| `nrev_create_dataset` | Create a persistent dataset for workflow data accumulation |
-| `nrev_append_rows` | Append/upsert rows to a persistent dataset |
-| `nrev_query_dataset` | Query rows from a persistent dataset |
+| `nrev_create_and_populate_dataset` | **Preferred**: Create a dataset AND add rows in one call |
+| `nrev_create_dataset` | Create an empty persistent dataset (use create_and_populate instead when you have data) |
+| `nrev_append_rows` | Append/upsert rows to an existing persistent dataset |
+| `nrev_query_dataset` | Query rows from a persistent dataset with filters |
 | `nrev_list_datasets` | List all persistent datasets |
+| `nrev_update_dataset` | Update dataset name, description, columns, or dedup_key |
+| `nrev_delete_dataset_rows` | Delete specific rows or clear all rows from a dataset |
+| `nrev_delete_dataset` | Archive (soft-delete) a dataset |
 | `nrev_estimate_cost` | Estimate credit cost before executing (call before large batches) |
 | `nrev_get_run_log` | Read back workflow run logs with results and column metadata |
 | `nrev_deploy_app` | Deploy a static HTML/CSS/JS app backed by datasets |
@@ -135,9 +139,67 @@ If any tool returns an error:
 ### Why This Matters
 Each platform has specific URL structure nuances (e.g. `linkedin.com/jobs/view` not `/jobs/search`, `x.com/*/status` for tweets). These patterns live on the server and evolve without client updates.
 
-## Connected Apps (via Composio)
+## Apps vs Data Providers — Two Distinct Systems
 
-Tenants can OAuth-connect apps through the dashboard or CLI (`nrev-lite connect <app>`).
+nrev-lite has two types of external integrations. Understanding which to use is critical:
+
+**Apps** (dashboard Apps tab) — Tools the user already uses that they connect via OAuth. Used to **fetch data from or write data to** the user's own tools (read emails, create calendar events, update CRM, send outreach). Actions are **free** (no credits). Powered by Composio.
+
+**Data Providers** (dashboard Data Providers tab) — API services that nrev-lite calls for enrichment, search, scraping, verification, and AI research. Used when Claude needs **bulk data, row-level enrichment, or AI processing**. These cost credits (unless BYOK).
+
+| Need | Use |
+|------|-----|
+| Read/send user's emails | **Apps** (gmail) |
+| Enrich a list of contacts with phone numbers | **Data Providers** (apollo, rocketreach) |
+| Check user's calendar | **Apps** (google_calendar) |
+| Google search for company info | **Data Providers** (rapidapi) |
+| Push leads to user's CRM | **Apps** (hubspot, salesforce) |
+| Scrape a website | **Data Providers** (parallel) |
+| Send cold email campaign | **Apps** (instantly, smartlead) |
+| Verify email deliverability | **Data Providers** (zerobounce) |
+| Summarize a meeting transcript | **Apps** (fireflies, fathom) |
+| AI research on each row of data | **Data Providers** (perplexity, openai) |
+
+## Apps (via Composio)
+
+Tenants can OAuth-connect apps through the dashboard or CLI (`nrev-lite connect <app>`). App actions are **free** — no credits charged.
+
+### Intent-to-App Mapping
+
+**When the user mentions any of these keywords, they likely need a connected app.** Check for a system MCP tool first (e.g., `slack_send_message`), then fall back to nrev-lite Composio.
+
+| User says... | app_id | Category |
+|---|---|---|
+| email, send email, inbox, mail, draft, Gmail | `gmail` | communication |
+| Slack, message, channel, DM, send to Slack | `slack` | communication |
+| Teams, Microsoft Teams, teams message | `microsoft_teams` | communication |
+| calendar, meeting, schedule, events, free time | `google_calendar` | calendar |
+| Calendly, booking link | `calendly` | calendar |
+| Cal.com, scheduling link | `cal_com` | calendar |
+| Zoom, video call, webinar, recording | `zoom` | meetings |
+| meeting notes, transcript, Fireflies | `fireflies` | meetings |
+| Fathom, meeting summary | `fathom` | meetings |
+| spreadsheet, Google Sheet, add row, update sheet | `google_sheets` | data |
+| document, Google Doc, write doc | `google_docs` | data |
+| Drive, upload file, Google Drive | `google_drive` | data |
+| Airtable, base, airtable record | `airtable` | data |
+| CRM, deal, contact record, pipeline, HubSpot | `hubspot` | crm |
+| Salesforce, opportunity, lead, SFDC | `salesforce` | crm |
+| Attio, CRM record | `attio` | crm |
+| cold email, outreach campaign, Instantly | `instantly` | outreach |
+| Smartlead, inbox rotation | *separate MCP* | outreach |
+| task, ticket, issue, Linear | `linear` | project |
+| Notion, notion page, notion doc | `notion` | project |
+| ClickUp, clickup task | `clickup` | project |
+| Asana, asana task | `asana` | project |
+| product analytics, feature flags, PostHog | `posthog` | analytics |
+
+### Proactive Routing Rule
+
+When the user's request matches any keyword above:
+1. **Check system MCP tools first** — look for tools like `slack_send_message`, `clickup_create_task`, etc. If available, use them directly (faster, already authenticated).
+2. **If no system MCP tool**, call `nrev_list_connections()` to check if the app is connected via Composio. If connected → proceed with the 4-step discovery flow below.
+3. **If not connected**, tell the user: "You don't have [app] connected yet. You can set it up in your nrev-lite dashboard → Apps tab (one click)."
 
 ### How to Execute Actions (Dynamic Discovery)
 
@@ -148,24 +210,45 @@ Tenants can OAuth-connect apps through the dashboard or CLI (`nrev-lite connect 
 3. `nrev_get_action_schema(action_name)` — get exact parameter names, types, and required flags. **This is non-optional** — param names are NOT guessable (e.g. `text_to_insert` not `text`, `markdown_text` not `content`, `ranges` must be an array not a string)
 4. `nrev_execute_action(app_id, action, params)` — execute with the correct params
 
-Available app_ids: gmail, slack, google_sheets, google_docs, hubspot, salesforce, linear, notion, clickup, asana, airtable, google_calendar, calendly, attio, google_drive
+### Error Handling for Apps
 
-### Error Handling for Connected Apps
-
-1. If `nrev_list_connections` shows no active connection → tell the user to connect via the dashboard
+1. If `nrev_list_connections` shows no active connection → tell the user to connect via the dashboard Apps tab
 2. If action returns `status: error` → check the `error` field for details
 3. If action returns `"Following fields are missing"` → you skipped `nrev_get_action_schema`. Go back and check exact param names.
 4. Common failure: app connected but missing required OAuth scopes → user must reconnect
+5. If a **system MCP tool** exists for the same app (e.g., Slack MCP), prefer the system MCP — it's faster and already authenticated
 
 ## Persistent Datasets
 
 Datasets are long-lived JSONB document stores that workflows write to over time. They support scheduled workflow accumulation (e.g., daily LinkedIn monitoring appends new posts without duplicating old ones).
 
-- **Create**: `nrev_create_dataset(name, columns, dedup_key)` — idempotent, returns existing if slug matches
+- **Create + Populate**: `nrev_create_and_populate_dataset(name, columns, dedup_key, rows)` — **preferred** single-call method to create a dataset and add rows
+- **Create (empty)**: `nrev_create_dataset(name, columns, dedup_key)` — idempotent, returns existing if slug matches
 - **Append**: `nrev_append_rows(dataset_ref, rows)` — upserts via SHA256 hash of dedup_key value
-- **Query**: `nrev_query_dataset(dataset_ref, filters, limit, offset)`
+- **Query**: `nrev_query_dataset(dataset_ref, filters, limit, offset)` — supports key-value filters, sorting, pagination
+- **Update**: `nrev_update_dataset(dataset_ref, name, description, columns, dedup_key)` — update metadata
+- **Delete rows**: `nrev_delete_dataset_rows(dataset_ref, row_ids, all_rows)` — remove specific rows or clear all
+- **Delete dataset**: `nrev_delete_dataset(dataset_ref)` — soft-delete (archive)
 - **Dedup**: Set `dedup_key` (e.g., `"url"` for posts, `"email"` for contacts) to prevent duplicates across scheduled runs
 - **Schema**: `datasets` table (metadata) + `dataset_rows` table (JSONB data), both RLS-protected
+
+### Dataset Proactive Recommendation Rules
+
+**After ANY multi-step workflow (2+ tool calls) that produces structured results, ALWAYS offer to save as a dataset.**
+
+Trigger conditions (offer dataset even if user doesn't ask):
+- Workflow produced >5 structured records (contacts, companies, URLs, posts)
+- User mentions: "save", "track", "monitor", "follow up", "ongoing", "compare", "later"
+- Results will feed into another workflow (campaigns, CRM push, outreach)
+- Data was scraped or searched and might need periodic refresh
+- User is building any kind of list
+
+How to offer:
+> "Want me to save these [N] results to a persistent dataset? You'll be able to query them later, build a dashboard, or run scheduled workflows that add to them."
+
+If yes, use `nrev_create_and_populate_dataset` (preferred single-call method).
+
+This follows the same pattern as "offer to save as script" — both should be offered after successful workflows.
 
 ## Scheduled Workflows
 
@@ -236,8 +319,8 @@ All tables use RLS with tenant isolation. The `nrev_api` role has appropriate gr
 ## Dashboard
 
 Tenant dashboard at `/console/{tenant_slug}` — 6 tabs:
-- **Keys**: BYOK key management with encrypted storage
-- **Connections**: OAuth app connections via Composio
+- **Data Providers**: BYOK API key management for enrichment, search, and AI services
+- **Apps**: OAuth app connections via Composio (Gmail, Slack, Zoom, CRM, outreach, etc.)
 - **Usage**: Credit balance, consumption bar, per-operation costs, transaction ledger
 - **Runs**: Workflow run logs with step-level data viewer + scheduled workflows section
 - **Datasets**: Persistent dataset cards with column badges, row counts, data preview
