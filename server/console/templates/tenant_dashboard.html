@@ -229,11 +229,11 @@
         <!-- Tab Navigation -->
         <div class="tabs">
             <a href="/console/{{ tenant_id }}?tab=keys" class="tab {% if active_tab == 'keys' %}active{% endif %}">
-                API Keys
+                Data Providers
                 <span class="tab-badge">{{ (summary.using_my_keys|default(0)) + (summary.using_platform|default(0)) }}</span>
             </a>
             <a href="/console/{{ tenant_id }}?tab=connections" class="tab {% if active_tab == 'connections' %}active{% endif %}">
-                Connections
+                Apps
                 <span class="tab-badge">{{ conn_summary.active|default(0) }}</span>
             </a>
             <a href="/console/{{ tenant_id }}?tab=usage" class="tab {% if active_tab == 'usage' %}active{% endif %}">
@@ -258,7 +258,7 @@
         </div>
 
         <!-- ============================================ -->
-        <!-- TAB: API Keys                                -->
+        <!-- TAB: Data Providers                           -->
         <!-- ============================================ -->
         <div class="tab-content {% if active_tab == 'keys' %}active{% endif %}" id="tab-keys">
             <div class="stats-row">
@@ -355,7 +355,7 @@
         </div>
 
         <!-- ============================================ -->
-        <!-- TAB: Connections                             -->
+        <!-- TAB: Apps                                    -->
         <!-- ============================================ -->
         <div class="tab-content {% if active_tab == 'connections' %}active{% endif %}" id="tab-connections">
             <div class="stats-row">
@@ -409,7 +409,6 @@
                                 'salesforce': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/salesforce.svg',
                                 'pipedrive': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/pipedrive.svg',
                                 'instantly': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/lightning.svg',
-                                'lemlist': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/lemlist.svg',
                                 'linear': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linear.svg',
                                 'notion': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/notion.svg',
                                 'clickup': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/clickup.svg',
@@ -1206,7 +1205,7 @@
             setTimeout(() => { toast.className = 'toast'; }, 3200);
         }
 
-        // ---- API Keys ----
+        // ---- Data Providers ----
 
         function toggleKeyInput(provider) {
             const row = document.getElementById('key-input-' + provider);

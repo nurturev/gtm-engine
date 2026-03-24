@@ -475,8 +475,25 @@ async def tenant_dashboard(
                     entity_ids_to_check.add(eid)
             except Exception:
                 await db.rollback()
+            # Also check tenant-level entity IDs for legacy connections
+            # that predate the user_connections table
             entity_ids_to_check.add(f"nrev-{tenant.id}")
             entity_ids_to_check.add(f"nrv-{tenant.id}")
+
+            # Build set of composio account IDs tracked for THIS tenant
+            # so we can filter out connections that belong to other tenants
+            uc_account_ids: set[str] = set()
+            try:
+                uc_all_result = await db.execute(
+                    select(UserConnection.composio_account_id).where(
+                        UserConnection.tenant_id == tenant.id,
+                    )
+                )
+                for (aid,) in uc_all_result.all():
+                    if aid:
+                        uc_account_ids.add(aid)
+            except Exception:
+                await db.rollback()
 
             seen_account_ids: set[str] = set()
             async with httpx.AsyncClient(timeout=10) as client:
@@ -495,6 +512,16 @@ async def tenant_dashboard(
                             acct_id = item.get("id", "")
                             if acct_id in seen_account_ids:
                                 continue
+
+                            # Tenant isolation: for per-user entity IDs
+                            # (nrev-u-*), only show connections that are
+                            # explicitly tracked in user_connections for
+                            # THIS tenant. This prevents user connections
+                            # from leaking across tenants.
+                            is_user_entity = check_eid.startswith("nrev-u-")
+                            if is_user_entity and uc_account_ids and acct_id not in uc_account_ids:
+                                continue
+
                             seen_account_ids.add(acct_id)
 
                             toolkit_slug = (item.get("toolkit") or {}).get("slug", "")
@@ -1380,6 +1407,12 @@ async def list_connections(
     entity_ids_to_check.add(legacy_entity_id)
     valid_entity_ids = entity_ids_to_check
 
+    # Build set of composio account IDs tracked for THIS tenant
+    uc_account_ids: set[str] = set()
+    for uc in user_connections:
+        if uc.composio_account_id:
+            uc_account_ids.add(uc.composio_account_id)
+
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             all_items: list[dict] = []
@@ -1397,6 +1430,13 @@ async def list_connections(
                     for item in items:
                         item_entity = item.get("entityId") or (item.get("entity") or {}).get("id", "")
                         if item_entity and item_entity not in valid_entity_ids:
+                            continue
+                        # Tenant isolation: for per-user entity IDs,
+                        # only include connections tracked in user_connections
+                        # for THIS tenant.
+                        acct_id = item.get("id", "")
+                        is_user_entity = eid.startswith("nrev-u-")
+                        if is_user_entity and uc_account_ids and acct_id not in uc_account_ids:
                             continue
                         item["_entity_id"] = item_entity or eid
                         all_items.append(item)
