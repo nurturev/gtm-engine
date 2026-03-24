@@ -34,9 +34,17 @@ Score each prospect 0-100 based on:
 - Location match (10 points)
 - Data completeness (10 points)
 
-## Step 5: Export
+## Step 5: Save & Export
+**Always save to a dataset first** — this preserves data for re-use, dashboard creation, and scheduled workflow accumulation.
+
+Primary: Save to a persistent dataset using `nrev_create_and_populate_dataset`:
+- Name: descriptive (e.g., "VP Sales SaaS 51-200 Mar 2026")
+- dedup_key: "email" (for contacts) or "domain" (for companies)
+- columns: define all fields with types
+
+Then optionally export from the dataset:
 - Google Sheets (via Composio connection)
-- CSV (direct output)
+- CSV (via `nrev_query_dataset` or dashboard CSV export)
 - HubSpot/Salesforce (via Composio connection)
 - Instantly (for email campaigns)
 

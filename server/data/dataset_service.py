@@ -374,3 +374,106 @@ async def delete_rows(
     await db.commit()
 
     return {"deleted": deleted, "remaining_rows": new_count}
+
+
+async def update_dataset(
+    db: AsyncSession,
+    tenant_id: str,
+    dataset_id: str,
+    *,
+    name: str | None = None,
+    description: str | None = None,
+    columns: list[dict[str, str]] | None = None,
+    dedup_key: str | None = None,
+) -> dict[str, Any]:
+    """Update dataset metadata. Only provided fields are changed."""
+    await set_tenant_context(db, tenant_id)
+
+    ds_uuid = uuid.UUID(dataset_id)
+    result = await db.execute(
+        select(Dataset).where(
+            Dataset.tenant_id == tenant_id,
+            Dataset.id == ds_uuid,
+        )
+    )
+    dataset = result.scalar_one_or_none()
+    if not dataset:
+        return {"error": f"Dataset {dataset_id} not found."}
+
+    changes: dict[str, Any] = {"updated_at": func.now()}
+    if name is not None:
+        new_slug = _slugify(name)
+        # Check slug collision
+        existing = await db.execute(
+            select(Dataset).where(
+                Dataset.tenant_id == tenant_id,
+                Dataset.slug == new_slug,
+                Dataset.id != ds_uuid,
+            )
+        )
+        if existing.scalar_one_or_none():
+            return {"error": f"A dataset with slug '{new_slug}' already exists."}
+        changes["name"] = name
+        changes["slug"] = new_slug
+    if description is not None:
+        changes["description"] = description
+    if columns is not None:
+        changes["columns"] = columns
+    if dedup_key is not None:
+        changes["dedup_key"] = dedup_key
+
+    await db.execute(
+        update(Dataset).where(Dataset.id == ds_uuid).values(**changes)
+    )
+    await db.commit()
+
+    # Refresh and return
+    refreshed = await db.execute(
+        select(Dataset).where(Dataset.id == ds_uuid)
+    )
+    ds = refreshed.scalar_one()
+    return {
+        "id": str(ds.id),
+        "name": ds.name,
+        "slug": ds.slug,
+        "description": ds.description,
+        "columns": ds.columns,
+        "dedup_key": ds.dedup_key,
+        "row_count": ds.row_count,
+        "status": "updated",
+    }
+
+
+async def delete_dataset(
+    db: AsyncSession,
+    tenant_id: str,
+    dataset_id: str,
+) -> dict[str, Any]:
+    """Soft-delete a dataset by setting status to 'archived'."""
+    await set_tenant_context(db, tenant_id)
+
+    ds_uuid = uuid.UUID(dataset_id)
+    result = await db.execute(
+        select(Dataset).where(
+            Dataset.tenant_id == tenant_id,
+            Dataset.id == ds_uuid,
+        )
+    )
+    dataset = result.scalar_one_or_none()
+    if not dataset:
+        return {"error": f"Dataset {dataset_id} not found."}
+
+    await db.execute(
+        update(Dataset)
+        .where(Dataset.id == ds_uuid)
+        .values(status="archived", updated_at=func.now())
+    )
+    await db.commit()
+
+    return {
+        "id": str(dataset.id),
+        "name": dataset.name,
+        "slug": dataset.slug,
+        "status": "archived",
+        "message": f"Dataset '{dataset.name}' has been archived.",
+    }
