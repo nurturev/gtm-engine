@@ -2,20 +2,18 @@
 
 Handles the complete setup flow:
 1. Authenticate (Google OAuth via browser)
-2. Register the MCP server in Claude Code's settings
+2. Register the MCP server via `claude mcp add`
 3. Verify everything works
 
 After `nrev-lite init`, every new Claude Code session automatically has access
-to all 22 nrev-lite tools.
+to all 33 nrev-lite tools.
 """
 
 from __future__ import annotations
 
-import json
 import shutil
+import subprocess
 import sys
-from pathlib import Path
-from typing import Any
 
 import click
 
@@ -24,98 +22,92 @@ from nrev_lite.utils.config import get_api_base_url
 from nrev_lite.utils.display import print_error, print_success, print_warning
 
 
-# ---------------------------------------------------------------------------
-# Claude Code settings paths
-# ---------------------------------------------------------------------------
-
-# Global settings — tools available in ALL Claude Code sessions
-_CLAUDE_GLOBAL_SETTINGS = Path.home() / ".claude" / "settings.json"
-
-# Project-level settings — tools only available in this project
-_CLAUDE_PROJECT_SETTINGS = Path.cwd() / ".mcp.json"
-
-
 def _find_nrev_executable() -> str:
     """Find the path to the nrev-lite entry point for MCP server.
 
-    Returns the command that Claude Code should use to start the MCP server.
-    Prefers `nrev-lite` CLI if available on PATH, falls back to `python3 -m`.
+    Returns the absolute path to the nrev-lite binary that Claude Code
+    should use to start the MCP server. Falls back to python -m.
     """
-    # Check if `nrev-lite` is on PATH
     nrev_bin = shutil.which("nrev-lite")
     if nrev_bin:
         return nrev_bin
 
-    # Check if the current python has nrev-lite installed
     python_bin = shutil.which("python3") or shutil.which("python") or sys.executable
     return python_bin
 
 
-def _build_mcp_config() -> dict[str, Any]:
-    """Build the MCP server configuration for Claude Code."""
-    nrev_bin = _find_nrev_executable()
+def _is_already_registered() -> bool:
+    """Check if nrev-lite MCP server is already registered in Claude Code."""
+    claude_bin = shutil.which("claude")
+    if not claude_bin:
+        return False
 
-    # If we found the `nrev-lite` binary, use it directly
-    if nrev_bin.endswith("nrev-lite"):
-        return {
-            "command": nrev_bin,
-            "args": ["mcp", "serve"],
-        }
-
-    # Otherwise use python -m
-    return {
-        "command": nrev_bin,
-        "args": ["-m", "nrev_lite.mcp.server"],
-    }
-
-
-def _read_json_file(path: Path) -> dict[str, Any]:
-    """Safely read a JSON file, returning empty dict on failure."""
-    if not path.exists():
-        return {}
-    try:
-        return json.loads(path.read_text())
-    except (json.JSONDecodeError, OSError):
-        return {}
-
-
-def _write_json_file(path: Path, data: dict[str, Any]) -> None:
-    """Write data as formatted JSON, creating parent dirs if needed."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n")
+    result = subprocess.run(
+        ["claude", "mcp", "list"],
+        capture_output=True,
+        text=True
+    )
+    return "nrev-lite" in result.stdout
 
 
 def _register_mcp_server(scope: str) -> bool:
-    """Register nrev-lite as an MCP server in Claude Code settings.
+    """Register nrev-lite as an MCP server via `claude mcp add`.
+
+    Uses the Claude Code CLI to register the server in the correct
+    config file (~/.claude.json), which is the only file Claude Code
+    reads MCP server definitions from.
 
     Args:
-        scope: "global" for ~/.claude/settings.json, "project" for .mcp.json
+        scope: "user" for all sessions, "local" for current project only.
 
     Returns True if registration was successful.
     """
-    if scope == "project":
-        settings_path = _CLAUDE_PROJECT_SETTINGS
+    claude_bin = shutil.which("claude")
+    if not claude_bin:
+        print_error(
+            "Claude Code CLI not found on PATH.\n"
+            "  Install it from: https://claude.ai/download\n"
+            "  Then run `nrev-lite init` again."
+        )
+        return False
+
+    nrev_bin = _find_nrev_executable()
+
+    # Build the command for `claude mcp add`
+    if nrev_bin.endswith("nrev-lite"):
+        cmd = [
+            "claude", "mcp", "add",
+            "-s", scope,
+            "nrev-lite",
+            "--",
+            nrev_bin, "mcp", "serve"
+        ]
     else:
-        settings_path = _CLAUDE_GLOBAL_SETTINGS
+        cmd = [
+            "claude", "mcp", "add",
+            "-s", scope,
+            "nrev-lite",
+            "--",
+            nrev_bin, "-m", "nrev_lite.mcp.server"
+        ]
 
-    settings = _read_json_file(settings_path)
+    result = subprocess.run(cmd, capture_output=True, text=True)
 
-    # Check if already registered
-    mcp_servers = settings.get("mcpServers", {})
-    if "nrev-lite" in mcp_servers:
-        click.echo(f"  nrev-lite MCP server already registered in {settings_path}")
-        return True
+    if result.returncode != 0:
+        stderr = result.stderr.strip()
+        print_error(f"Failed to register MCP server: {stderr}")
+        return False
 
-    # Add the nrev-lite server
-    mcp_config = _build_mcp_config()
-
-    if "mcpServers" not in settings:
-        settings["mcpServers"] = {}
-
-    settings["mcpServers"]["nrev-lite"] = mcp_config
-
-    _write_json_file(settings_path, settings)
     return True
+
+
+def _unregister_mcp_server(scope: str) -> None:
+    """Remove existing nrev-lite MCP registration (for re-registration)."""
+    subprocess.run(
+        ["claude", "mcp", "remove", "-s", scope, "nrev-lite"],
+        capture_output=True,
+        text=True
+    )
 
 
 def _verify_server_reachable() -> bool:
@@ -139,19 +131,24 @@ def _verify_server_reachable() -> bool:
 @click.option(
     "--project",
     is_flag=True,
-    help="Register MCP server for this project only (creates .mcp.json).",
+    help="Register MCP server for this project only."
 )
 @click.option(
     "--skip-auth",
     is_flag=True,
-    help="Skip authentication (if already logged in).",
+    help="Skip authentication (if already logged in)."
 )
 @click.option(
     "--server-url",
     default=None,
-    help="nrev-lite server URL (default: http://localhost:8000 or configured value).",
+    help="nrev-lite server URL (default: http://localhost:8000 or configured value)."
 )
-def init(project: bool, skip_auth: bool, server_url: str | None) -> None:
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Re-register MCP server even if already registered."
+)
+def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) -> None:
     """Set up nrev-lite for Claude Code in one command.
 
     \b
@@ -169,12 +166,22 @@ def init(project: bool, skip_auth: bool, server_url: str | None) -> None:
         nrev-lite init                    # Full setup (global)
         nrev-lite init --project          # Project-level only
         nrev-lite init --skip-auth        # Already logged in, just register MCP
+        nrev-lite init --force            # Re-register even if already set up
         nrev-lite init --server-url https://api.nrev.dev
     """
     click.echo()
     click.secho("  nrev-lite — Agent-Native GTM Platform", fg="cyan", bold=True)
     click.secho("  ─────────────────────────────────", fg="cyan")
     click.echo()
+
+    # ── Pre-check: Claude Code CLI must be available ──────────────────
+    if not shutil.which("claude"):
+        print_error(
+            "Claude Code CLI not found on PATH.\n"
+            "  Install it from: https://claude.ai/download\n"
+            "  Then run `nrev-lite init` again."
+        )
+        sys.exit(1)
 
     # ── Step 0: Configure server URL if provided ──────────────────────
     if server_url:
@@ -216,19 +223,24 @@ def init(project: bool, skip_auth: bool, server_url: str | None) -> None:
     print_success(f"Authenticated as {email} (tenant: {tenant})")
     click.echo()
 
-    # ── Step 2: Register MCP server ───────────────────────────────────
-    scope = "project" if project else "global"
+    # ── Step 2: Register MCP server via `claude mcp add` ─────────────
+    scope = "local" if project else "user"
     scope_label = "this project" if project else "all Claude Code sessions"
-    settings_path = _CLAUDE_PROJECT_SETTINGS if project else _CLAUDE_GLOBAL_SETTINGS
 
     click.secho("  Step 2/3 — Register MCP Server", bold=True)
     click.echo(f"  Scope: {scope_label}")
 
-    if _register_mcp_server(scope):
-        print_success(f"MCP server registered in {settings_path}")
+    if _is_already_registered() and not force:
+        print_success("nrev-lite MCP server already registered")
     else:
-        print_error("Failed to register MCP server.")
-        sys.exit(1)
+        if force and _is_already_registered():
+            click.echo("  Re-registering (--force)...")
+            _unregister_mcp_server(scope)
+
+        if _register_mcp_server(scope):
+            print_success("MCP server registered via `claude mcp add`")
+        else:
+            sys.exit(1)
 
     click.echo()
 
@@ -256,6 +268,6 @@ def init(project: bool, skip_auth: bool, server_url: str | None) -> None:
     click.echo()
     click.echo("  Useful commands:")
     click.echo("    nrev-lite status          Show auth & connection status")
-    click.echo("    nrev-lite credits balance Check your credit balance")
+    click.echo("    nrev-lite credits balance  Check your credit balance")
     click.echo("    nrev-lite dashboard       Open the web dashboard")
     click.echo()
