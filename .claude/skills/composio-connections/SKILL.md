@@ -35,11 +35,12 @@ When the user's request involves an external app:
 
 3. **If no system MCP tool**, call `nrev_app_list()`:
    - If the app is **ACTIVE** → proceed to Level 2 (Action Discovery)
-   - If the app is **not listed** → tell the user: "You don't have [app] connected yet. You can set it up in your nrev-lite dashboard → Apps tab (one click)."
-   - **Dashboard:** `{server_url}/console/{tenant_id}?tab=apps`
-   - **CLI:** `nrev-lite connect <app_id>` (opens browser for OAuth)
+   - If the app is **not listed** → call `nrev_app_connect(app_id)` to set it up in-session (OAuth URL or API key prompt)
+   - If the user asks **"what apps can I connect?"** → call `nrev_app_catalog()` to browse all 22 available apps
 
-4. **Never ask the user to set up a system MCP** — that's technical. Guide them to nrev-lite's dashboard instead.
+4. **Console for app management:** Use `nrev_open_console(tab="apps")` if the user wants to see all their connections in the dashboard.
+
+5. **Never ask the user to set up a system MCP** — that's technical. Guide them to nrev-lite's app connection flow instead.
 
 ---
 

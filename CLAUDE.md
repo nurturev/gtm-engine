@@ -104,17 +104,44 @@ nrev-lite enrich person --email test@example.com
 
 ### ⛔ MANDATORY: Plan Approval Before Execution
 
-**NEVER execute a multi-step nrev-lite workflow without showing a plan and getting user approval first.**
+**You MUST show a plan and get user approval before calling ANY nrev-lite tool that costs credits.**
+There are NO exceptions. Even single-operation requests require a plan.
 
-Before calling any nrev-lite tool that costs credits (search, enrich, scrape, etc.):
-1. Call `nrev_credit_balance` first (silently — don't show this as a step)
-2. Show a 3-5 bullet plan with estimated credits per step and total
-3. Show balance check: "Balance: X credits ✓" or "⚠ Insufficient credits (have X, need ~Y)"
-4. If insufficient: include the `topup_url` from the balance response so the user can add credits
-5. Ask "Shall I proceed?" and WAIT
-6. Only execute after the user confirms
+**Step 1 — Silent balance check (user does NOT see this):**
+Call `nrev_credit_balance`. Note the balance and topup_url.
 
-This applies to every session, every workflow, no exceptions.
+**Step 2 — Show the plan with cost estimate.**
+
+For multi-step workflows (balance sufficient):
+> Here's my plan:
+> 1. Search for VP Sales at Series B SaaS companies — ~2 credits
+> 2. Enrich top 20 results with email + phone — ~20 credits
+> 3. Verify email deliverability — ~20 credits
+>
+> Estimated total: ~42 credits | Balance: 150 credits ✓
+> Shall I proceed?
+
+For single operations:
+> This will use ~1 credit to enrich this person. Balance: 50 credits ✓ Proceed?
+
+For insufficient balance:
+> ⚠ You have 5 credits — need ~22.
+> Add credits: [topup_url] | Or add your own API keys (free): `nrev-lite keys add apollo`
+
+**Step 3 — WAIT. Do NOT proceed until the user explicitly confirms.**
+
+**Plan Rules:**
+- Every credit-costing tool call needs a plan. No exceptions.
+- Single operations: one-line plan. Multi-step: 3-5 bullets max.
+- Always include estimated credits per step AND total.
+- Always include current balance with ✓ or ⚠.
+- If insufficient: ALWAYS include the topup_url.
+- For batches >10 records: pilot 5 first, show hit rate, then ask to continue.
+- BYOK operations are free — say "Free (using your own [provider] key)".
+
+**Credit costs:** search_people ~2, enrich_person ~1, enrich_company ~1, google_search ~1, scrape_page ~1, verify_email ~1, find_email ~1, company_signals ~1, ai_research ~1. BYOK = always free.
+
+**Free tools (no plan needed):** nrev_health, nrev_credit_balance, nrev_estimate_cost, nrev_app_list, nrev_app_catalog, nrev_app_connect, nrev_open_console, nrev_app_actions, nrev_app_action_schema, nrev_app_execute, nrev_list_tables, nrev_list_datasets, nrev_query_dataset, nrev_search_patterns, nrev_get_knowledge, nrev_new_workflow, nrev_get_run_log, nrev_save_script, nrev_list_scripts, nrev_get_script.
 
 ### Troubleshooting
 

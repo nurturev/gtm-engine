@@ -26,9 +26,10 @@ CREATE TABLE IF NOT EXISTS user_connections (
 );
 
 ALTER TABLE user_connections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_connections FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY user_connections_tenant ON user_connections
-    FOR ALL USING (tenant_id = current_setting('app.tenant_id', true));
+    FOR ALL USING (tenant_id = current_setting('app.current_tenant', true));
 
 GRANT ALL ON user_connections TO nrev_api;
 GRANT USAGE, SELECT ON SEQUENCE user_connections_id_seq TO nrev_api;

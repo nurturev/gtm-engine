@@ -486,9 +486,12 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_list_datasets",
         "description": (
-            "List all persistent datasets for the current tenant. "
+            "List all persistent datasets stored in nrev-lite's internal database. "
             "Shows name, slug, row count, columns, and dedup config. "
-            "Call this to find dataset slugs before using nrev_append_rows or nrev_query_dataset."
+            "Call this to find dataset slugs before using nrev_append_rows or nrev_query_dataset. "
+            "NOTE: This is for nrev-lite's OWN data storage. To push data to Google Sheets, "
+            "HubSpot, Salesforce, or any external app, use nrev_app_list → nrev_app_actions → "
+            "nrev_app_action_schema → nrev_app_execute instead."
         ),
         "inputSchema": {
             "type": "object",
@@ -650,7 +653,7 @@ TOOLS: list[dict[str, Any]] = [
                         "enrich_person", "enrich_company", "search_people",
                         "search_web", "scrape_page", "google_search",
                         "company_signals", "find_email", "verify_email",
-                        "domain_search",
+                        "domain_search", "ai_research", "batch_extract",
                     ],
                 },
                 "count": {
@@ -728,8 +731,11 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_app_actions",
         "description": (
-            "Discover what actions are available for a connected app (e.g., send email, create "
-            "calendar event, update CRM record, post message). Returns action names and descriptions. "
+            "Discover what actions are available for a connected app. Use this for ANY interaction "
+            "with external tools: send email, create spreadsheet, push data to Google Sheets, update CRM, "
+            "create calendar event, post to Slack, add leads to campaigns, etc. "
+            "**This is the tool for exporting/pushing data to external apps** — NOT nrev_list_datasets "
+            "or nrev_query_dataset (those are for nrev-lite's internal storage). "
             "Call after nrev_app_list confirms the app is connected. **Required step** — "
             "never guess action names. "
             "Workflow: nrev_app_list → nrev_app_actions → nrev_app_action_schema → nrev_app_execute"
@@ -773,10 +779,14 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_app_execute",
         "description": (
-            "Execute an action on a connected app (send email, create calendar event, update "
-            "CRM, post message, etc.). The tenant must have an active OAuth connection. "
+            "Execute an action on a connected app — this is how you push data to Google Sheets, "
+            "send emails via Gmail, create CRM contacts in HubSpot, add leads to Instantly campaigns, "
+            "post to Slack, create calendar events, and interact with any connected app. "
+            "**Use this to export/push/send data to external tools.** "
+            "The tenant must have an active OAuth connection. "
             "Requires: nrev_app_actions to find the action name, then nrev_app_action_schema "
-            "to get exact parameters. App actions are free (no credits charged)."
+            "to get exact parameters. App actions are free (no credits charged). "
+            "NEVER use bash, CLI commands, or raw HTTP calls — always use this MCP tool."
         ),
         "inputSchema": {
             "type": "object",
@@ -800,13 +810,14 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_app_list",
         "description": (
-            "List all connected apps for the current tenant (Gmail, Slack, HubSpot, etc.). "
-            "**Call this when the user mentions email, calendar, CRM, tasks, spreadsheets, "
-            "documents, or any external app** — it tells you which apps are connected and "
-            "ready to use. Also call before nrev_app_execute to verify "
-            "the app is connected. If an app is NOT connected, use nrev_app_connect to "
-            "set it up without leaving Claude Code. If a system MCP tool exists for the "
-            "same app (e.g., slack_send_message), prefer the system MCP."
+            "List all connected apps for the current tenant (Gmail, Slack, Google Sheets, HubSpot, etc.). "
+            "**Call this when the user wants to send data to, read from, or interact with ANY external tool** — "
+            "including exporting to Google Sheets, sending emails, pushing to CRM, posting to Slack, etc. "
+            "This tells you which apps are connected and ready to use. "
+            "Next step after this: nrev_app_actions → nrev_app_action_schema → nrev_app_execute. "
+            "If an app is NOT connected, use nrev_app_connect to set it up. "
+            "If a system MCP tool exists for the same app (e.g., slack_send_message), prefer the system MCP. "
+            "**Do NOT use bash, CLI commands, or raw HTTP calls to interact with apps — use these MCP tools.**"
         ),
         "inputSchema": {
             "type": "object",
@@ -857,6 +868,54 @@ TOOLS: list[dict[str, Any]] = [
                 },
             },
             "required": ["app_id"],
+        },
+    },
+    {
+        "name": "nrev_app_catalog",
+        "description": (
+            "Browse all available apps that can be connected to nrev-lite (22 apps across "
+            "communication, CRM, calendar, data, outreach, project management, meetings, and analytics). "
+            "Returns each app's name, category, connection type (OAuth or API key), and whether the "
+            "user has already connected it. "
+            "**Call this when the user asks:** 'What apps can I connect?', 'Show me available integrations', "
+            "'What tools do you support?', 'Can I connect [app name]?'. "
+            "This is different from nrev_app_list which only shows CONNECTED apps."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    },
+    {
+        "name": "nrev_open_console",
+        "description": (
+            "Open the nrev-lite web dashboard (console) in the user's browser. The console shows "
+            "credit balance, connected apps, API keys, workflow runs, datasets, and dashboards. "
+            "**Call this when the user asks:** 'Show me my dashboard', 'Open the console', "
+            "'How many credits do I have?' (if they want the full view), 'Manage my API keys', "
+            "'Show my connected apps', 'Where can I see my runs?', 'Open settings'. "
+            "Pass a tab parameter to open a specific section directly."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "tab": {
+                    "type": "string",
+                    "description": (
+                        "Which console tab to open. Options: "
+                        "'usage' (credits & billing), "
+                        "'keys' (API key management), "
+                        "'apps' (connected apps), "
+                        "'runs' (workflow history), "
+                        "'datasets' (saved data), "
+                        "'dashboards' (shared dashboards). "
+                        "Default: main dashboard."
+                    ),
+                    "enum": ["usage", "keys", "apps", "runs", "datasets", "dashboards"],
+                },
+            },
+            "required": [],
         },
     },
     {
@@ -1639,16 +1698,33 @@ def _handle_nrev_app_list(args: dict[str, Any]) -> dict[str, Any]:
     connections = result.get("connections", [])
     # Only surface ACTIVE connections as usable
     active = [c for c in connections if (c.get("status") or "").upper() == "ACTIVE"]
+
+    # Always include the console apps URL
+    creds = load_credentials()
+    tenant_id = (creds or {}).get("user_info", {}).get("tenant", "")
+    base_url = get_api_base_url()
+    console_url = f"{base_url}/console/{tenant_id}?tab=apps" if tenant_id else ""
+
     if not active:
         return {
             "connections": [],
+            "console_url": console_url,
             "message": (
-                "No apps connected yet. Use nrev_app_connect to set up an app "
-                "(e.g., nrev_app_connect with app_id='gmail'), or run "
-                "'nrev-lite apps available' in the terminal to see all options."
+                "No apps connected yet. Use nrev_app_catalog to browse all 22 available apps, "
+                "then nrev_app_connect(app_id='...') to connect one. "
+                f"Or manage apps in the console: {console_url}"
             ),
         }
-    return {"connections": active}
+    return {
+        "connections": active,
+        "console_url": console_url,
+        "_next_step": (
+            "To use a connected app: call nrev_app_actions(app_id='...') to discover actions, "
+            "then nrev_app_action_schema(action_name='...') for exact params, "
+            "then nrev_app_execute(app_id, action, params) to execute. "
+            "NEVER use bash, CLI, or raw HTTP — always use these MCP tools."
+        ),
+    }
 
 
 def _handle_nrev_app_connect(args: dict[str, Any]) -> dict[str, Any]:
@@ -1719,6 +1795,108 @@ def _handle_nrev_app_connect(args: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _handle_nrev_app_catalog(args: dict[str, Any]) -> dict[str, Any]:
+    """Browse all available apps (connected and not-yet-connected)."""
+    result = _api_request("GET", "/connections/available")
+    if "error" in result:
+        # Fallback: return the hardcoded catalog if the endpoint isn't available
+        creds = load_credentials()
+        tenant_id = (creds or {}).get("user_info", {}).get("tenant", "")
+        base_url = get_api_base_url()
+        console_url = f"{base_url}/console/{tenant_id}?tab=apps" if tenant_id else ""
+
+        catalog = [
+            {"app_id": "gmail", "name": "Gmail", "category": "communication", "type": "oauth"},
+            {"app_id": "slack", "name": "Slack", "category": "communication", "type": "oauth"},
+            {"app_id": "microsoft_teams", "name": "Microsoft Teams", "category": "communication", "type": "oauth"},
+            {"app_id": "google_sheets", "name": "Google Sheets", "category": "data", "type": "oauth"},
+            {"app_id": "google_docs", "name": "Google Docs", "category": "data", "type": "oauth"},
+            {"app_id": "google_drive", "name": "Google Drive", "category": "data", "type": "oauth"},
+            {"app_id": "airtable", "name": "Airtable", "category": "data", "type": "oauth"},
+            {"app_id": "hubspot", "name": "HubSpot", "category": "crm", "type": "oauth"},
+            {"app_id": "salesforce", "name": "Salesforce", "category": "crm", "type": "oauth"},
+            {"app_id": "attio", "name": "Attio", "category": "crm", "type": "oauth"},
+            {"app_id": "instantly", "name": "Instantly", "category": "outreach", "type": "api_key"},
+            {"app_id": "linear", "name": "Linear", "category": "project", "type": "oauth"},
+            {"app_id": "notion", "name": "Notion", "category": "project", "type": "oauth"},
+            {"app_id": "clickup", "name": "ClickUp", "category": "project", "type": "oauth"},
+            {"app_id": "asana", "name": "Asana", "category": "project", "type": "oauth"},
+            {"app_id": "google_calendar", "name": "Google Calendar", "category": "calendar", "type": "oauth"},
+            {"app_id": "calendly", "name": "Calendly", "category": "calendar", "type": "oauth"},
+            {"app_id": "cal_com", "name": "Cal.com", "category": "calendar", "type": "oauth"},
+            {"app_id": "zoom", "name": "Zoom", "category": "meetings", "type": "oauth"},
+            {"app_id": "fireflies", "name": "Fireflies.ai", "category": "meetings", "type": "api_key"},
+            {"app_id": "posthog", "name": "PostHog", "category": "analytics", "type": "api_key"},
+        ]
+        return {
+            "apps": catalog,
+            "total": len(catalog),
+            "console_url": console_url,
+            "message": (
+                "These are all available apps. Use nrev_app_connect(app_id='...') to connect one, "
+                f"or manage them in the console: {console_url}"
+            ),
+        }
+
+    # Server returned the catalog — enrich with console URL
+    creds = load_credentials()
+    tenant_id = (creds or {}).get("user_info", {}).get("tenant", "")
+    base_url = get_api_base_url()
+    if tenant_id:
+        result["console_url"] = f"{base_url}/console/{tenant_id}?tab=apps"
+        result["message"] = (
+            "Use nrev_app_connect(app_id='...') to connect an app, "
+            f"or manage them in the console: {result['console_url']}"
+        )
+    return result
+
+
+def _handle_nrev_open_console(args: dict[str, Any]) -> dict[str, Any]:
+    """Open the nrev-lite console dashboard in the user's browser."""
+    import webbrowser
+
+    creds = load_credentials()
+    if creds is None:
+        return {
+            "error": "Not authenticated. Run `nrev-lite auth login` in your terminal first.",
+        }
+
+    tenant_id = (creds or {}).get("user_info", {}).get("tenant", "")
+    if not tenant_id:
+        return {"error": "No tenant ID found in credentials. Run `nrev-lite auth login` again."}
+
+    base_url = get_api_base_url()
+    tab = args.get("tab", "")
+    console_url = f"{base_url}/console/{tenant_id}"
+    if tab:
+        console_url += f"?tab={tab}"
+
+    tab_descriptions = {
+        "usage": "Credits & Billing",
+        "keys": "API Key Management (BYOK)",
+        "apps": "Connected Apps",
+        "runs": "Workflow Run History",
+        "datasets": "Persistent Datasets",
+        "dashboards": "Shared Dashboards",
+    }
+
+    try:
+        webbrowser.open(console_url)
+        tab_label = tab_descriptions.get(tab, "Dashboard")
+        return {
+            "status": "opened",
+            "url": console_url,
+            "tab": tab or "main",
+            "message": f"Opened {tab_label} in your browser: {console_url}",
+        }
+    except Exception as e:
+        return {
+            "status": "url_only",
+            "url": console_url,
+            "message": f"Could not open browser automatically. Open this URL: {console_url}",
+        }
+
+
 def _handle_nrev_health(args: dict[str, Any]) -> dict[str, Any]:
     """Quick health check — server reachable + auth valid."""
     creds = load_credentials()
@@ -1728,15 +1906,20 @@ def _handle_nrev_health(args: dict[str, Any]) -> dict[str, Any]:
             "error": "Not authenticated. Run `nrev-lite auth login` in your terminal.",
         }
 
+    tenant_id = (creds or {}).get("user_info", {}).get("tenant", "")
+    base_url = get_api_base_url()
+
     # Try to hit the credits endpoint as a lightweight auth check
     result = _api_request("GET", "/credits")
     if "error" in result:
         return {"status": "error", "error": result["error"]}
 
+    console_url = f"{base_url}/console/{tenant_id}" if tenant_id else ""
     return {
         "status": "ok",
-        "server": get_api_base_url(),
+        "server": base_url,
         "balance": result.get("balance"),
+        "console_url": console_url,
     }
 
 
@@ -1838,6 +2021,8 @@ def _handle_nrev_estimate_cost(arguments: dict) -> dict:
         "find_email": 1,          # Hunter email finder
         "verify_email": 1,        # ZeroBounce verification
         "domain_search": 1,       # Hunter domain search
+        "ai_research": 1,         # Perplexity/OpenAI research per query
+        "batch_extract": 1,       # Parallel Web batch extraction per URL
     }
 
     OP_PROVIDERS = {
@@ -1851,6 +2036,8 @@ def _handle_nrev_estimate_cost(arguments: dict) -> dict:
         "find_email": "hunter",
         "verify_email": "zerobounce",
         "domain_search": "hunter",
+        "ai_research": "perplexity",
+        "batch_extract": "parallel",
     }
 
     cost_per_op = OP_COSTS.get(operation, 1)
@@ -2119,6 +2306,8 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrev_app_execute": _handle_nrev_app_execute,
     "nrev_app_list": _handle_nrev_app_list,
     "nrev_app_connect": _handle_nrev_app_connect,
+    "nrev_app_catalog": _handle_nrev_app_catalog,
+    "nrev_open_console": _handle_nrev_open_console,
     "nrev_health": _handle_nrev_health,
     "nrev_new_workflow": _handle_nrev_new_workflow,
     "nrev_search_people": _handle_nrev_search_people,
@@ -2211,6 +2400,7 @@ def handle_jsonrpc_request(request: dict) -> dict | None:
                 "nrev_health", "nrev_provider_status", "nrev_credit_balance",
                 "nrev_new_workflow", "nrev_estimate_cost", "nrev_get_run_log",
                 "nrev_list_tables", "nrev_list_datasets", "nrev_app_list", "nrev_app_connect",
+                "nrev_app_catalog", "nrev_open_console",
                 "nrev_save_script", "nrev_list_scripts", "nrev_get_script",
                 "nrev_log_learning", "nrev_get_knowledge",
             ):

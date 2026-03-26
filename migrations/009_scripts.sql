@@ -22,8 +22,9 @@ CREATE TABLE IF NOT EXISTS scripts (
 
 -- RLS
 ALTER TABLE scripts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scripts FORCE ROW LEVEL SECURITY;
 CREATE POLICY scripts_tenant ON scripts
-    USING (tenant_id = current_setting('app.tenant_id'));
+    USING (tenant_id = current_setting('app.current_tenant', true));
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_scripts_tenant ON scripts(tenant_id);
