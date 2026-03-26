@@ -278,6 +278,29 @@ class NrvClient:
         return self._delete(f"/dashboards/{name}")
 
     # ------------------------------------------------------------------
+    # Apps (OAuth connections)
+    # ------------------------------------------------------------------
+
+    def app_list(self) -> dict:
+        """List all connected apps for this tenant."""
+        return self._get("/connections")
+
+    def app_available(self) -> dict:
+        """List all apps available for connection."""
+        return self._get("/connections/available")
+
+    def app_connect(self, app_id: str, redirect_uri: str | None = None) -> dict:
+        """Initiate OAuth connection for an app."""
+        body: dict[str, Any] = {"app_id": app_id}
+        if redirect_uri:
+            body["redirect_uri"] = redirect_uri
+        return self._request("POST", "/connections/initiate", json=body)
+
+    def app_disconnect(self, connection_id: str) -> dict:
+        """Disconnect an app."""
+        return self._delete(f"/connections/{connection_id}")
+
+    # ------------------------------------------------------------------
     # Auth (server-side endpoints)
     # ------------------------------------------------------------------
 

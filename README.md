@@ -57,8 +57,8 @@ migrations/      → PostgreSQL schema + RLS migrations
 | `nrev_list_tables` | List available tables |
 | `nrev_credit_balance` | Check credits |
 | `nrev_provider_status` | Provider availability |
-| `nrev_list_connections` | OAuth-connected apps |
-| `nrev_execute_action` | Execute actions on connected apps |
+| `nrev_app_list` | OAuth-connected apps |
+| `nrev_app_execute` | Execute actions on connected apps |
 
 ## Supported Providers
 

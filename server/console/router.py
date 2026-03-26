@@ -29,6 +29,15 @@ from server.vault.models import TenantKey
 
 logger = logging.getLogger(__name__)
 
+
+def _sanitize_composio_error(text: str, max_len: int = 200) -> str:
+    """Strip our Composio API key from error messages before returning to users."""
+    api_key = getattr(settings, "COMPOSIO_API_KEY", None)
+    if api_key and api_key in text:
+        text = text.replace(api_key, "[REDACTED]")
+    return text[:max_len]
+
+
 # ---------------------------------------------------------------------------
 # Integration catalog (mirrored from vault/connections.py for the UI)
 # ---------------------------------------------------------------------------
@@ -114,6 +123,9 @@ INTEGRATION_CATALOG = {
         "icon": "\u26a1",
         "description": "Cold email campaigns, warmup, lead management",
         "composio_app": "INSTANTLY",
+        "auth_type": "api_key",
+        "composio_integration_id": "529b516e-b1ba-4d6c-989c-8f0c94c2acbd",
+        "key_fields": [{"name": "generic_api_key", "label": "Instantly API Key", "description": "From Instantly → Settings → Integrations → API"}],
     },
     # smartlead: NOT on Composio — has its own MCP server (SSE at mcp.smartlead.ai)
     # --- Project Management ---
@@ -181,14 +193,11 @@ INTEGRATION_CATALOG = {
         "icon": "\U0001f3a4",
         "description": "Meeting transcription, summaries, and search",
         "composio_app": "FIREFLIES",
+        "auth_type": "api_key",
+        "composio_integration_id": "043ef73a-7076-4216-8856-31a75a4184b4",
+        "key_fields": [{"name": "api_key", "label": "Fireflies API Key", "description": "From Fireflies → Settings → Developer → API Key"}],
     },
-    "fathom": {
-        "name": "Fathom",
-        "category": "meetings",
-        "icon": "\U0001f4dd",
-        "description": "AI meeting assistant — records, transcribes, summarizes",
-        "composio_app": "FATHOM",
-    },
+    # fathom: removed — Composio has 0 actions for it, no usable integration
     # --- Analytics ---
     "posthog": {
         "name": "PostHog",
@@ -196,6 +205,12 @@ INTEGRATION_CATALOG = {
         "icon": "\U0001f994",
         "description": "Product analytics, feature flags, session replay",
         "composio_app": "POSTHOG",
+        "auth_type": "api_key",
+        "composio_integration_id": "a89e799e-d149-44f1-b959-e840957e829e",
+        "key_fields": [
+            {"name": "apiKey", "label": "PostHog API Key", "description": "From PostHog → Project Settings → API Key"},
+            {"name": "subdomain", "label": "PostHog Subdomain", "description": "e.g., 'us' for US Cloud, 'eu' for EU Cloud"},
+        ],
     },
 }
 
@@ -356,11 +371,15 @@ async def console_root(request: Request):
 async def tenant_dashboard(
     request: Request,
     tenant_id: str,
-    tab: str = Query("keys", pattern="^(keys|connections|usage|runs|datasets|dashboards|team)$"),
+    tab: str = Query("keys", pattern="^(keys|connections|apps|usage|runs|datasets|dashboards|team)$"),
     token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Serve the tenant console dashboard."""
+
+    # Normalize legacy tab name
+    if tab == "connections":
+        tab = "apps"
 
     try:
         tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=True)
@@ -502,7 +521,7 @@ async def tenant_dashboard(
                         resp = await client.get(
                             f"{COMPOSIO_V3}/connected_accounts",
                             headers={"x-api-key": composio_key},
-                            params={"entityId": check_eid},
+                            params={"entityId": check_eid, "limit": 100},
                         )
                         if resp.status_code != 200:
                             continue
@@ -555,6 +574,17 @@ async def tenant_dashboard(
                                         acct_email = entity_to_email.get("nrv-" + eid_variant[5:], "")
                                     if acct_email:
                                         break
+                            # Resolve account label from OAuth token if email unknown
+                            if not acct_email and s == "ACTIVE":
+                                data_field = item.get("data") or {}
+                                token = data_field.get("access_token", "")
+                                if token:
+                                    try:
+                                        acct_email = await _resolve_account_label(
+                                            client, toolkit_slug, token,
+                                        )
+                                    except Exception:
+                                        pass
                             connection_accounts.setdefault(catalog_key, []).append({
                                 "connection_id": acct_id,
                                 "email": acct_email,
@@ -579,6 +609,15 @@ async def tenant_dashboard(
         else:
             conn_status = "not_connected"
 
+        accounts = connection_accounts.get(app_id, [])
+        # Enrich API-key app accounts with vault key hint (includes label if set)
+        if info.get("auth_type") == "api_key":
+            vault_key = byok_providers.get(f"app_{app_id}")
+            if vault_key and vault_key.key_hint:
+                for acct in accounts:
+                    if not acct.get("email"):
+                        acct["email"] = vault_key.key_hint
+
         connections.append({
             "app_id": app_id,
             "name": info["name"],
@@ -588,7 +627,7 @@ async def tenant_dashboard(
             "status": conn_status,
             "total_calls": 0,
             "connected_by": connection_users.get(app_id, []),
-            "accounts": connection_accounts.get(app_id, []),
+            "accounts": accounts,
         })
         if conn_status == "active":
             conn_active += 1
@@ -1153,6 +1192,10 @@ function closeWindow() { window.close(); }
 
 class ConnectRequest(BaseModel):
     app_id: str
+    redirect_uri: str | None = None
+    api_key: str | None = None  # For API_KEY auth apps (instantly, fireflies, posthog)
+    extra_fields: dict[str, str] | None = None  # Additional fields (e.g., subdomain for PostHog)
+    label: str | None = None  # User-friendly alias, e.g. "Production workspace"
 
 
 class ActionExecuteRequest(BaseModel):
@@ -1173,6 +1216,7 @@ async def _get_auth_config_id(
     resp = await client.get(
         f"{COMPOSIO_V3}/auth_configs",
         headers={"x-api-key": composio_key},
+        params={"limit": 100},
     )
     if resp.status_code != 200:
         return None
@@ -1228,6 +1272,131 @@ async def initiate_connection(
             detail=f"Unknown app: '{body.app_id}'",
         )
 
+    # Determine auth type from catalog
+    auth_type = (catalog_entry or {}).get("auth_type", "oauth")
+    key_fields = (catalog_entry or {}).get("key_fields", [])
+
+    # --- API_KEY flow: user provides their key, we connect directly ---
+    if auth_type == "api_key":
+        if not body.api_key and not body.extra_fields:
+            # Return the required fields so caller knows what to ask for
+            return JSONResponse({
+                "status": "api_key_required",
+                "app_id": body.app_id,
+                "key_fields": key_fields,
+                "message": (
+                    f"{body.app_id} requires an API key to connect. "
+                    f"Provide your key via the 'api_key' field."
+                ),
+            })
+
+        # Build credentials dict from api_key + extra_fields
+        credentials: dict[str, str] = {}
+        if body.api_key and key_fields:
+            # Use the first key field name as the credential key
+            credentials[key_fields[0]["name"]] = body.api_key
+        if body.extra_fields:
+            credentials.update(body.extra_fields)
+
+        # Get the integration UUID for API_KEY apps (stored in catalog)
+        integration_id = (catalog_entry or {}).get("composio_integration_id", "")
+        if not integration_id:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"No integration ID configured for '{body.app_id}'. Contact support.",
+            )
+
+        try:
+            async with httpx.AsyncClient(timeout=20) as client:
+                # Create connected account via Composio SDK-compatible endpoint
+                # (v1/connectedAccounts with camelCase — the endpoint the SDK uses)
+                resp = await client.post(
+                    "https://backend.composio.dev/api/v1/connectedAccounts",
+                    headers={
+                        "x-api-key": composio_key,
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "integrationId": integration_id,
+                        "userUuid": entity_id,
+                        "data": credentials,
+                    },
+                )
+
+                if resp.status_code in (200, 201):
+                    data = resp.json()
+                    conn_id = data.get("connectedAccountId", data.get("id", ""))
+                    conn_status = data.get("connectionStatus", "ACTIVE")
+
+                    # Record user-connection mapping
+                    if current_user:
+                        try:
+                            from server.connections.models import UserConnection
+                            uc = UserConnection(
+                                tenant_id=tenant.id,
+                                user_id=current_user.id,
+                                user_email=current_user.email,
+                                app_id=body.app_id,
+                                composio_entity_id=entity_id,
+                                composio_account_id=conn_id,
+                                status="active",
+                            )
+                            db.add(uc)
+                            await db.commit()
+                        except Exception:
+                            await db.rollback()
+
+                    # Store API key in our vault for extra safety
+                    try:
+                        from server.vault.service import encrypt_key
+                        from server.vault.models import TenantKey
+                        vault_provider = f"app_{body.app_id}"
+                        encrypted = encrypt_key(body.api_key, tenant.id)
+                        existing = await db.execute(
+                            select(TenantKey).where(
+                                TenantKey.tenant_id == tenant.id,
+                                TenantKey.provider == vault_provider,
+                            )
+                        )
+                        hint = f"...{body.api_key[-4:]}" if body.api_key else ""
+                        if body.label:
+                            hint = f"{body.label} ({hint})"
+                        row = existing.scalar_one_or_none()
+                        if row:
+                            row.encrypted_key = encrypted
+                            row.key_hint = hint
+                        else:
+                            db.add(TenantKey(
+                                tenant_id=tenant.id,
+                                provider=vault_provider,
+                                encrypted_key=encrypted,
+                                key_hint=hint,
+                            ))
+                        await db.commit()
+                    except Exception:
+                        await db.rollback()
+
+                    return JSONResponse({
+                        "status": "connected",
+                        "connection_id": conn_id,
+                        "message": f"{body.app_id} connected successfully via API key.",
+                    })
+                else:
+                    err = resp.json().get("error", resp.text[:200])
+                    detail = err.get("message", str(err)[:200]) if isinstance(err, dict) else str(err)[:200]
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Failed to connect {body.app_id}: {_sanitize_composio_error(detail)}",
+                    )
+        except HTTPException:
+            raise
+        except httpx.HTTPError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Failed to reach Composio: {_sanitize_composio_error(str(exc))}",
+            ) from exc
+
+    # --- OAuth flow (default) ---
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             # Step 1: Get auth_config ID for this app
@@ -1247,6 +1416,9 @@ async def initiate_connection(
             )[0]
             oauth_callback = f"{server_base}/api/v1/connections/callback"
 
+            # Allow caller to override the redirect URL (e.g. for mobile or external flows)
+            final_redirect = body.redirect_uri if body.redirect_uri else oauth_callback
+
             # Step 2: Create connected account via v3
             resp = await client.post(
                 f"{COMPOSIO_V3}/connected_accounts",
@@ -1260,7 +1432,7 @@ async def initiate_connection(
                         "entityId": entity_id,
                     },
                     "auth_config": {"id": auth_config_id},
-                    "redirectUrl": oauth_callback,
+                    "redirectUrl": final_redirect,
                 },
             )
 
@@ -1334,12 +1506,12 @@ async def initiate_connection(
                 )
                 raise HTTPException(
                     status_code=resp.status_code,
-                    detail=f"Composio error: {resp.text[:200]}",
+                    detail=f"Composio error: {_sanitize_composio_error(resp.text)}",
                 )
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Failed to reach Composio: {exc}",
+            detail=f"Failed to reach Composio: {_sanitize_composio_error(str(exc))}",
         ) from exc
 
 
@@ -1368,6 +1540,109 @@ async def oauth_connection_callback(
         ))
 
 
+@router.get("/api/v1/connections/available")
+async def list_available_apps(
+    request: Request,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return available apps that can be connected via OAuth."""
+    tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=False)
+
+    # Get currently connected apps for this tenant
+    connected_app_ids = set()
+    try:
+        result = await list_connections(request, token=token, db=db)
+        if hasattr(result, 'body'):
+            import json as _json
+            data = _json.loads(result.body)
+            for conn in data.get("connections", []):
+                if (conn.get("status") or "").upper() == "ACTIVE":
+                    connected_app_ids.add(conn.get("app_id", ""))
+    except Exception:
+        pass
+
+    apps = []
+    for app_id, info in INTEGRATION_CATALOG.items():
+        entry = {
+            "app_id": app_id,
+            "name": info.get("name", app_id),
+            "category": info.get("category", ""),
+            "icon": info.get("icon", ""),
+            "description": info.get("description", ""),
+            "connected": app_id in connected_app_ids,
+            "auth_type": info.get("auth_type", "oauth"),
+        }
+        if info.get("key_fields"):
+            entry["key_fields"] = info["key_fields"]
+        apps.append(entry)
+
+    return JSONResponse({"apps": apps})
+
+
+async def _resolve_account_label(
+    client: httpx.AsyncClient, toolkit_slug: str, access_token: str,
+) -> str:
+    """Best-effort resolve a human-readable label for a connected account.
+
+    Uses the OAuth access token to call the provider's identity endpoint.
+    Returns e.g. "user@gmail.com" or "sayanta @ Nurturev" or empty string.
+    """
+    slug_lower = toolkit_slug.lower()
+
+    # Google apps: Gmail, Sheets, Docs, Calendar, Drive
+    if slug_lower in ("gmail", "googlesheets", "googledocs", "googlecalendar", "googledrive"):
+        resp = await client.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            info = resp.json()
+            return info.get("email", "")
+        return ""
+
+    # Slack
+    if slug_lower == "slack":
+        resp = await client.post(
+            "https://slack.com/api/auth.test",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            info = resp.json()
+            if info.get("ok"):
+                user = info.get("user", "")
+                team = info.get("team", "")
+                return f"{user} @ {team}" if team else user
+        return ""
+
+    # HubSpot
+    if slug_lower == "hubspot":
+        resp = await client.get(
+            "https://api.hubapi.com/oauth/v1/access-tokens/" + access_token,
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            info = resp.json()
+            return info.get("user", info.get("hub_domain", ""))
+        return ""
+
+    # Microsoft Teams
+    if slug_lower in ("microsoftteams", "microsoft_teams"):
+        resp = await client.get(
+            "https://graph.microsoft.com/v1.0/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            info = resp.json()
+            return info.get("mail", info.get("userPrincipalName", ""))
+        return ""
+
+    return ""
+
+
 @router.get("/api/v1/connections")
 async def list_connections(
     request: Request,
@@ -1384,6 +1659,7 @@ async def list_connections(
     # Collect all entity IDs to query (per-user + tenant + legacy)
     entity_to_email: dict[str, str] = {}
     entity_ids_to_check: set[str] = set()
+    user_connections: list = []
     try:
         from server.connections.models import UserConnection
         uc_result = await db.execute(
@@ -1421,7 +1697,7 @@ async def list_connections(
                     resp = await client.get(
                         f"{COMPOSIO_V3}/connected_accounts",
                         headers={"x-api-key": composio_key},
-                        params={"entityId": eid},
+                        params={"entityId": eid, "limit": 100},
                     )
                     if resp.status_code != 200:
                         continue
@@ -1445,6 +1721,33 @@ async def list_connections(
 
             connections = []
             seen: set[str] = set()  # dedup by composio account id
+            # Resolve account identities concurrently for active connections
+            identity_futures: dict[str, tuple[str, str]] = {}  # acct_id -> (toolkit, token)
+            for item in all_items:
+                acct_id = item.get("id", "")
+                if acct_id in seen:
+                    continue
+                s = (item.get("status") or "").upper()
+                if s in ("EXPIRED", "FAILED", "REVOKED"):
+                    seen.add(acct_id)
+                    continue
+                if s == "ACTIVE":
+                    data_field = item.get("data") or {}
+                    token = data_field.get("access_token", "")
+                    toolkit_slug = (item.get("toolkit") or {}).get("slug", "")
+                    if token:
+                        identity_futures[acct_id] = (toolkit_slug, token)
+
+            # Resolve identities (best-effort, don't block on failures)
+            account_labels: dict[str, str] = {}
+            for acct_id, (toolkit, token) in identity_futures.items():
+                try:
+                    label = await _resolve_account_label(client, toolkit, token)
+                    if label:
+                        account_labels[acct_id] = label
+                except Exception:
+                    pass
+
             for item in all_items:
                 acct_id = item.get("id", "")
                 if acct_id in seen:
@@ -1469,6 +1772,7 @@ async def list_connections(
                     "created_at": item.get("created_at", ""),
                     "connected_by": connected_by,
                     "entity_id": item_eid,
+                    "account_label": account_labels.get(acct_id, ""),
                 })
             return JSONResponse({"connections": connections})
     except httpx.HTTPError as exc:
@@ -1503,12 +1807,12 @@ async def delete_connection(
             else:
                 raise HTTPException(
                     status_code=resp.status_code,
-                    detail=f"Composio error: {resp.text[:200]}",
+                    detail=f"Composio error: {_sanitize_composio_error(resp.text)}",
                 )
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Failed to reach Composio: {exc}",
+            detail=f"Failed to reach Composio: {_sanitize_composio_error(str(exc))}",
         ) from exc
 
 
@@ -1565,7 +1869,7 @@ async def list_actions(
             if resp.status_code != 200:
                 raise HTTPException(
                     status_code=resp.status_code,
-                    detail=f"Composio error: {resp.text[:200]}",
+                    detail=f"Composio error: {_sanitize_composio_error(resp.text)}",
                 )
             items = resp.json().get("items", [])
             actions = [
@@ -1580,7 +1884,7 @@ async def list_actions(
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Failed to reach Composio: {exc}",
+            detail=f"Failed to reach Composio: {_sanitize_composio_error(str(exc))}",
         ) from exc
 
 
@@ -1620,7 +1924,7 @@ async def get_action_schema(
             if resp.status_code != 200:
                 raise HTTPException(
                     status_code=resp.status_code,
-                    detail=f"Composio error: {resp.text[:200]}",
+                    detail=f"Composio error: {_sanitize_composio_error(resp.text)}",
                 )
             data = resp.json()
             params = data.get("parameters", {})
@@ -1646,7 +1950,7 @@ async def get_action_schema(
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Failed to reach Composio: {exc}",
+            detail=f"Failed to reach Composio: {_sanitize_composio_error(str(exc))}",
         ) from exc
 
 
@@ -1796,7 +2100,7 @@ async def execute_action(
                         "data": data.get("data", {}),
                     }, status_code=422)
             else:
-                error_text = resp.text[:300]
+                error_text = _sanitize_composio_error(resp.text, max_len=300)
                 logger.warning(
                     "Composio action %s failed: %s %s",
                     body.action, resp.status_code, error_text,
@@ -1808,5 +2112,5 @@ async def execute_action(
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Failed to reach Composio: {exc}",
+            detail=f"Failed to reach Composio: {_sanitize_composio_error(str(exc))}",
         ) from exc

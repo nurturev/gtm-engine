@@ -58,9 +58,9 @@ _SKIP_PREFIXES = (
 # Map API paths to tool names when X-Tool-Name header is absent
 _PATH_TO_TOOL: dict[str, str] = {
     "/api/v1/execute": "nrev_execute",
-    "/api/v1/connections/execute": "nrev_execute_action",
-    "/api/v1/connections/actions": "nrev_list_actions",
-    "/api/v1/connections": "nrev_list_connections",
+    "/api/v1/connections/execute": "nrev_app_execute",
+    "/api/v1/connections/actions": "nrev_app_actions",
+    "/api/v1/connections": "nrev_app_list",
     "/api/v1/search/patterns": "nrev_search_patterns",
     "/api/v1/credits": "nrev_credit_balance",
     "/api/v1/keys": "nrev_provider_status",

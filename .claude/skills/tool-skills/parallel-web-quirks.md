@@ -325,4 +325,4 @@ Or: `Authorization: Bearer $PARALLEL_API_KEY`
 In nrev-lite, Parallel Web is accessed through:
 - `nrev_scrape_page` — wraps Extract API (provide URL + objective)
 - `nrev_search_web` — wraps Search API
-- For Task, FindAll, Monitor — use `nrev_execute_action` or direct API calls through the server proxy
+- For Task, FindAll, Monitor — use `nrev_app_execute` or direct API calls through the server proxy

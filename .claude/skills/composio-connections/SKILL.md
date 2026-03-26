@@ -33,7 +33,7 @@ When the user's request involves an external app:
 
 2. **Check for system MCP tools first.** Look for tools named `slack_send_message`, `clickup_create_task`, `gmail_*`, etc. in your available tools. If a system MCP tool exists for that app, **use it directly** — it's faster and already authenticated.
 
-3. **If no system MCP tool**, call `nrev_list_connections()`:
+3. **If no system MCP tool**, call `nrev_app_list()`:
    - If the app is **ACTIVE** → proceed to Level 2 (Action Discovery)
    - If the app is **not listed** → tell the user: "You don't have [app] connected yet. You can set it up in your nrev-lite dashboard → Apps tab (one click)."
    - **Dashboard:** `{server_url}/console/{tenant_id}?tab=apps`
@@ -47,13 +47,13 @@ When the user's request involves an external app:
 
 ### Step 1: List available actions
 ```
-nrev_list_actions(app_id="gmail")
+nrev_app_actions(app_id="gmail")
 → Returns: [{name: "GMAIL_SEND_EMAIL", display_name: "Send Email", description: "..."}, ...]
 ```
 
 ### Step 2: Get the EXACT parameter schema (NON-OPTIONAL)
 ```
-nrev_get_action_schema(action_name="GMAIL_SEND_EMAIL")
+nrev_app_action_schema(action_name="GMAIL_SEND_EMAIL")
 → Returns: {parameters: {recipient_email: {type: "string", required: true}, ...}}
 ```
 
@@ -61,7 +61,7 @@ nrev_get_action_schema(action_name="GMAIL_SEND_EMAIL")
 
 ### Common Actions Quick Reference
 
-These are **indicative names** to help you identify the right action from `nrev_list_actions` results. **Always call `nrev_list_actions` for real action names.**
+These are **indicative names** to help you identify the right action from `nrev_app_actions` results. **Always call `nrev_app_actions` for real action names.**
 
 | App | Common Actions (indicative) |
 |-----|---------------------------|
@@ -73,7 +73,6 @@ These are **indicative names** to help you identify the right action from `nrev_
 | cal_com | List bookings, Create booking, List event types, Get availability |
 | zoom | Create meeting, List meetings, Get recording, List webinars |
 | fireflies | Get transcripts, Upload audio, Add to live meeting, Delete transcript |
-| fathom | Get meeting notes, List recordings, Get transcript |
 | google_sheets | Read range, Write/update range, Create spreadsheet, Find spreadsheet |
 | google_docs | Create document, Insert text, Read document, Append text |
 | google_drive | List files, Upload file, Search files, Create folder |
@@ -94,13 +93,13 @@ These are **indicative names** to help you identify the right action from `nrev_
 
 ### Execute the action
 ```
-nrev_execute_action(app_id="gmail", action="GMAIL_SEND_EMAIL", params={...})
+nrev_app_execute(app_id="gmail", action="GMAIL_SEND_EMAIL", params={...})
 → Returns: {status: "success", data: {...}} or {status: "error", error: "..."}
 ```
 
 ### Known Parameter Gotchas
 
-These traps cause most failures. Always verify via `nrev_get_action_schema`, but be aware:
+These traps cause most failures. Always verify via `nrev_app_action_schema`, but be aware:
 
 **Google Docs:**
 - Use `text_to_insert`, NOT `text`
@@ -128,7 +127,7 @@ These traps cause most failures. Always verify via `nrev_get_action_schema`, but
 - Recurrence uses RRULE format — check schema for exact field name
 - "All day" events vs timed events may use different fields
 
-**General Rule:** When in doubt, call `nrev_get_action_schema`. The schema is always the source of truth.
+**General Rule:** When in doubt, call `nrev_app_action_schema`. The schema is always the source of truth.
 
 ### Response Handling
 
@@ -165,7 +164,6 @@ These traps cause most failures. Always verify via `nrev_get_action_schema`, but
 | cal_com | Cal.com | calendar |
 | zoom | Zoom | meetings |
 | fireflies | Fireflies.ai | meetings |
-| fathom | Fathom | meetings |
 | posthog | PostHog | analytics |
 
 ---
@@ -176,19 +174,19 @@ These traps cause most failures. Always verify via `nrev_get_action_schema`, but
 User says: "Send an email to jane@acme.com about the meeting"
 
 1. Intent: "email" → app_id: `gmail`
-2. No system Gmail MCP → `nrev_list_connections()` → gmail is ACTIVE
-3. `nrev_list_actions(app_id="gmail")` → finds GMAIL_SEND_EMAIL
-4. `nrev_get_action_schema(action_name="GMAIL_SEND_EMAIL")` → learns exact params
-5. `nrev_execute_action(app_id="gmail", action="GMAIL_SEND_EMAIL", params={recipient_email: "jane@acme.com", subject: "Meeting Follow-up", body: "..."})`
+2. No system Gmail MCP → `nrev_app_list()` → gmail is ACTIVE
+3. `nrev_app_actions(app_id="gmail")` → finds GMAIL_SEND_EMAIL
+4. `nrev_app_action_schema(action_name="GMAIL_SEND_EMAIL")` → learns exact params
+5. `nrev_app_execute(app_id="gmail", action="GMAIL_SEND_EMAIL", params={recipient_email: "jane@acme.com", subject: "Meeting Follow-up", body: "..."})`
 
 ### Example 2: Check today's calendar
 User says: "What's on my calendar today?"
 
 1. Intent: "calendar" → app_id: `google_calendar`
-2. No system Calendar MCP → `nrev_list_connections()` → google_calendar is ACTIVE
-3. `nrev_list_actions(app_id="google_calendar")` → finds event listing action
-4. `nrev_get_action_schema(action_name="GOOGLECALENDAR_FIND_EVENT")` → learns date params
-5. `nrev_execute_action(app_id="google_calendar", action="...", params={start_date: "2026-03-24", ...})`
+2. No system Calendar MCP → `nrev_app_list()` → google_calendar is ACTIVE
+3. `nrev_app_actions(app_id="google_calendar")` → finds event listing action
+4. `nrev_app_action_schema(action_name="GOOGLECALENDAR_FIND_EVENT")` → learns date params
+5. `nrev_app_execute(app_id="google_calendar", action="...", params={start_date: "2026-03-24", ...})`
 
 ### Example 3: System MCP routing
 User says: "Send this to the #sales channel on Slack"
@@ -214,4 +212,4 @@ User says: "Send this to the #sales channel on Slack"
 
 ## Key Principle
 
-The schema is the source of truth. When in doubt, call `nrev_get_action_schema`.
+The schema is the source of truth. When in doubt, call `nrev_app_action_schema`.

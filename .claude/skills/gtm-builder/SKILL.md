@@ -118,7 +118,7 @@ When no pattern exists:
 - **Search**: Run a broad query WITHOUT `site:` restriction. Just use the domain name as a keyword: `"producthunt.com GTM tool"` instead of `site:producthunt.com/posts GTM tool`
 - **Enrichment**: Try ONE record first, inspect what fields come back, check data quality before batch
 - **Scraping**: Fetch the page, analyze the content structure before building extraction logic
-- **Connected app**: Call `nrev_list_actions` + `nrev_get_action_schema` — NEVER guess param names
+- **Connected app**: Call `nrev_app_actions` + `nrev_app_action_schema` — NEVER guess param names
 
 ### Step 3: ANALYZE — Extract a reusable pattern from the response
 - **Search**: Group result URLs by path structure. Count occurrences. The most common content-page path = the `site:` prefix. Example: seeing `/products/clodo`, `/products/reavion` → `site:producthunt.com/products/`
@@ -177,7 +177,7 @@ Don't just log when you discover a new platform. Log whenever you find **any reu
 
 When the user's request involves an external app (email, calendar, CRM, tasks, etc.), consult the **Intent-to-App Mapping** in CLAUDE.md to identify the target app_id.
 
-The user may have two sets of tools for external apps: **system MCP tools** (connected directly to Claude Code, e.g., Slack MCP, ClickUp MCP) and **nrev-lite Composio MCP** (connected via nrev-lite's Composio integration — `nrev_list_connections`, `nrev_execute_action`).
+The user may have two sets of tools for external apps: **system MCP tools** (connected directly to Claude Code, e.g., Slack MCP, ClickUp MCP) and **nrev-lite Composio MCP** (connected via nrev-lite's Composio integration — `nrev_app_list`, `nrev_app_execute`).
 
 ### Decision tree:
 
@@ -185,7 +185,7 @@ The user may have two sets of tools for external apps: **system MCP tools** (con
 
 2. **For delivery/actions** (Slack messages, email, calendar, CRM updates):
    - **If a system MCP tool exists** for that app (e.g., `slack_send_message` is available): Use the system MCP tool directly — it's faster, already authenticated, and doesn't go through nrev-lite
-   - **If NO system MCP tool exists** for that app: Use nrev-lite's Composio connection. The 4-step flow is mandatory — do NOT shortcut it: `nrev_list_connections` → `nrev_list_actions` → `nrev_get_action_schema` → `nrev_execute_action`. If the app isn't connected on Composio either, tell the user: "I don't have a direct connection to [app]. You can set it up on your nrev-lite dashboard (Apps tab) — it's one click."
+   - **If NO system MCP tool exists** for that app: Use nrev-lite's Composio connection. The 4-step flow is mandatory — do NOT shortcut it: `nrev_app_list` → `nrev_app_actions` → `nrev_app_action_schema` → `nrev_app_execute`. If the app isn't connected on Composio either, tell the user: "I don't have a direct connection to [app]. You can set it up on your nrev-lite dashboard (Apps tab) — it's one click."
    - **Never ask the user to set up a system MCP** — that's technical. Guide them to nrev-lite's dashboard instead.
    - **Composio actions are free** — no credits charged. Always mention this in plans.
 
@@ -194,7 +194,7 @@ The user may have two sets of tools for external apps: **system MCP tools** (con
    - "I'll enrich via **nrev-lite** (10 credits) and push to HubSpot via **nrev-lite Composio** (free)"
    - "You don't have [app] connected. You can add it in your nrev-lite dashboard → Apps tab."
 
-4. **For status checks** ("what's connected?", "can I use Gmail?"): Call `nrev_list_connections()` to show the user their active integrations.
+4. **For status checks** ("what's connected?", "can I use Gmail?"): Call `nrev_app_list()` to show the user their active integrations.
 
 ## Reviewing Previous Results
 

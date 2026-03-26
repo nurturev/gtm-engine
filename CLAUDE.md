@@ -88,13 +88,14 @@ nrev-lite enrich person --email test@example.com
 | `nrev_delete_dataset` | Archive (soft-delete) a dataset |
 | `nrev_estimate_cost` | Estimate credit cost before executing (call before large batches) |
 | `nrev_get_run_log` | Read back workflow run logs with results and column metadata |
-| `nrev_deploy_app` | Deploy a static HTML/CSS/JS app backed by datasets |
+| `nrev_deploy_site` | Deploy a static HTML/CSS/JS site backed by datasets |
 | `nrev_credit_balance` | Check credit balance and spend |
 | `nrev_provider_status` | Check provider availability |
-| `nrev_list_connections` | List active OAuth connections |
-| `nrev_list_actions` | Discover available actions for a connected app |
-| `nrev_get_action_schema` | Get parameter schema for a specific action |
-| `nrev_execute_action` | Execute an action on a connected app |
+| `nrev_app_list` | List connected apps (Gmail, Slack, HubSpot, CRM, etc.) |
+| `nrev_app_connect` | Connect a new app via OAuth — returns URL for user to authorize in browser |
+| `nrev_app_actions` | Discover available actions for a connected app |
+| `nrev_app_action_schema` | Get parameter schema for a specific app action |
+| `nrev_app_execute` | Execute an action on a connected app (free, no credits) |
 | `nrev_save_script` | Save a parameterized workflow as a reusable script |
 | `nrev_list_scripts` | List all saved scripts |
 | `nrev_get_script` | Load a saved script by name/slug for inspection or execution |
@@ -157,7 +158,7 @@ nrev-lite has two types of external integrations. Understanding which to use is 
 | Scrape a website | **Data Providers** (parallel) |
 | Send cold email campaign | **Apps** (instantly, smartlead) |
 | Verify email deliverability | **Data Providers** (zerobounce) |
-| Summarize a meeting transcript | **Apps** (fireflies, fathom) |
+| Summarize a meeting transcript | **Apps** (fireflies) |
 | AI research on each row of data | **Data Providers** (perplexity, openai) |
 
 ## Apps (via Composio)
@@ -178,7 +179,6 @@ Tenants can OAuth-connect apps through the dashboard or CLI (`nrev-lite connect 
 | Cal.com, scheduling link | `cal_com` | calendar |
 | Zoom, video call, webinar, recording | `zoom` | meetings |
 | meeting notes, transcript, Fireflies | `fireflies` | meetings |
-| Fathom, meeting summary | `fathom` | meetings |
 | spreadsheet, Google Sheet, add row, update sheet | `google_sheets` | data |
 | document, Google Doc, write doc | `google_docs` | data |
 | Drive, upload file, Google Drive | `google_drive` | data |
@@ -198,23 +198,24 @@ Tenants can OAuth-connect apps through the dashboard or CLI (`nrev-lite connect 
 
 When the user's request matches any keyword above:
 1. **Check system MCP tools first** — look for tools like `slack_send_message`, `clickup_create_task`, etc. If available, use them directly (faster, already authenticated).
-2. **If no system MCP tool**, call `nrev_list_connections()` to check if the app is connected via Composio. If connected → proceed with the 4-step discovery flow below.
-3. **If not connected**, tell the user: "You don't have [app] connected yet. You can set it up in your nrev-lite dashboard → Apps tab (one click)."
+2. **If no system MCP tool**, call `nrev_app_list()` to check if the app is connected. If connected → proceed with the 5-step discovery flow below.
+3. **If not connected**, call `nrev_app_connect(app_id)` to initiate OAuth — show the returned URL to the user, wait for them to complete authorization, then call `nrev_app_list` to confirm.
 
 ### How to Execute Actions (Dynamic Discovery)
 
 **Do NOT hardcode action names or params.** Always discover dynamically:
 
-1. `nrev_list_connections` — check which apps are connected
-2. `nrev_list_actions(app_id)` — discover available actions for that app
-3. `nrev_get_action_schema(action_name)` — get exact parameter names, types, and required flags. **This is non-optional** — param names are NOT guessable (e.g. `text_to_insert` not `text`, `markdown_text` not `content`, `ranges` must be an array not a string)
-4. `nrev_execute_action(app_id, action, params)` — execute with the correct params
+1. `nrev_app_list` — check which apps are connected
+2. **If not connected**: `nrev_app_connect(app_id)` — returns an OAuth URL; show it to the user, wait for them to authorize, then call `nrev_app_list` again to confirm
+3. `nrev_app_actions(app_id)` — discover available actions for that app
+4. `nrev_app_action_schema(action_name)` — get exact parameter names, types, and required flags. **This is non-optional** — param names are NOT guessable (e.g. `text_to_insert` not `text`, `markdown_text` not `content`, `ranges` must be an array not a string)
+5. `nrev_app_execute(app_id, action, params)` — execute with the correct params
 
 ### Error Handling for Apps
 
-1. If `nrev_list_connections` shows no active connection → tell the user to connect via the dashboard Apps tab
+1. If `nrev_app_list` shows no active connection → use `nrev_app_connect` to set it up in-session
 2. If action returns `status: error` → check the `error` field for details
-3. If action returns `"Following fields are missing"` → you skipped `nrev_get_action_schema`. Go back and check exact param names.
+3. If action returns `"Following fields are missing"` → you skipped `nrev_app_action_schema`. Go back and check exact param names.
 4. Common failure: app connected but missing required OAuth scopes → user must reconnect
 5. If a **system MCP tool** exists for the same app (e.g., Slack MCP), prefer the system MCP — it's faster and already authenticated
 
@@ -336,21 +337,22 @@ Dashboards are server-rendered HTML from dataset data + widget config. No S3 dep
 - **Widgets**: `table` (data table), `metric` (count/sum/avg aggregation)
 - Token-based access: `read_token` generated on creation, shareable without auth
 
-### Hosted Apps
+### Hosted Sites
 
-Users build HTML/CSS/JS apps in Claude Code using datasets as DBs, then deploy to nrev-lite:
+Users build HTML/CSS/JS sites in Claude Code using datasets as their database, then deploy to nrev-lite:
 
-- **Deploy**: `nrev_deploy_app(name, files, dataset_ids)` MCP tool
-- **Serve**: `/apps/{app_token}/` — public URL, no auth for the shell
-- **CRUD**: App JS gets `window.NREV_LITE_APP_TOKEN` + `window.NREV_LITE_DATASETS_URL` injected for data access
-- **Scoped**: App tokens can only access their connected datasets
+- **Deploy**: `nrev_deploy_site(name, files, dataset_ids)` MCP tool
+- **Serve**: `/sites/{site_token}/` — public URL, no auth required
+- **CRUD**: Site JS gets `window.NRV_APP_TOKEN` + `window.NRV_DATASETS_URL` injected for data access
+- **Scoped**: Site tokens can only access their connected datasets
 
-### CLI Commands (19 command groups)
+### CLI Commands (20 command groups)
 
 | Command | What It Does |
 |---------|-------------|
 | `nrev-lite init` | One-command onboarding (auth + MCP registration) |
 | `nrev-lite auth` | Login, logout, status |
+| `nrev-lite apps` | List, connect, disconnect OAuth apps (Gmail, Slack, HubSpot, etc.) |
 | `nrev-lite status` | Account health check — auth, keys, credits, providers |
 | `nrev-lite enrich` | Person/company/batch enrichment with --dry-run |
 | `nrev-lite search` | People and company search |

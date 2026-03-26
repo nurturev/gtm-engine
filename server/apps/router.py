@@ -18,7 +18,7 @@ from server.core.config import settings
 from server.core.database import get_db, set_tenant_context
 from server.auth.flexible import get_tenant_flexible as _get_tenant_flexible
 
-router = APIRouter(prefix="/api/v1", tags=["apps"])
+router = APIRouter(prefix="/api/v1", tags=["sites"])
 
 
 # ---- Request models ----
@@ -32,7 +32,7 @@ class DeployAppRequest(BaseModel):
 
 # ---- Endpoints ----
 
-@router.post("/apps")
+@router.post("/sites")
 async def deploy_app(
     body: DeployAppRequest,
     request: Request,
@@ -61,7 +61,7 @@ async def deploy_app(
     return result
 
 
-@router.get("/apps")
+@router.get("/sites")
 async def list_apps(
     request: Request,
     token: Optional[str] = Query(None),
@@ -73,16 +73,16 @@ async def list_apps(
     return {"apps": apps, "total": len(apps)}
 
 
-@router.delete("/apps/{app_id}", status_code=204)
+@router.delete("/sites/{site_id}", status_code=204)
 async def delete_app(
-    app_id: str,
+    site_id: str,
     request: Request,
     token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Delete a hosted app."""
     tenant, db = await _get_tenant_flexible(request, token, db)
-    deleted = await svc.delete_app(db, tenant.id, app_id)
+    deleted = await svc.delete_app(db, tenant.id, site_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="App not found")
 

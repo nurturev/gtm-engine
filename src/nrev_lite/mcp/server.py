@@ -726,13 +726,13 @@ TOOLS: list[dict[str, Any]] = [
     },
     # ---- Connected Apps (Composio) ----
     {
-        "name": "nrev_list_actions",
+        "name": "nrev_app_actions",
         "description": (
             "Discover what actions are available for a connected app (e.g., send email, create "
             "calendar event, update CRM record, post message). Returns action names and descriptions. "
-            "Call after nrev_list_connections confirms the app is connected. **Required step** — "
+            "Call after nrev_app_list confirms the app is connected. **Required step** — "
             "never guess action names. "
-            "Workflow: nrev_list_connections → nrev_list_actions → nrev_get_action_schema → nrev_execute_action"
+            "Workflow: nrev_app_list → nrev_app_actions → nrev_app_action_schema → nrev_app_execute"
         ),
         "inputSchema": {
             "type": "object",
@@ -751,32 +751,32 @@ TOOLS: list[dict[str, Any]] = [
         },
     },
     {
-        "name": "nrev_get_action_schema",
+        "name": "nrev_app_action_schema",
         "description": (
             "Get the exact parameter schema for a specific action. Returns parameter names, "
             "types, descriptions, and which are required. **NEVER SKIP THIS STEP** — parameter "
             "names are not guessable (e.g., Google Docs uses 'text_to_insert' not 'text', "
-            "Sheets 'ranges' is an array not a string). Call after nrev_list_actions, "
-            "before nrev_execute_action."
+            "Sheets 'ranges' is an array not a string). Call after nrev_app_actions, "
+            "before nrev_app_execute."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
                 "action_name": {
                     "type": "string",
-                    "description": "Action name from nrev_list_actions (e.g. GMAIL_SEND_EMAIL).",
+                    "description": "Action name from nrev_app_actions (e.g. GMAIL_SEND_EMAIL).",
                 },
             },
             "required": ["action_name"],
         },
     },
     {
-        "name": "nrev_execute_action",
+        "name": "nrev_app_execute",
         "description": (
             "Execute an action on a connected app (send email, create calendar event, update "
             "CRM, post message, etc.). The tenant must have an active OAuth connection. "
-            "Requires: nrev_list_actions to find the action name, then nrev_get_action_schema "
-            "to get exact parameters. Composio actions are free (no credits charged)."
+            "Requires: nrev_app_actions to find the action name, then nrev_app_action_schema "
+            "to get exact parameters. App actions are free (no credits charged)."
         ),
         "inputSchema": {
             "type": "object",
@@ -787,30 +787,76 @@ TOOLS: list[dict[str, Any]] = [
                 },
                 "action": {
                     "type": "string",
-                    "description": "Action name from nrev_list_actions (e.g. GMAIL_SEND_EMAIL).",
+                    "description": "Action name from nrev_app_actions (e.g. GMAIL_SEND_EMAIL).",
                 },
                 "params": {
                     "type": "object",
-                    "description": "Action parameters from nrev_get_action_schema.",
+                    "description": "Action parameters from nrev_app_action_schema.",
                 },
             },
             "required": ["app_id", "action", "params"],
         },
     },
     {
-        "name": "nrev_list_connections",
+        "name": "nrev_app_list",
         "description": (
-            "List all active OAuth connections for the current tenant. "
+            "List all connected apps for the current tenant (Gmail, Slack, HubSpot, etc.). "
             "**Call this when the user mentions email, calendar, CRM, tasks, spreadsheets, "
             "documents, or any external app** — it tells you which apps are connected and "
-            "ready to use via Composio. Also call before nrev_execute_action to verify "
-            "the app is connected. If a system MCP tool exists for the same app "
-            "(e.g., slack_send_message), prefer the system MCP."
+            "ready to use. Also call before nrev_app_execute to verify "
+            "the app is connected. If an app is NOT connected, use nrev_app_connect to "
+            "set it up without leaving Claude Code. If a system MCP tool exists for the "
+            "same app (e.g., slack_send_message), prefer the system MCP."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {},
             "required": [],
+        },
+    },
+    {
+        "name": "nrev_app_connect",
+        "description": (
+            "Connect a new app from within Claude Code. For OAuth apps (Gmail, Slack, etc.), "
+            "returns an OAuth URL — show it to the user to authorize in their browser. "
+            "For API key apps (Instantly, Fireflies, PostHog), first call without api_key "
+            "to learn the required fields, then ask the user for their key and call again "
+            "with the api_key parameter. NEVER log or display API keys. "
+            "After connecting, call nrev_app_list to confirm."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "app_id": {
+                    "type": "string",
+                    "description": (
+                        "App key to connect: gmail, slack, microsoft_teams, google_sheets, "
+                        "google_docs, google_drive, airtable, hubspot, salesforce, attio, "
+                        "linear, notion, clickup, asana, google_calendar, calendly, cal_com, "
+                        "zoom, fireflies, instantly, posthog"
+                    ),
+                },
+                "api_key": {
+                    "type": "string",
+                    "description": (
+                        "API key for the app (only for API key apps like instantly, fireflies, posthog). "
+                        "Get this from the user — NEVER guess or fabricate keys."
+                    ),
+                },
+                "extra_fields": {
+                    "type": "object",
+                    "description": "Additional fields if required (e.g., subdomain for PostHog).",
+                },
+                "label": {
+                    "type": "string",
+                    "description": (
+                        "User-friendly label for this connection (e.g., 'Production workspace', "
+                        "'Nikhil Instantly account'). Ask the user for a label when connecting "
+                        "API key apps so they can identify the key later."
+                    ),
+                },
+            },
+            "required": ["app_id"],
         },
     },
     {
@@ -956,10 +1002,10 @@ TOOLS: list[dict[str, Any]] = [
         },
     },
     {
-        "name": "nrev_deploy_app",
+        "name": "nrev_deploy_site",
         "description": (
-            "Deploy a static HTML/CSS/JS app hosted on nrev-lite, backed by persistent datasets. "
-            "The app is served on a public URL and can CRUD its connected datasets "
+            "Deploy a static HTML/CSS/JS site hosted on nrev-lite, backed by persistent datasets. "
+            "The site is served on a public URL and can CRUD its connected datasets "
             "using the auto-injected window.NRV_APP_TOKEN and window.NRV_DATASETS_URL. "
             "Pass all files as a dict of {path: content}. The entry_point HTML file "
             "gets NRV context variables injected automatically."
@@ -969,7 +1015,7 @@ TOOLS: list[dict[str, Any]] = [
             "properties": {
                 "name": {
                     "type": "string",
-                    "description": "App name (used to generate the slug)",
+                    "description": "Site name (used to generate the slug)",
                 },
                 "files": {
                     "type": "object",
@@ -1554,21 +1600,21 @@ def _handle_nrev_search_patterns(args: dict[str, Any]) -> dict[str, Any]:
     return _api_request("GET", "/search/patterns", params=params or None)
 
 
-def _handle_nrev_list_actions(args: dict[str, Any]) -> dict[str, Any]:
+def _handle_nrev_app_actions(args: dict[str, Any]) -> dict[str, Any]:
     app_id = args.get("app_id", "")
     if not app_id:
         return {"error": "Parameter 'app_id' is required (e.g. 'gmail', 'google_sheets')."}
     return _api_request("GET", "/connections/actions", params={"app_id": app_id})
 
 
-def _handle_nrev_get_action_schema(args: dict[str, Any]) -> dict[str, Any]:
+def _handle_nrev_app_action_schema(args: dict[str, Any]) -> dict[str, Any]:
     action_name = args.get("action_name", "")
     if not action_name:
         return {"error": "Parameter 'action_name' is required (e.g. 'GMAIL_SEND_EMAIL')."}
     return _api_request("GET", f"/connections/actions/{action_name}/schema")
 
 
-def _handle_nrev_execute_action(args: dict[str, Any]) -> dict[str, Any]:
+def _handle_nrev_app_execute(args: dict[str, Any]) -> dict[str, Any]:
     app_id = args.get("app_id", "")
     action = args.get("action", "")
     params = args.get("params", {})
@@ -1585,7 +1631,7 @@ def _handle_nrev_execute_action(args: dict[str, Any]) -> dict[str, Any]:
     }, timeout=90)
 
 
-def _handle_nrev_list_connections(args: dict[str, Any]) -> dict[str, Any]:
+def _handle_nrev_app_list(args: dict[str, Any]) -> dict[str, Any]:
     result = _api_request("GET", "/connections")
     if "error" in result:
         return result
@@ -1596,9 +1642,81 @@ def _handle_nrev_list_connections(args: dict[str, Any]) -> dict[str, Any]:
     if not active:
         return {
             "connections": [],
-            "message": "No active connections. Ask the user to connect apps at the nrev-lite dashboard.",
+            "message": (
+                "No apps connected yet. Use nrev_app_connect to set up an app "
+                "(e.g., nrev_app_connect with app_id='gmail'), or run "
+                "'nrev-lite apps available' in the terminal to see all options."
+            ),
         }
     return {"connections": active}
+
+
+def _handle_nrev_app_connect(args: dict[str, Any]) -> dict[str, Any]:
+    """Initiate a connection for an app from within Claude Code.
+
+    For OAuth apps: returns a URL for the user to authorize in their browser.
+    For API key apps: pass the user's api_key to connect directly.
+    """
+    app_id = args.get("app_id", "").strip().lower()
+    if not app_id:
+        return {"error": "Parameter 'app_id' is required (e.g. 'gmail', 'hubspot', 'slack')."}
+
+    api_key = args.get("api_key", "")
+    extra_fields = args.get("extra_fields", {})
+    label = args.get("label", "")
+
+    body: dict[str, Any] = {"app_id": app_id}
+    if api_key:
+        body["api_key"] = api_key
+    if extra_fields:
+        body["extra_fields"] = extra_fields
+    if label:
+        body["label"] = label
+
+    result = _api_request("POST", "/connections/initiate", json_body=body)
+
+    if "error" in result:
+        return result
+
+    # API key required — tell Claude to ask user for the key
+    if result.get("status") == "api_key_required":
+        fields = result.get("key_fields", [])
+        field_desc = ", ".join(f['label'] for f in fields) if fields else "API key"
+        return {
+            "status": "api_key_required",
+            "app_id": app_id,
+            "key_fields": fields,
+            "message": (
+                f"{app_id} requires an API key to connect. "
+                f"Ask the user for their {field_desc}, then call nrev_app_connect "
+                f"again with the api_key parameter. "
+                f"NEVER log or display the key — pass it directly."
+            ),
+        }
+
+    if result.get("status") == "redirect":
+        oauth_url = result.get("redirect_url", "")
+        return {
+            "status": "oauth_required",
+            "app_id": app_id,
+            "oauth_url": oauth_url,
+            "connection_id": result.get("connection_id", ""),
+            "message": (
+                f"To connect {app_id}, the user needs to authorize via OAuth. "
+                f"Show them this URL and ask them to open it in their browser:\n\n"
+                f"  {oauth_url}\n\n"
+                f"After they complete authorization, call nrev_app_list to confirm "
+                f"the connection is active."
+            ),
+        }
+    elif result.get("status") == "connected":
+        return {
+            "status": "connected",
+            "app_id": app_id,
+            "message": f"{app_id} is now connected and ready to use.",
+        }
+
+    return result
 
 
 def _handle_nrev_health(args: dict[str, Any]) -> dict[str, Any]:
@@ -1869,14 +1987,14 @@ def _auto_generate_label(tool_name: str, args: dict) -> str:
     if tool_name == "nrev_scrape_page":
         url = args.get("url") or (args["urls"][0] if isinstance(args.get("urls"), list) and args["urls"] else "")
         return f"Scrape: {url}"[:50] if url else "Web Scrape"
-    if tool_name == "nrev_execute_action":
+    if tool_name == "nrev_app_execute":
         return f"{args.get('app_id', '')}: {args.get('action', '')}"[:50]
     return tool_name.replace("nrev_", "").replace("_", " ").title()[:50]
 
 
 
-def _handle_nrev_deploy_app(arguments: dict) -> dict:
-    """Deploy a static app to nrev-lite hosting."""
+def _handle_nrev_deploy_site(arguments: dict) -> dict:
+    """Deploy a static site to nrev-lite hosting."""
     name = arguments.get("name", "")
     files = arguments.get("files", {})
     dataset_ids = arguments.get("dataset_ids", [])
@@ -1897,7 +2015,7 @@ def _handle_nrev_deploy_app(arguments: dict) -> dict:
         "dataset_ids": dataset_ids,
         "entry_point": entry_point,
     }
-    return _api_request("POST", "/apps", json=body)
+    return _api_request("POST", "/sites", json=body)
 
 
 def _handle_nrev_save_script(args: dict[str, Any]) -> dict[str, Any]:
@@ -1996,16 +2114,17 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrev_credit_balance": _handle_nrev_credit_balance,
     "nrev_provider_status": _handle_nrev_provider_status,
     "nrev_search_patterns": _handle_nrev_search_patterns,
-    "nrev_list_actions": _handle_nrev_list_actions,
-    "nrev_get_action_schema": _handle_nrev_get_action_schema,
-    "nrev_execute_action": _handle_nrev_execute_action,
-    "nrev_list_connections": _handle_nrev_list_connections,
+    "nrev_app_actions": _handle_nrev_app_actions,
+    "nrev_app_action_schema": _handle_nrev_app_action_schema,
+    "nrev_app_execute": _handle_nrev_app_execute,
+    "nrev_app_list": _handle_nrev_app_list,
+    "nrev_app_connect": _handle_nrev_app_connect,
     "nrev_health": _handle_nrev_health,
     "nrev_new_workflow": _handle_nrev_new_workflow,
     "nrev_search_people": _handle_nrev_search_people,
     "nrev_estimate_cost": _handle_nrev_estimate_cost,
     "nrev_get_run_log": _handle_nrev_get_run_log,
-    "nrev_deploy_app": _handle_nrev_deploy_app,
+    "nrev_deploy_site": _handle_nrev_deploy_site,
     "nrev_save_script": _handle_nrev_save_script,
     "nrev_list_scripts": _handle_nrev_list_scripts,
     "nrev_get_script": _handle_nrev_get_script,
@@ -2091,7 +2210,7 @@ def handle_jsonrpc_request(request: dict) -> dict | None:
             if not WORKFLOW_LABEL and tool_name not in (
                 "nrev_health", "nrev_provider_status", "nrev_credit_balance",
                 "nrev_new_workflow", "nrev_estimate_cost", "nrev_get_run_log",
-                "nrev_list_tables", "nrev_list_datasets", "nrev_list_connections",
+                "nrev_list_tables", "nrev_list_datasets", "nrev_app_list", "nrev_app_connect",
                 "nrev_save_script", "nrev_list_scripts", "nrev_get_script",
                 "nrev_log_learning", "nrev_get_knowledge",
             ):

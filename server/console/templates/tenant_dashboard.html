@@ -232,7 +232,7 @@
                 Data Providers
                 <span class="tab-badge">{{ (summary.using_my_keys|default(0)) + (summary.using_platform|default(0)) }}</span>
             </a>
-            <a href="/console/{{ tenant_id }}?tab=connections" class="tab {% if active_tab == 'connections' %}active{% endif %}">
+            <a href="/console/{{ tenant_id }}?tab=apps" class="tab {% if active_tab == 'apps' %}active{% endif %}">
                 Apps
                 <span class="tab-badge">{{ conn_summary.active|default(0) }}</span>
             </a>
@@ -357,7 +357,7 @@
         <!-- ============================================ -->
         <!-- TAB: Apps                                    -->
         <!-- ============================================ -->
-        <div class="tab-content {% if active_tab == 'connections' %}active{% endif %}" id="tab-connections">
+        <div class="tab-content {% if active_tab == 'apps' %}active{% endif %}" id="tab-apps">
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="label">Connected</div>
@@ -383,12 +383,12 @@
 
             <!-- Category Filters -->
             <div class="filter-row">
-                <button class="filter-btn active" onclick="filterConnections('all')">All</button>
-                <button class="filter-btn" onclick="filterConnections('communication')">Communication</button>
-                <button class="filter-btn" onclick="filterConnections('data')">Data &amp; Sheets</button>
-                <button class="filter-btn" onclick="filterConnections('crm')">CRM</button>
-                <button class="filter-btn" onclick="filterConnections('project')">Project Mgmt</button>
-                <button class="filter-btn" onclick="filterConnections('calendar')">Calendar</button>
+                <button class="filter-btn active" onclick="filterApps('all')">All</button>
+                <button class="filter-btn" onclick="filterApps('communication')">Communication</button>
+                <button class="filter-btn" onclick="filterApps('data')">Data &amp; Sheets</button>
+                <button class="filter-btn" onclick="filterApps('crm')">CRM</button>
+                <button class="filter-btn" onclick="filterApps('project')">Project Mgmt</button>
+                <button class="filter-btn" onclick="filterApps('calendar')">Calendar</button>
             </div>
 
             <div class="conn-grid">
@@ -1256,10 +1256,10 @@
 
         // ---- Connections ----
 
-        const APP_CONNECTIONS = {{ connections | tojson }};
+        const CONNECTED_APPS = {{ connections | tojson }};
         let _drawerAppId = null;
 
-        function filterConnections(category) {
+        function filterApps(category) {
             const cards = document.querySelectorAll('.conn-card');
             const btns = document.querySelectorAll('.filter-btn');
             btns.forEach(b => b.classList.remove('active'));
@@ -1274,7 +1274,7 @@
         }
 
         function openDrawer(appId) {
-            const app = APP_CONNECTIONS.find(c => c.app_id === appId);
+            const app = CONNECTED_APPS.find(c => c.app_id === appId);
             if (!app) return;
             _drawerAppId = appId;
 
@@ -1347,7 +1347,7 @@
                 if (resp.ok || resp.status === 204) {
                     showToast(email + ' disconnected', 'success');
                     // Update local data
-                    const app = APP_CONNECTIONS.find(c => c.app_id === appId);
+                    const app = CONNECTED_APPS.find(c => c.app_id === appId);
                     if (app) {
                         app.accounts = (app.accounts || []).filter(a => a.connection_id !== connectionId);
                         _renderDrawerAccounts(app);
@@ -1365,15 +1365,25 @@
             }
         }
 
-        async function connectApp(appId) {
+        async function connectApp(appId, apiKey, extraFields, label) {
             try {
+                var body = { app_id: appId };
+                if (apiKey) body.api_key = apiKey;
+                if (extraFields) body.extra_fields = extraFields;
+                if (label) body.label = label;
+
                 const resp = await fetch('/api/v1/connections/initiate', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ app_id: appId }),
+                    body: JSON.stringify(body),
                 });
                 const data = await resp.json();
                 if (resp.ok) {
+                    // API key required — show input modal
+                    if (data.status === 'api_key_required') {
+                        showApiKeyModal(appId, data.key_fields || []);
+                        return;
+                    }
                     if (data.redirect_url) {
                         showToast('Opening ' + appId + ' authorization...', 'success');
                         var connId = data.connection_id;
@@ -1425,8 +1435,67 @@
             }
         }
 
+        function showApiKeyModal(appId, keyFields) {
+            // Remove existing modal if any
+            var existing = document.getElementById('apiKeyModal');
+            if (existing) existing.remove();
+
+            var labelHtml = '<div style="margin-bottom:12px;">' +
+                '<label style="display:block;font-size:12px;color:#9ca3af;margin-bottom:4px;">Label (optional)</label>' +
+                '<input id="akf_label" type="text" placeholder="e.g. Production workspace, My Instantly account" ' +
+                'style="width:100%;padding:10px 12px;background:#0f0f17;border:1px solid #1e1e2e;border-radius:8px;color:#e0e0e6;font-size:14px;outline:none;" ' +
+                'onfocus="this.style.borderColor=\'#818cf8\'" onblur="this.style.borderColor=\'#1e1e2e\'" />' +
+                '<div style="font-size:11px;color:#4b5563;margin-top:3px;">A friendly name to identify this key later</div>' +
+                '</div>';
+
+            var fieldsHtml = keyFields.map(function(f, i) {
+                return '<div style="margin-bottom:12px;">' +
+                    '<label style="display:block;font-size:12px;color:#9ca3af;margin-bottom:4px;">' + f.label + '</label>' +
+                    '<input id="akf_' + i + '" type="password" data-field="' + f.name + '" placeholder="' + (f.description || f.label) + '" ' +
+                    'style="width:100%;padding:10px 12px;background:#0f0f17;border:1px solid #1e1e2e;border-radius:8px;color:#e0e0e6;font-size:14px;outline:none;" ' +
+                    'onfocus="this.style.borderColor=\'#818cf8\'" onblur="this.style.borderColor=\'#1e1e2e\'" />' +
+                    '<div style="font-size:11px;color:#4b5563;margin-top:3px;">' + (f.description || '') + '</div>' +
+                    '</div>';
+            }).join('');
+
+            var modal = document.createElement('div');
+            modal.id = 'apiKeyModal';
+            modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);';
+            modal.innerHTML =
+                '<div style="background:#13131d;border:1px solid #1e1e2e;border-radius:16px;padding:28px;max-width:440px;width:90%;">' +
+                '<h3 style="margin:0 0 4px;font-size:18px;color:#fff;">Connect ' + appId + '</h3>' +
+                '<p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Enter your API key to connect this app. Your key is encrypted and stored securely.</p>' +
+                fieldsHtml +
+                labelHtml +
+                '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">' +
+                '<button onclick="document.getElementById(\'apiKeyModal\').remove()" style="padding:8px 18px;background:#1e1e2e;border:none;border-radius:8px;color:#9ca3af;cursor:pointer;font-size:13px;">Cancel</button>' +
+                '<button id="akSubmitBtn" style="padding:8px 18px;background:#818cf8;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:13px;font-weight:500;">Connect</button>' +
+                '</div></div>';
+            document.body.appendChild(modal);
+
+            // Close on backdrop click
+            modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+
+            document.getElementById('akSubmitBtn').onclick = async function() {
+                var inputs = modal.querySelectorAll('input[data-field]');
+                var apiKey = '';
+                var extras = {};
+                inputs.forEach(function(inp, i) {
+                    if (i === 0) apiKey = inp.value.trim();
+                    else extras[inp.getAttribute('data-field')] = inp.value.trim();
+                });
+                if (!apiKey) {
+                    showToast('Please enter your API key', 'error');
+                    return;
+                }
+                var label = (document.getElementById('akf_label').value || '').trim() || undefined;
+                modal.remove();
+                await connectApp(appId, apiKey, Object.keys(extras).length ? extras : undefined, label);
+            };
+        }
+
         async function disconnectApp(appId, appName) {
-            const app = APP_CONNECTIONS.find(c => c.app_id === appId);
+            const app = CONNECTED_APPS.find(c => c.app_id === appId);
             if (app && app.accounts && app.accounts.length > 1) {
                 openDrawer(appId);
                 return;

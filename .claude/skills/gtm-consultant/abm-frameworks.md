@@ -52,9 +52,9 @@
 - Map the buying committee: Champion, Economic Buyer, Technical Evaluator, End Users
 
 **Engagement orchestration:**
-- `nrev_execute_action` to push contacts to CRM (HubSpot/Salesforce)
-- `nrev_execute_action` to send personalized messages via Slack/Gmail
-- `nrev_execute_action` to log activities in project management tools
+- `nrev_app_execute` to push contacts to CRM (HubSpot/Salesforce)
+- `nrev_app_execute` to send personalized messages via Slack/Gmail
+- `nrev_app_execute` to log activities in project management tools
 
 ## TOPO's Account-Based Everything (ABE)
 Coordination of personalized marketing, sales development, sales, and CS to drive engagement with targeted accounts.

@@ -629,10 +629,10 @@ Each enrichment provider needs its own API key if you want to offer platform-man
 | `nrev_list_tables` | List available tables |
 | `nrev_credit_balance` | Check credit balance |
 | `nrev_provider_status` | Check provider availability |
-| `nrev_list_connections` | List OAuth-connected apps |
-| `nrev_list_actions` | Discover actions for a connected app |
-| `nrev_get_action_schema` | Get parameter schema for an action |
-| `nrev_execute_action` | Execute an action on a connected app |
+| `nrev_app_list` | List OAuth-connected apps |
+| `nrev_app_actions` | Discover actions for a connected app |
+| `nrev_app_action_schema` | Get parameter schema for an action |
+| `nrev_app_execute` | Execute an action on a connected app |
 
 ---
 
