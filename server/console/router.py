@@ -1208,10 +1208,15 @@ class ActionExecuteRequest(BaseModel):
 async def _get_auth_config_id(
     client: httpx.AsyncClient, composio_key: str, app_name: str,
 ) -> str | None:
-    """Look up the Composio-managed auth_config ID for an app.
+    """Look up the best auth_config ID for an app.
 
     Composio v3 /auth_configs doesn't reliably filter by appName, so we
     fetch all configs and match by toolkit.slug (lowercase app identifier).
+
+    Priority order:
+    1. User-created (non-managed) configs — if the user created their own
+       auth config, they did so intentionally (e.g., to fix broken scopes).
+    2. Most recently created Composio-managed config as fallback.
     """
     resp = await client.get(
         f"{COMPOSIO_V3}/auth_configs",
@@ -1226,12 +1231,19 @@ async def _get_auth_config_id(
     matched = [
         item for item in items
         if (item.get("toolkit") or {}).get("slug", "").lower() == slug
+        and item.get("status", "").upper() == "ENABLED"
     ]
-    # Prefer Composio-managed configs among matches
-    for item in matched:
-        if item.get("is_composio_managed"):
-            return item["id"]
-    return matched[0]["id"] if matched else None
+    if not matched:
+        return None
+    # Prefer user-created configs over Composio-managed ones
+    user_created = [item for item in matched if not item.get("is_composio_managed")]
+    if user_created:
+        # Most recently created user config wins
+        user_created.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return user_created[0]["id"]
+    # Fall back to most recently created managed config
+    matched.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+    return matched[0]["id"]
 
 
 @router.post("/api/v1/connections/initiate")
