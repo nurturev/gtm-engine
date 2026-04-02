@@ -74,6 +74,19 @@ def print_credits(balance: float, used: float | None = None) -> None:
         console.print(f"Credits used:   [dim]{used:,.2f}[/dim]")
 
 
+def warn_low_balance(result: dict) -> None:
+    """Warn the user if their credit balance is below 1000."""
+    balance = result.get("balance_remaining")
+    if balance is not None and balance < 1000:
+        if balance < 100:
+            print_warning(
+                f"Low credit balance: {balance:,.1f} credits remaining. "
+                "Top up soon to avoid interruptions."
+            )
+        else:
+            print_warning(f"Credit balance: {balance:,.1f} credits remaining.")
+
+
 @contextmanager
 def spinner(message: str = "Working...") -> Generator[None, None, None]:
     """Context manager that shows a loading spinner."""

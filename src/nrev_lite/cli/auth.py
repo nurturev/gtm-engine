@@ -58,7 +58,10 @@ def _make_handler(result: _OAuthCallbackResult):
                 return
 
             if "error" in params:
-                result.error = params["error"][0]
+                raw_error = params["error"][0]
+                # URL-decode in case the server encoded the message
+                from urllib.parse import unquote
+                result.error = unquote(raw_error)
                 self._respond("Authentication failed. You can close this tab.")
                 result.received.set()
                 return

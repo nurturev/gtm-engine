@@ -20,7 +20,8 @@ def _require_auth() -> None:
 
 @click.command("query")
 @click.argument("sql")
-def query(sql: str) -> None:
+@click.option("--json-output", "-j", "json_out", is_flag=True, help="Output raw JSON instead of table.")
+def query(sql: str, json_out: bool) -> None:
     """Execute a SQL query and display results.
 
     Example: nrev-lite query "SELECT * FROM contacts LIMIT 10"
@@ -34,6 +35,10 @@ def query(sql: str) -> None:
     except NrvApiError as exc:
         print_error(f"Query failed: {exc.message}")
         sys.exit(1)
+
+    if json_out:
+        print_json(result)
+        return
 
     columns = result.get("columns", [])
     rows = result.get("rows", [])
