@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
 import time
@@ -12,9 +13,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.auth.dependencies import get_current_tenant, require_credits
-from server.auth.models import Tenant
+from server.auth.dependencies import TenantRef, get_tenant_from_token, require_credits
 from server.billing.service import check_and_hold, confirm_debit, release_hold
+from server.core.config import settings
 from server.core.database import get_db
 from server.core.exceptions import ProviderError
 from server.execution.schemas import (
@@ -68,7 +69,7 @@ _batches: dict[str, dict[str, Any]] = {}
 async def execute_operation(
     request: Request,
     body: ExecuteRequest,
-    tenant: Tenant = Depends(get_current_tenant),
+    tenant: TenantRef = Depends(get_tenant_from_token),
     db: AsyncSession = Depends(get_db),
 ) -> ExecuteResponse:
     """Execute a single enrichment or search operation.
@@ -84,18 +85,20 @@ async def execute_operation(
 
     # Dynamic cost based on operation + params (per_page, batch size, etc.)
     estimated_cost = calculate_cost(body.operation, body.params)
+    use_platform_credits = bool(settings.PLATFORM_CREDIT_SERVICE_URL)
 
-    # Step 1: Hold credits (hold the estimated cost upfront)
+    # Step 1: Hold credits (local mode) or rely on require_credits pre-check (platform mode)
     workflow_id = request.headers.get("X-Workflow-Id") or getattr(request.state, "workflow_id", None)
     user_id = getattr(request.state, "user_id", None)
     hold_id: int | None = None
-    try:
-        hold_id = await check_and_hold(db, tenant.id, estimated_cost, body.operation, workflow_id=workflow_id, user_id=user_id)
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail=str(exc),
-        ) from exc
+    if not use_platform_credits:
+        try:
+            hold_id = await check_and_hold(db, tenant.id, estimated_cost, body.operation, workflow_id=workflow_id, user_id=user_id)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=str(exc),
+            ) from exc
 
     # Step 2: Execute the operation
     try:
@@ -108,7 +111,7 @@ async def execute_operation(
         )
     except ProviderError as exc:
         duration_ms = int((time.monotonic() - start_time) * 1000)
-        # Release the hold on provider failure
+        # Release the hold on provider failure (local mode only)
         if hold_id is not None:
             try:
                 await release_hold(db, hold_id)
@@ -134,7 +137,7 @@ async def execute_operation(
         ) from exc
     except Exception as exc:
         duration_ms = int((time.monotonic() - start_time) * 1000)
-        # Release hold on any unexpected failure
+        # Release hold on any unexpected failure (local mode only)
         if hold_id is not None:
             try:
                 await release_hold(db, hold_id)
@@ -170,19 +173,28 @@ async def execute_operation(
     actual_cost = result.get("actual_cost", estimated_cost)
     credits_charged = 0.0
 
-    if is_cached or is_byok:
-        # No charge — release the hold
-        try:
-            await release_hold(db, hold_id)
-        except Exception:
-            logger.exception("Failed to release hold %s", hold_id)
-    else:
-        # Platform key call — confirm the debit
-        try:
-            await confirm_debit(db, hold_id)
+    if use_platform_credits:
+        # Platform mode: fire-and-forget debit for non-free calls
+        if not is_cached and not is_byok:
+            from server.billing.platform_credit_service import debit_platform_credits
+
+            asyncio.create_task(
+                debit_platform_credits(tenant.id, int(actual_cost), body.operation, agent_thread_id=workflow_id)
+            )
             credits_charged = actual_cost
-        except Exception:
-            logger.exception("Failed to confirm debit for hold %s", hold_id)
+    else:
+        # Local mode: hold/debit/release
+        if is_cached or is_byok:
+            try:
+                await release_hold(db, hold_id)
+            except Exception:
+                logger.exception("Failed to release hold %s", hold_id)
+        else:
+            try:
+                await confirm_debit(db, hold_id)
+                credits_charged = actual_cost
+            except Exception:
+                logger.exception("Failed to confirm debit for hold %s", hold_id)
 
     # Step 4: Persist — log execution + upsert contacts/companies + cache searches
     await persist_execution(
@@ -211,7 +223,7 @@ async def execute_operation(
 @router.post("/execute/cost", response_model=CostEstimateResponse)
 async def estimate_cost(
     body: CostEstimateRequest,
-    tenant: Tenant = Depends(get_current_tenant),
+    tenant: TenantRef = Depends(get_tenant_from_token),
 ) -> CostEstimateResponse:
     """Estimate the credit cost for an operation before executing it.
 
@@ -253,7 +265,7 @@ async def estimate_cost(
 async def execute_batch_endpoint(
     request: Request,
     body: BatchExecuteRequest,
-    tenant: Tenant = Depends(get_current_tenant),
+    tenant: TenantRef = Depends(get_tenant_from_token),
     db: AsyncSession = Depends(get_db),
 ) -> BatchExecuteResponse:
     """Execute multiple records of the same operation concurrently.
@@ -291,18 +303,20 @@ async def execute_batch_endpoint(
     total_estimated_cost = sum(
         calculate_cost(op.operation, op.params) for op in body.operations
     )
+    use_platform_credits = bool(settings.PLATFORM_CREDIT_SERVICE_URL)
 
-    # Hold credits for the full batch
+    # Hold credits for the full batch (local mode only)
     workflow_id = request.headers.get("X-Workflow-Id") or getattr(request.state, "workflow_id", None)
     user_id = getattr(request.state, "user_id", None)
     hold_id: int | None = None
-    try:
-        hold_id = await check_and_hold(db, tenant.id, total_estimated_cost, "batch", workflow_id=workflow_id, user_id=user_id)
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail=str(exc),
-        ) from exc
+    if not use_platform_credits:
+        try:
+            hold_id = await check_and_hold(db, tenant.id, total_estimated_cost, "batch", workflow_id=workflow_id, user_id=user_id)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=str(exc),
+            ) from exc
 
     try:
         # Extract records (param dicts) from the batch
@@ -338,7 +352,16 @@ async def execute_batch_endpoint(
         if r.status == "success"
     )
 
-    if hold_id is not None:
+    if use_platform_credits:
+        # Platform mode: fire-and-forget debit for non-free batch
+        if not all_free and checkpoint.cost_so_far > 0:
+            from server.billing.platform_credit_service import debit_platform_credits
+
+            asyncio.create_task(
+                debit_platform_credits(tenant.id, int(checkpoint.cost_so_far), "batch", agent_thread_id=workflow_id)
+            )
+    elif hold_id is not None:
+        # Local mode: hold/debit/release
         try:
             if all_free or checkpoint.cost_so_far == 0:
                 await release_hold(db, hold_id)
@@ -387,7 +410,7 @@ async def execute_batch_endpoint(
 @router.get("/execute/batch/{batch_id}", response_model=BatchStatusResponse)
 async def get_batch_status(
     batch_id: str,
-    tenant: Tenant = Depends(get_current_tenant),
+    tenant: TenantRef = Depends(get_tenant_from_token),
 ) -> BatchStatusResponse:
     """Poll the status of a batch execution."""
     batch = _batches.get(batch_id)
@@ -415,7 +438,7 @@ async def get_batch_status(
 async def search_patterns(
     platform: str | None = Query(None, description="Filter by platform: linkedin_jobs, twitter_posts, etc."),
     use_case: str | None = Query(None, description="Filter by GTM use case: hiring_signals, funding_news, etc."),
-    tenant: Tenant = Depends(get_current_tenant),
+    tenant: TenantRef = Depends(get_tenant_from_token),
 ) -> JSONResponse:
     """Return platform-specific Google search patterns and GTM query intelligence.
 

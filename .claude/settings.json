@@ -6,5 +6,18 @@
     "Read(**/.env.*)",
     "Bash(cat .env*)",
     "Bash(cat */.env*)"
-  ]
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/verify-plan.sh"
+          }
+        ]
+      }
+    ]
+  }
 }

@@ -10,6 +10,7 @@ from string import Template
 from typing import Any
 from urllib.parse import urlencode
 
+from jose import JWTError, jwt
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
@@ -22,6 +23,8 @@ from server.auth.models import RefreshToken, User
 from server.auth.schemas import (
     DeviceCodeResponse,
     DeviceTokenRequest,
+    ExchangeRequest,
+    ExchangeResponse,
     GoogleAuthRequest,
     GoogleAuthResponse,
     RefreshRequest,
@@ -68,6 +71,7 @@ _DEVICE_TOKEN_RATE_LIMIT_WINDOW = 60  # per 60 seconds
 def _get_redis():
     """Get the Redis connection from the app module."""
     from server.app import redis_pool
+
     return redis_pool
 
 
@@ -137,6 +141,7 @@ async def _check_device_token_rate_limit(client_ip: str) -> bool:
         await redis.expire(key, _DEVICE_TOKEN_RATE_LIMIT_WINDOW)
     return current <= _DEVICE_TOKEN_RATE_LIMIT_MAX
 
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -154,10 +159,13 @@ async def initiate_google_auth(body: GoogleAuthRequest) -> GoogleAuthResponse:
 
     # Store the CLI's localhost redirect and PKCE verifier so the callback
     # can complete the exchange.
-    await _set_pending_auth(state, {
-        "cli_redirect": body.redirect_uri or "",
-        "code_verifier": body.code_verifier or "",
-    })
+    await _set_pending_auth(
+        state,
+        {
+            "cli_redirect": body.redirect_uri or "",
+            "code_verifier": body.code_verifier or "",
+        },
+    )
 
     # Google always redirects to our server callback (registered in Google Console)
     server_callback = settings.GOOGLE_REDIRECT_URI
@@ -227,11 +235,14 @@ Sign in with Google
 async def console_login_page(error: str | None = None):
     """Render a sign-in page for browser-based console access."""
     state = secrets.token_urlsafe(32)
-    await _set_pending_auth(state, {
-        "cli_redirect": "",
-        "code_verifier": "",
-        "console_login": "1",
-    })
+    await _set_pending_auth(
+        state,
+        {
+            "cli_redirect": "",
+            "code_verifier": "",
+            "console_login": "1",
+        },
+    )
 
     server_callback = settings.GOOGLE_REDIRECT_URI
     auth_url = (
@@ -251,7 +262,8 @@ async def console_login_page(error: str | None = None):
 
     return HTMLResponse(
         Template(_LOGIN_PAGE_HTML).safe_substitute(
-            auth_url=auth_url, error_html=error_html,
+            auth_url=auth_url,
+            error_html=error_html,
         )
     )
 
@@ -296,7 +308,9 @@ async def google_callback(
 
     # Exchange the Google auth code for user info (include PKCE verifier)
     try:
-        google_user = await google_exchange_code(code, code_verifier=code_verifier or None)
+        google_user = await google_exchange_code(
+            code, code_verifier=code_verifier or None
+        )
     except (ValueError, Exception) as exc:
         logger.error("Google token exchange failed: %s", exc)
         error_msg = str(exc)[:200]
@@ -317,12 +331,14 @@ async def google_callback(
 
     if cli_redirect:
         # Redirect browser to CLI's localhost with tokens
-        params = urlencode({
-            "access_token": tokens["access_token"],
-            "refresh_token": tokens["refresh_token"],
-            "expires_in": str(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
-            "user_info": _json.dumps(user_info),
-        })
+        params = urlencode(
+            {
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
+                "expires_in": str(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
+                "user_info": _json.dumps(user_info),
+            }
+        )
         return RedirectResponse(url=f"{cli_redirect}?{params}")
 
     # No CLI redirect → this is a browser-based console login.
@@ -344,6 +360,82 @@ async def google_callback(
         path="/",
     )
     return response
+
+
+@router.post("/exchange", response_model=ExchangeResponse)
+async def exchange_supabase_token(
+    body: ExchangeRequest,
+) -> ExchangeResponse:
+    """Exchange a Supabase JWT + tenant_id for a gtm-engine access token.
+
+    Used by platform microservices (consultant agent, orchestrator) that
+    already have a Supabase JWT and know the tenant_id. Issues a gtm-engine
+    JWT with tenant_id in claims so execution endpoints can set RLS context.
+
+    No User or Tenant DB records are created. No refresh token is issued —
+    services re-exchange when the 24h token expires.
+    """
+    if not settings.SUPABASE_JWT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Token exchange not configured (SUPABASE_JWT_SECRET not set)",
+        )
+
+    # Validate the Supabase JWT
+    try:
+        supabase_payload = jwt.decode(
+            body.supabase_jwt,
+            settings.SUPABASE_JWT_SECRET,
+            algorithms=["HS256"],
+            options={"verify_aud": False},
+        )
+    except JWTError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Supabase token: {exc}",
+        ) from exc
+
+    supabase_user_id: str | None = supabase_payload.get("sub")
+    if not supabase_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Supabase token missing subject claim",
+        )
+
+    if not body.tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="tenant_id is required",
+        )
+
+    # Issue a gtm-engine JWT with tenant_id in claims
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
+    access_payload = {
+        "sub": supabase_user_id,
+        "tenant_id": str(body.tenant_id),
+        "email": body.email or supabase_payload.get("email", ""),
+        "channel": body.channel,
+        "type": "access",
+    }
+    access_token = jwt.encode(
+        {**access_payload, "exp": expire},
+        settings.JWT_SECRET_KEY,
+        algorithm=settings.JWT_ALGORITHM,
+    )
+
+    logger.info(
+        "Token exchange: supabase_sub=%s tenant=%s channel=%s",
+        supabase_user_id,
+        body.tenant_id,
+        body.channel,
+    )
+
+    return ExchangeResponse(
+        access_token=access_token,
+        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -386,13 +478,16 @@ async def request_device_code() -> DeviceCodeResponse:
     user_code = secrets.token_hex(3).upper()
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
 
-    await _set_device_code(device_code, {
-        "user_code": user_code,
-        "expires_at": expires_at.isoformat(),
-        "user_id": None,
-        "tenant_id": None,
-        "completed": False,
-    })
+    await _set_device_code(
+        device_code,
+        {
+            "user_code": user_code,
+            "expires_at": expires_at.isoformat(),
+            "user_id": None,
+            "tenant_id": None,
+            "completed": False,
+        },
+    )
 
     return DeviceCodeResponse(
         device_code=device_code,
@@ -421,12 +516,16 @@ async def poll_device_token(
 
     entry = await _get_device_code(body.device_code)
     if entry is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown device code")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Unknown device code"
+        )
 
     expires_at = datetime.fromisoformat(entry["expires_at"])
     if expires_at < datetime.now(timezone.utc):
         await _delete_device_code(body.device_code)
-        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Device code expired")
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE, detail="Device code expired"
+        )
 
     if not entry["completed"]:
         raise HTTPException(

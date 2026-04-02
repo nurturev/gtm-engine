@@ -262,11 +262,59 @@ The exchange endpoint creates a refresh token keyed on the Supabase user UUID fr
 
 ## 11. Credit System
 
-**Decision: Credit provisioning moves to the main app.**
+**Decision: Platform credit service is the single source of truth. GTM Engine calls platform APIs for credit checks and debits.**
 
+### V1: Switchable Credit Backend (Implemented)
+
+GTM Engine supports two credit modes, switched via `PLATFORM_CREDIT_SERVICE_URL`:
+
+- **Platform mode** (env var set): GTM Engine calls platform credit APIs before/after each execution. No local credit tables used.
+- **Local mode** (env var unset): Uses local `credit_balances`/`credit_ledger` tables. CLI keeps working as-is.
+
+### Platform Credit API Contract
+
+**Auth**: Fixed Bearer token (`PLATFORM_CREDIT_SERVICE_TOKEN` env var) in `Authorization` header. Internal microservice-to-microservice auth.
+
+**Check balance:**
+```
+GET {PLATFORM_CREDIT_SERVICE_URL}/tenant/credits?tenant_id=<tenant_id>
+Authorization: Bearer {PLATFORM_CREDIT_SERVICE_TOKEN}
+
+Response: <Int> or null
+```
+- `null` treated as 0 credits → HTTP 402 returned to caller
+
+**Debit (fire-and-forget):**
+```
+POST {PLATFORM_CREDIT_SERVICE_URL}/tenant/credit/deduct
+Authorization: Bearer {PLATFORM_CREDIT_SERVICE_TOKEN}
+{
+    "tenant_id": "<tenant_id>",
+    "credit_count": <int>,
+    "agent_thread_id": "<workflow_id or null>"
+}
+
+Response: 202 Accepted
+```
+- Called after successful execution (non-BYOK, non-cached only)
+- Fire-and-forget: execution response is not blocked on debit completion
+- BYOK and cache hits skip the debit entirely
+
+### Execution Credit Flow (Platform Mode)
+
+```
+1. require_credits dependency → GET /tenant/credits?tenant_id=X
+   └─ If null or < needed → HTTP 402 "Insufficient credits"
+2. Execute operation (call external provider)
+3. If success AND not BYOK AND not cached:
+   └─ Fire-and-forget POST /tenant/credit/deduct
+4. Return result to caller
+```
+
+### Migration Notes
 - The main app decides how many credits to assign based on `user_origin` ("cli" vs "platform")
-- gtm-engine's credit tables remain (consumption tracking, balance checks, etc.) until the credit system fully migrates to the main app
-- Signup credit logic is removed from gtm-engine's `find_or_create_user()`
+- Signup credit logic will be removed from gtm-engine's `find_or_create_user()`
+- Local credit tables (`credit_balances`, `credit_ledger`) remain for CLI backward compatibility until full migration
 
 ---
 
@@ -308,43 +356,55 @@ The exchange endpoint creates a refresh token keyed on the Supabase user UUID fr
 
 ---
 
-## 13. The Token Exchange Endpoint (Design)
+## 13. The Token Exchange Endpoint (Design — Implemented)
+
+**Key point:** Supabase JWTs do NOT contain `tenant_id`. They only carry `sub` (Supabase user UUID), `aud`, `role`. The `tenant_id` must be passed as a **request parameter** — the calling service knows it from the platform's user management service (e.g., from `attach_tenant` response).
 
 ```
 POST /api/v1/auth/exchange
 
 Request:
 {
-    "supabase_jwt": "ey...",          // Supabase access token (for validation)
-    "tenant_id": 137,                 // From attach_tenant response (integer)
-    "tenant_name": "Acme Corp",       // For display purposes
-    "tenant_domain": "acme.com",      // For display purposes
-    "user_email": "john@acme.com",    // From Supabase session
-    "user_name": "John Doe",          // From Supabase session
-    "channel": "cli"                  // "cli" | "consultant" — identifies calling channel (see data_module_extension_plan §4.3)
+    "supabase_jwt": "ey...",          // Supabase access token (for validation only)
+    "tenant_id": "137",              // From platform user management (NOT from Supabase JWT)
+    "email": "john@acme.com",        // Optional, for audit logging
+    "channel": "consultant"          // "cli" | "consultant" — identifies calling channel
 }
 
 Response:
 {
     "access_token": "ey...",          // gtm-engine JWT (24h)
-    "refresh_token": "abc...",        // gtm-engine refresh token (30d)
-    "expires_in": 86400,
-    "user_info": {
-        "email": "john@acme.com",
-        "tenant_id": "137",
-        "tenant_name": "Acme Corp"
-    }
+    "token_type": "bearer",
+    "expires_in": 86400
 }
 ```
 
 **What the endpoint does:**
 1. Decode `supabase_jwt` using `SUPABASE_JWT_SECRET` — confirms it's authentic, extracts `sub` (Supabase user UUID)
-2. Convert `tenant_id` integer to string for storage: `str(137)` → `"137"`
-3. Issue gtm-engine JWT: `{ sub: supabase_user_uuid, tenant_id: "137", email, role: "member", channel: "cli" }`
-4. Create refresh token keyed on Supabase user UUID (hashed, stored in `refresh_tokens`)
-5. Return tokens + user info for CLI to store
+2. Issue gtm-engine JWT: `{ sub: supabase_user_uuid, tenant_id: "137", email, channel, type: "access" }`
+3. Return token. **No refresh token** — services re-exchange when the 24h token expires.
 
-**Security**: The Supabase JWT validation is the trust anchor. A valid Supabase JWT means the user genuinely authenticated via Supabase SSO. The `tenant_id` in the request is trusted because only a legitimately authenticated frontend session could have obtained it from `attach_tenant`.
+**No User or Tenant DB records are created.** The execution endpoints use `get_tenant_from_token()` which reads `tenant_id` directly from JWT claims. Credit tables have no FK to tenants table.
+
+**Token lifecycle for microservices:**
+```
+1. Call POST /api/v1/auth/exchange → get gtm-engine JWT (24h)
+2. Cache the JWT in memory/Redis
+3. Use for all /execute calls
+4. On 401 (expired) → re-exchange using current Supabase JWT
+```
+
+**Security**: The Supabase JWT validation is the trust anchor. A valid Supabase JWT means the user genuinely authenticated via Supabase SSO. The `tenant_id` in the request is trusted because only a legitimately authenticated service within the VPC would have access to this endpoint and the Supabase JWT secret.
+
+### Full CLI Auth Flow (Future — uses same exchange endpoint)
+
+When CLI auth migrates to Supabase, the flow becomes:
+1. CLI opens browser to `app.nrev.ai/cli/auth`
+2. User authenticates via Supabase SSO
+3. Frontend calls `attach_tenant` → gets `tenant_id`
+4. Frontend calls `POST /api/v1/auth/exchange` with Supabase JWT + tenant_id
+5. Gets gtm-engine JWT + optional refresh token (CLI variant may include refresh token)
+6. Redirects to CLI localhost with tokens
 
 ---
 

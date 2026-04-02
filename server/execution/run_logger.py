@@ -197,6 +197,10 @@ class RunStepMiddleware(BaseHTTPMiddleware):
             except Exception:
                 pass
 
+        # Fallback for service token auth: read tenant_id from header
+        if tenant_id is None:
+            tenant_id = request.headers.get("X-Tenant-Id")
+
         # Auto-generate workflow_id for non-MCP callers (CLI, direct API)
         if not workflow_id and tenant_id:
             workflow_id = _auto_workflow_ids.get(tenant_id)

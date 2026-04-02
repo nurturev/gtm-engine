@@ -49,6 +49,16 @@ class Settings(BaseSettings):
     # RapidAPI Real-Time Web Search (OpenWeb Ninja)
     X_RAPIDAPI_KEY: str | None = None
 
+    # --- Supabase (for token exchange) ---
+    SUPABASE_JWT_SECRET: str | None = None
+
+    # --- Platform Credit Service ---
+    PLATFORM_CREDIT_SERVICE_URL: str | None = None
+    PLATFORM_CREDIT_SERVICE_TOKEN: str | None = None
+
+    # --- Service-to-Service Auth ---
+    GTM_ENGINE_SERVICE_TOKEN: str | None = None
+
     # --- App ---
     ENVIRONMENT: str = "development"
     CORS_ALLOWED_ORIGINS: str = ""

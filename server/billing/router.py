@@ -5,8 +5,9 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.auth.dependencies import get_current_tenant
+from server.auth.dependencies import TenantRef, get_current_tenant, get_tenant_from_token
 from server.auth.models import Tenant
+from server.core.config import settings
 from server.core.database import get_db
 from server.billing.schemas import (
     CreditBalanceResponse,
@@ -22,6 +23,35 @@ router = APIRouter(prefix="/api/v1", tags=["credits"])
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+
+@router.get("/credits/balance", response_model=CreditBalanceResponse)
+async def get_credit_balance_lightweight(
+    tenant: TenantRef = Depends(get_tenant_from_token),
+    db: AsyncSession = Depends(get_db),
+) -> CreditBalanceResponse:
+    """Return credit balance using lightweight auth (JWT or service token).
+
+    Unlike GET /credits, this does not require a full User DB lookup.
+    Used by internal services (e.g. consultant agent) that authenticate
+    via service token + X-Tenant-Id header.
+    """
+    if settings.PLATFORM_CREDIT_SERVICE_URL:
+        from server.billing.platform_credit_service import check_platform_credits
+
+        balance = await check_platform_credits(tenant.id)
+        return CreditBalanceResponse(
+            tenant_id=tenant.id,
+            balance=balance,
+            spend_this_month=0.0,
+        )
+
+    balance_info = await get_balance(db, tenant.id)
+    return CreditBalanceResponse(
+        tenant_id=tenant.id,
+        balance=balance_info["balance"],
+        spend_this_month=balance_info["spend_this_month"],
+    )
 
 
 @router.get("/credits", response_model=CreditBalanceResponse)

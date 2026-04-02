@@ -43,7 +43,8 @@ async def tenant_context_middleware(request: Request, call_next) -> Response:
             )
             tenant_id = payload.get("tenant_id")
         except Exception:
-            pass  # not a valid JWT - skip silently
+            # Not a JWT — check for X-Tenant-Id (service token path)
+            tenant_id = request.headers.get("X-Tenant-Id")
     request.state.tenant_id = tenant_id
     response: Response = await call_next(request)
     return response

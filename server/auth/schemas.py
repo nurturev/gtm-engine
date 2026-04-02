@@ -50,3 +50,16 @@ class UserInfoResponse(BaseModel):
     avatar_url: str | None
     tenant_id: str
     role: str
+
+
+class ExchangeRequest(BaseModel):
+    supabase_jwt: str
+    tenant_id: str
+    email: str | None = None
+    channel: str = "consultant"
+
+
+class ExchangeResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
