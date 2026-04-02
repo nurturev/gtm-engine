@@ -14,10 +14,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.auth.dependencies import TenantRef, get_tenant_from_token, require_credits
-from server.billing.service import check_and_hold, confirm_debit, release_hold
+from server.billing.service import check_and_hold, confirm_debit, get_balance, release_hold
 from server.core.config import settings
 from server.core.database import get_db
-from server.core.exceptions import ProviderError
+from server.core.exceptions import NrvError, ProviderError
 from server.execution.schemas import (
     BatchExecuteRequest,
     BatchExecuteResponse,
@@ -133,7 +133,33 @@ async def execute_operation(
         )
         raise HTTPException(
             status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
-            detail=str(exc),
+            detail=exc.to_detail(),
+        ) from exc
+    except NrvError as exc:
+        duration_ms = int((time.monotonic() - start_time) * 1000)
+        # Release hold on any NrvError subclass failure
+        if hold_id is not None:
+            try:
+                await release_hold(db, hold_id)
+            except Exception:
+                logger.exception("Failed to release hold %s", hold_id)
+        # Log the failure
+        await persist_execution(
+            db,
+            tenant_id=tenant.id,
+            execution_id=execution_id,
+            operation=body.operation,
+            provider=body.provider or "unknown",
+            is_byok=False,
+            params=body.params,
+            result_data=None,
+            status="failed",
+            error_message=str(exc),
+            duration_ms=duration_ms,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=exc.to_detail(),
         ) from exc
     except Exception as exc:
         duration_ms = int((time.monotonic() - start_time) * 1000)
@@ -159,7 +185,7 @@ async def execute_operation(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Execution failed: {exc}",
+            detail={"error_code": "INTERNAL_ERROR", "message": str(exc), "user_action": "Contact support"},
         ) from exc
 
     duration_ms = int((time.monotonic() - start_time) * 1000)
@@ -212,11 +238,16 @@ async def execute_operation(
         cached=is_cached,
     )
 
+    # Query current balance after billing settlement
+    balance_info = await get_balance(db, tenant.id)
+    balance_remaining = balance_info.get("balance", 0.0)
+
     return ExecuteResponse(
         execution_id=execution_id,
         status="success",
         credits_charged=credits_charged,
         result=result.get("data", result),
+        balance_remaining=balance_remaining,
     )
 
 
@@ -333,6 +364,17 @@ async def execute_batch_endpoint(
             checkpoint_every=10,
             timeout_seconds=300.0,
         )
+    except NrvError as exc:
+        logger.exception("Batch execution failed")
+        if hold_id is not None:
+            try:
+                await release_hold(db, hold_id)
+            except Exception:
+                logger.exception("Failed to release batch hold")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=exc.to_detail(),
+        ) from exc
     except Exception as exc:
         logger.exception("Batch execution failed")
         if hold_id is not None:
@@ -342,7 +384,7 @@ async def execute_batch_endpoint(
                 logger.exception("Failed to release batch hold")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Batch execution failed: {exc}",
+            detail={"error_code": "INTERNAL_ERROR", "message": str(exc), "user_action": "Contact support"},
         ) from exc
 
     # Billing: check if all results were BYOK/cached (free) or need charging
