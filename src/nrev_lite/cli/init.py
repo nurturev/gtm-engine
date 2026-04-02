@@ -12,6 +12,8 @@ to all nrev-lite tools AND Claude knows when/how to use them.
 
 from __future__ import annotations
 
+import json
+import os
 import shutil
 import subprocess
 import sys
@@ -110,6 +112,102 @@ def _unregister_mcp_server(scope: str) -> None:
         capture_output=True,
         text=True
     )
+
+
+def _get_vscode_settings_path() -> Path:
+    """Return the platform-appropriate VSCode global settings.json path."""
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "Code" / "User" / "settings.json"
+    elif sys.platform == "win32":
+        appdata = os.environ.get("APPDATA", "")
+        return Path(appdata) / "Code" / "User" / "settings.json"
+    else:
+        return Path.home() / ".config" / "Code" / "User" / "settings.json"
+
+
+def _is_vscode_terminal() -> bool:
+    """Detect whether the current terminal is running inside VSCode."""
+    if os.environ.get("VSCODE_IPC_HOOK"):
+        return True
+    if os.environ.get("VSCODE_IPC_HOOK_CLI"):
+        return True
+    if os.environ.get("TERM_PROGRAM", "").lower() == "vscode":
+        return True
+    return False
+
+
+def _read_json_file(path: Path) -> dict:
+    """Read a JSON file, returning {} if it doesn't exist or is invalid."""
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _write_json_file(path: Path, data: dict) -> None:
+    """Write a dict to a JSON file, creating parent dirs if needed."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def _build_mcp_config() -> dict:
+    """Build the MCP server config dict for nrev-lite."""
+    nrev_bin = _find_nrev_executable()
+    if nrev_bin.endswith("nrev-lite"):
+        return {"command": nrev_bin, "args": ["mcp", "serve"]}
+    else:
+        return {"command": nrev_bin, "args": ["-m", "nrev_lite.mcp.server"]}
+
+
+def _register_mcp_vscode(settings_path: Path) -> bool:
+    """Register nrev-lite as an MCP server in VSCode's global settings.json."""
+    settings = _read_json_file(settings_path)
+
+    mcp_section = settings.get("mcp", {})
+    servers = mcp_section.get("servers", {})
+
+    if "nrev-lite" in servers:
+        click.echo(f"  nrev-lite MCP server already registered in VSCode ({settings_path})")
+        return True
+
+    mcp_config = _build_mcp_config()
+
+    if "mcp" not in settings:
+        settings["mcp"] = {}
+    if "servers" not in settings["mcp"]:
+        settings["mcp"]["servers"] = {}
+
+    settings["mcp"]["servers"]["nrev-lite"] = {
+        "command": mcp_config["command"],
+        "args": mcp_config["args"],
+        "type": "stdio",
+    }
+
+    _write_json_file(settings_path, settings)
+    return True
+
+
+def _register_mcp_project() -> bool:
+    """Write MCP config to .mcp.json in the current working directory."""
+    project_path = Path.cwd() / ".mcp.json"
+    settings = _read_json_file(project_path)
+
+    mcp_servers = settings.get("mcpServers", {})
+    if "nrev-lite" in mcp_servers:
+        click.echo(f"  nrev-lite MCP server already registered in {project_path}")
+        return True
+
+    mcp_config = _build_mcp_config()
+
+    if "mcpServers" not in settings:
+        settings["mcpServers"] = {}
+
+    settings["mcpServers"]["nrev-lite"] = mcp_config
+
+    _write_json_file(project_path, settings)
+    return True
 
 
 def _verify_server_reachable() -> bool:
@@ -441,7 +539,12 @@ App actions are **free** — no credits charged.
     is_flag=True,
     help="Re-register MCP server even if already registered."
 )
-def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) -> None:
+@click.option(
+    "--vscode",
+    is_flag=True,
+    help="Also register MCP server in VSCode settings.",
+)
+def init(project: bool, skip_auth: bool, server_url: str | None, force: bool, vscode: bool) -> None:
     """Set up nrev-lite for Claude Code in one command.
 
     \b
@@ -461,6 +564,7 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
         nrev-lite init --project          # Project-level only
         nrev-lite init --skip-auth        # Already logged in, just register MCP
         nrev-lite init --force            # Re-register even if already set up
+        nrev-lite init --vscode           # Also register in VSCode
         nrev-lite init --server-url https://api.nrev.dev
     """
     click.echo()
@@ -535,6 +639,29 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
             print_success("MCP server registered via `claude mcp add`")
         else:
             sys.exit(1)
+
+    # VSCode registration — when --vscode flag is passed or VSCode terminal detected
+    use_vscode = vscode or _is_vscode_terminal()
+    if use_vscode:
+        vscode_settings = _get_vscode_settings_path()
+        click.echo()
+        click.echo("  VSCode detected — registering MCP server in VSCode settings")
+
+        # Register in VSCode global settings.json
+        if _register_mcp_vscode(vscode_settings):
+            print_success(f"MCP server registered in VSCode ({vscode_settings})")
+        else:
+            print_warning("Failed to register MCP server in VSCode settings.")
+
+        # Also register project-level .mcp.json for VSCode project discovery
+        if _register_mcp_project():
+            project_path = Path.cwd() / ".mcp.json"
+            print_success(f"MCP server registered in project ({project_path})")
+        else:
+            print_warning("Failed to register project-level .mcp.json.")
+    elif not vscode:
+        click.echo()
+        click.echo("  Tip: Using VSCode? Run 'nrev-lite init --vscode' to register there too.")
 
     click.echo()
 

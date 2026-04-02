@@ -20,6 +20,13 @@ class NrvApiError(Exception):
         self.status_code = status_code
         self.message = message
         self.detail = detail
+        # Parse structured detail dicts from the server
+        if isinstance(detail, dict):
+            self.error_code = detail.get("error_code", "UNKNOWN_ERROR")
+            self.user_action = detail.get("user_action", "")
+        else:
+            self.error_code = "UNKNOWN_ERROR"
+            self.user_action = ""
         super().__init__(message)
 
 
@@ -109,11 +116,15 @@ class NrvClient:
 
     @staticmethod
     def _handle_error(resp: httpx.Response) -> None:
-        """Parse an error response and raise an NrvApiError."""
+        """Parse an error response and raise NrvApiError."""
         try:
             body = resp.json()
-            message = body.get("message") or body.get("detail") or body.get("error", "Unknown error")
             detail = body.get("detail")
+            # Handle structured detail dicts from the server
+            if isinstance(detail, dict):
+                message = detail.get("message", "Unknown error")
+            else:
+                message = body.get("message") or body.get("detail") or body.get("error", "Unknown error")
         except Exception:
             message = resp.text or f"HTTP {resp.status_code}"
             detail = None
@@ -184,8 +195,10 @@ class NrvClient:
         strategy: str | None = None,
     ) -> dict:
         body: dict[str, Any] = {
-            "operation": operation,
-            "items": items,
+            "operations": [
+                {"operation": operation, "params": item}
+                for item in items
+            ],
         }
         if strategy:
             body["strategy"] = strategy
@@ -240,6 +253,10 @@ class NrvClient:
     # ------------------------------------------------------------------
     # Credits
     # ------------------------------------------------------------------
+
+    def estimate_cost(self, operation: str, params: dict[str, Any]) -> dict:
+        """Get a cost estimate for an operation before executing it."""
+        return self._post("/execute/cost", {"operation": operation, "params": params})
 
     def get_credits(self) -> dict:
         return self._get("/credits")

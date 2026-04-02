@@ -10,7 +10,8 @@ from urllib.parse import urlparse
 import click
 
 from nrev_lite.client.http import NrvApiError, NrvClient
-from nrev_lite.utils.display import print_error, print_table, print_warning, spinner
+from nrev_lite.utils.cost_confirm import confirm_cost
+from nrev_lite.utils.display import print_error, print_table, print_warning, spinner, warn_low_balance
 
 
 def _require_auth() -> None:
@@ -57,6 +58,7 @@ def search() -> None:
 @click.option("--limit", default=25, type=int, help="Results per page (max 100).")
 @click.option("--page", default=1, type=int, help="Page number.")
 @click.option("--json-output", "json_out", is_flag=True, help="Output raw JSON instead of table.")
+@click.option("--yes", "-y", is_flag=True, help="Skip cost confirmation prompt.")
 def people(
     title: str | None,
     company: str | None,
@@ -70,6 +72,7 @@ def people(
     limit: int,
     page: int,
     json_out: bool,
+    yes: bool,
 ) -> None:
     """Search for people by title, company, location, school, and more.
 
@@ -158,6 +161,10 @@ def people(
         )
         sys.exit(1)
 
+    if not confirm_cost(client, "search_people", params, skip_confirm=yes):
+        click.echo("Aborted.")
+        return
+
     try:
         with spinner(f"Searching people via {provider or 'apollo'}..."):
             result = client.execute(
@@ -167,7 +174,11 @@ def people(
             )
     except NrvApiError as exc:
         print_error(f"Search failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
+
+    warn_low_balance(result)
 
     if json_out:
         from nrev_lite.utils.display import print_json
@@ -186,6 +197,7 @@ def people(
 @click.option("--provider", default=None, type=click.Choice(["apollo", "rocketreach"]), help="Force a provider.")
 @click.option("--limit", default=25, type=int, help="Results per page (max 100).")
 @click.option("--page", default=1, type=int, help="Page number.")
+@click.option("--json-output", "json_out", is_flag=True, help="Output raw JSON instead of table.")
 def companies(
     name: str | None,
     industry: str | None,
@@ -195,6 +207,7 @@ def companies(
     provider: str | None,
     limit: int,
     page: int,
+    json_out: bool,
 ) -> None:
     """Search for companies by name, industry, size, and more.
 
@@ -234,9 +247,16 @@ def companies(
             )
     except NrvApiError as exc:
         print_error(f"Search failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
 
-    _display_company_results(result)
+    if json_out:
+        from nrev_lite.utils.display import print_json
+
+        print_json(result)
+    else:
+        _display_company_results(result)
 
 
 # ---------------------------------------------------------------------------

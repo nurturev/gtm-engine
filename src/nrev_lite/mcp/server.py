@@ -803,8 +803,33 @@ TOOLS: list[dict[str, Any]] = [
                     "type": "object",
                     "description": "Action parameters from nrev_app_action_schema.",
                 },
+                "connection_id": {
+                    "type": "string",
+                    "description": (
+                        "Optional: use a specific connection ID instead of auto-resolving. "
+                        "Get connection IDs from nrev_app_list. Useful when multiple "
+                        "accounts are connected for the same app."
+                    ),
+                },
             },
             "required": ["app_id", "action", "params"],
+        },
+    },
+    {
+        "name": "nrev_disconnect_app",
+        "description": (
+            "Disconnect an OAuth-connected app by connection ID. Permanently removes "
+            "the connection. Use nrev_app_list to find connection IDs."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "connection_id": {
+                    "type": "string",
+                    "description": "The connection ID to disconnect (from nrev_app_list).",
+                },
+            },
+            "required": ["connection_id"],
         },
     },
     {
@@ -1677,17 +1702,30 @@ def _handle_nrev_app_execute(args: dict[str, Any]) -> dict[str, Any]:
     app_id = args.get("app_id", "")
     action = args.get("action", "")
     params = args.get("params", {})
+    connection_id = args.get("connection_id")
 
     if not app_id:
         return {"error": "Parameter 'app_id' is required (e.g. 'gmail', 'google_sheets')."}
     if not action:
         return {"error": "Parameter 'action' is required (e.g. 'GMAIL_SEND_EMAIL')."}
 
-    return _api_request("POST", "/connections/execute", json_body={
+    body: dict[str, Any] = {
         "app_id": app_id,
         "action": action,
         "params": params,
-    }, timeout=90)
+    }
+    if connection_id:
+        body["connection_id"] = connection_id
+
+    return _api_request("POST", "/connections/execute", json_body=body, timeout=90)
+
+
+def _handle_nrev_disconnect_app(args: dict[str, Any]) -> dict[str, Any]:
+    connection_id = args.get("connection_id", "")
+    if not connection_id:
+        return {"error": "Parameter 'connection_id' is required. Use nrev_app_list to find IDs."}
+
+    return _api_request("DELETE", f"/connections/{connection_id}")
 
 
 def _handle_nrev_app_list(args: dict[str, Any]) -> dict[str, Any]:
@@ -1772,6 +1810,7 @@ def _handle_nrev_app_connect(args: dict[str, Any]) -> dict[str, Any]:
 
     if result.get("status") == "redirect":
         oauth_url = result.get("redirect_url", "")
+        expires_in = result.get("expires_in_seconds", 600)
         return {
             "status": "oauth_required",
             "app_id": app_id,
@@ -1781,6 +1820,8 @@ def _handle_nrev_app_connect(args: dict[str, Any]) -> dict[str, Any]:
                 f"To connect {app_id}, the user needs to authorize via OAuth. "
                 f"Show them this URL and ask them to open it in their browser:\n\n"
                 f"  {oauth_url}\n\n"
+                f"OAuth URL expires in {expires_in // 60} minutes. "
+                f"The user must complete authorization promptly. "
                 f"After they complete authorization, call nrev_app_list to confirm "
                 f"the connection is active."
             ),
@@ -2304,6 +2345,7 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrev_app_actions": _handle_nrev_app_actions,
     "nrev_app_action_schema": _handle_nrev_app_action_schema,
     "nrev_app_execute": _handle_nrev_app_execute,
+    "nrev_disconnect_app": _handle_nrev_disconnect_app,
     "nrev_app_list": _handle_nrev_app_list,
     "nrev_app_connect": _handle_nrev_app_connect,
     "nrev_app_catalog": _handle_nrev_app_catalog,
