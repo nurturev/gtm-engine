@@ -88,13 +88,22 @@ async def check_and_hold(
     return entry.id
 
 
-async def confirm_debit(db: AsyncSession, hold_id: int) -> None:
+async def confirm_debit(
+    db: AsyncSession, hold_id: int, actual_amount: float | None = None
+) -> None:
     """Convert a hold into a confirmed debit.
 
     Reads the original hold entry and writes a corresponding ``debit``
-    entry.  The balance is not changed because it was already deducted
-    during the hold step.
+    entry.  When ``actual_amount`` is provided and less than the held
+    amount (e.g. batch partial failures), the difference is refunded to
+    the tenant's balance.
+
+    If ``actual_amount`` is None, the full held amount is debited (existing
+    behavior).  If ``actual_amount`` is 0, effectively releases the hold.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     result = await db.execute(
         select(CreditLedger).where(CreditLedger.id == hold_id)
     )
@@ -104,23 +113,54 @@ async def confirm_debit(db: AsyncSession, hold_id: int) -> None:
     if hold_entry.entry_type != "hold":
         raise ValueError(f"Entry {hold_id} is not a hold (is {hold_entry.entry_type})")
 
-    # Update monthly spend
-    await db.execute(
-        update(CreditBalance)
-        .where(CreditBalance.tenant_id == hold_entry.tenant_id)
-        .values(
-            spend_this_month=CreditBalance.spend_this_month + hold_entry.amount,
-            updated_at=datetime.now(timezone.utc),
-        )
-    )
+    held_amount = float(hold_entry.amount)
+    debit_amount = held_amount if actual_amount is None else actual_amount
+    refund_amount = held_amount - debit_amount
 
-    # Write debit entry (balance unchanged since hold already deducted)
+    if refund_amount < 0:
+        logger.warning(
+            "actual_amount %.2f exceeds held amount %.2f for hold %d — capping to held amount",
+            debit_amount, held_amount, hold_id,
+        )
+        debit_amount = held_amount
+        refund_amount = 0.0
+
+    # Refund the difference to balance if partial
+    if refund_amount > 0:
+        bal_result = await db.execute(
+            select(CreditBalance)
+            .where(CreditBalance.tenant_id == hold_entry.tenant_id)
+            .with_for_update()
+        )
+        balance_row = bal_result.scalar_one()
+        new_balance = float(balance_row.balance) + refund_amount
+        balance_row.balance = new_balance  # type: ignore[assignment]
+        balance_row.updated_at = datetime.now(timezone.utc)  # type: ignore[assignment]
+        logger.info(
+            "Batch partial debit: held=%d actual=%d refund=%d tenant=%s",
+            int(held_amount), int(debit_amount), int(refund_amount),
+            hold_entry.tenant_id,
+        )
+
+    # Update monthly spend (only for what was actually debited)
+    if debit_amount > 0:
+        await db.execute(
+            update(CreditBalance)
+            .where(CreditBalance.tenant_id == hold_entry.tenant_id)
+            .values(
+                spend_this_month=CreditBalance.spend_this_month + debit_amount,
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+
+    # Write debit entry with actual amount
+    balance_after = float(hold_entry.balance_after) + refund_amount
     debit = CreditLedger(
         tenant_id=hold_entry.tenant_id,
         user_id=hold_entry.user_id,
         entry_type="debit",
-        amount=hold_entry.amount,
-        balance_after=hold_entry.balance_after,
+        amount=debit_amount,
+        balance_after=balance_after,
         operation=hold_entry.operation,
         workflow_id=hold_entry.workflow_id,
         reference_id=str(hold_id),

@@ -111,6 +111,7 @@ async def execute_batch(
     checkpoint_every: int = 10,
     timeout_seconds: float = 300.0,
     on_checkpoint: Callable[[BatchCheckpoint], Awaitable[None]] | None = None,
+    skip_byok: bool = False,
 ) -> BatchCheckpoint:
     """Execute the same operation for many records concurrently.
 
@@ -176,6 +177,7 @@ async def execute_batch(
                     provider_name=provider_name,
                     params=params,
                     tenant_id=tenant_id,
+                    skip_byok=skip_byok,
                 )
                 latency = (time.monotonic() - t0) * 1000
                 return RecordResult(

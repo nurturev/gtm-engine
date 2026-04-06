@@ -242,7 +242,7 @@ class NrvClient:
     # ------------------------------------------------------------------
 
     def get_credits(self) -> dict:
-        return self._get("/credits")
+        return self._get("/credits/balance")
 
     def get_credit_history(self, limit: int = 20) -> dict:
         return self._get("/credits/history", limit=limit)

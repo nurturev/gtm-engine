@@ -8,11 +8,11 @@ import webbrowser
 import click
 
 from nrev_lite.client.http import NrvApiError, NrvClient
+from nrev_lite.constants import PLATFORM_PAYMENTS_URL, PLATFORM_USAGE_URL
 from nrev_lite.utils.display import (
     print_credits,
     print_error,
     print_success,
-    print_table,
     spinner,
 )
 
@@ -50,56 +50,20 @@ def balance() -> None:
 
 
 @credits.command()
-@click.option("--limit", default=20, type=int, help="Number of transactions to show.")
-def history(limit: int) -> None:
-    """Show recent credit transactions."""
+def history() -> None:
+    """View credit transaction history on the platform."""
     _require_auth()
-    client = NrvClient()
-
-    try:
-        with spinner("Fetching history..."):
-            result = client.get_credit_history(limit=limit)
-    except NrvApiError as exc:
-        print_error(f"Failed to fetch history: {exc.message}")
-        sys.exit(1)
-
-    entries = result.get("entries", [])
-    if not entries:
-        click.echo("No transactions found.")
-        return
-
-    columns = ["Date", "Type", "Amount", "Balance After", "Description"]
-    rows = [
-        [
-            e.get("created_at", "")[:19],
-            e.get("entry_type", ""),
-            f"{e.get('amount', 0):,.2f}",
-            f"{e.get('balance_after', 0):,.2f}",
-            e.get("description", ""),
-        ]
-        for e in entries
-    ]
-    print_table(columns, rows, title="Credit History")
+    click.echo(f"View your credit history at: {PLATFORM_USAGE_URL}")
 
 
 @credits.command()
 def topup() -> None:
-    """Open browser to purchase credits via Stripe."""
+    """Open browser to purchase credits on the platform."""
     _require_auth()
-    client = NrvClient()
-
+    url = PLATFORM_PAYMENTS_URL
+    click.echo(f"Opening: {url}")
     try:
-        with spinner("Creating checkout session..."):
-            result = client.get_topup_url()
-    except NrvApiError as exc:
-        print_error(f"Failed to create checkout: {exc.message}")
-        sys.exit(1)
-
-    url = result.get("url") or result.get("checkout_url")
-    if not url:
-        print_error("No checkout URL received from server.")
-        sys.exit(1)
-
-    click.echo(f"Opening checkout: {url}")
-    webbrowser.open(url)
-    print_success("Checkout page opened in browser.")
+        webbrowser.open(url)
+        print_success("Payment page opened in browser.")
+    except Exception:
+        click.echo(f"Open this URL in your browser: {url}")

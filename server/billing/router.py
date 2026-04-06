@@ -37,9 +37,14 @@ async def get_credit_balance_lightweight(
     via service token + X-Tenant-Id header.
     """
     if settings.PLATFORM_CREDIT_SERVICE_URL:
-        from server.billing.platform_credit_service import check_platform_credits
+        if tenant.user_id and not tenant.is_service_token:
+            from server.billing.platform_credit_service import check_platform_credits_by_user
 
-        balance = await check_platform_credits(tenant.id)
+            balance = await check_platform_credits_by_user(tenant.user_id)
+        else:
+            from server.billing.platform_credit_service import check_platform_credits
+
+            balance = await check_platform_credits(tenant.id)
         return CreditBalanceResponse(
             tenant_id=tenant.id,
             balance=balance,

@@ -34,6 +34,8 @@ class TenantRef:
     """
 
     id: str
+    is_service_token: bool = False
+    user_id: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -46,6 +48,23 @@ def _is_service_token(token: str) -> bool:
     if not settings.GTM_ENGINE_SERVICE_TOKEN:
         return False
     return hmac.compare_digest(token, settings.GTM_ENGINE_SERVICE_TOKEN)
+
+
+async def require_service_token(
+    authorization: Annotated[str, Header()],
+) -> None:
+    """Reject anything except a valid service token. No JWT allowed."""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header must use Bearer scheme",
+        )
+    token = authorization.removeprefix("Bearer ")
+    if not _is_service_token(token):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This endpoint requires service token authentication",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -111,7 +130,7 @@ async def get_tenant_from_token(
             x_tenant_id, agent_type, thread_id,
         )
         await set_tenant_context(db, x_tenant_id)
-        return TenantRef(id=x_tenant_id)
+        return TenantRef(id=x_tenant_id, is_service_token=True)
 
     # JWT path (existing behavior)
     payload = _decode_gtm_jwt(authorization)
@@ -122,7 +141,8 @@ async def get_tenant_from_token(
             detail="Token missing tenant_id claim",
         )
     await set_tenant_context(db, tenant_id)
-    return TenantRef(id=tenant_id)
+    user_id: str | None = payload.get("sub")
+    return TenantRef(id=tenant_id, user_id=user_id)
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +222,7 @@ def require_credits(amount: float):
         if settings.PLATFORM_CREDIT_SERVICE_URL:
             from server.billing.platform_credit_service import check_platform_credits
 
-            balance = await check_platform_credits(tenant.id)
+            balance = await check_platform_credits(tenant.id, required_amount=int(amount))
             if balance < amount:
                 raise HTTPException(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,

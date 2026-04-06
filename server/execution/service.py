@@ -247,24 +247,32 @@ async def resolve_api_key(
     db: AsyncSession,
     tenant_id: str,
     provider_name: str,
+    skip_byok: bool = False,
 ) -> tuple[str, bool]:
     """Look up the API key for a provider.
 
     Returns (api_key, is_byok). Checks BYOK keys first, then platform keys.
+    When skip_byok=True, skips the BYOK lookup entirely (used for service
+    token requests to prevent consultant agent from using tenant's own keys).
     Raises ProviderError if no key is available.
     """
-    # Check BYOK first
-    result = await db.execute(
-        select(TenantKey).where(
-            TenantKey.tenant_id == tenant_id,
-            TenantKey.provider == provider_name,
-            TenantKey.status == "active",
+    # Check BYOK first (unless service token auth — consultant must not use tenant keys)
+    if skip_byok:
+        logger.debug(
+            "Skipping BYOK lookup for tenant %s (service token auth)", tenant_id
         )
-    )
-    byok = result.scalar_one_or_none()
-    if byok is not None:
-        api_key = decrypt_key(byok.encrypted_key, tenant_id)
-        return api_key, True
+    else:
+        result = await db.execute(
+            select(TenantKey).where(
+                TenantKey.tenant_id == tenant_id,
+                TenantKey.provider == provider_name,
+                TenantKey.status == "active",
+            )
+        )
+        byok = result.scalar_one_or_none()
+        if byok is not None:
+            api_key = decrypt_key(byok.encrypted_key, tenant_id)
+            return api_key, True
 
     # Check platform keys (from environment / AWS Secrets Manager)
     platform_key = _PLATFORM_KEYS.get(provider_name)
@@ -287,6 +295,7 @@ async def execute_single(
     provider_name: str | None,
     params: dict[str, Any],
     tenant_id: str,
+    skip_byok: bool = False,
 ) -> dict[str, Any]:
     """Execute a single enrichment or search operation against a provider.
 
@@ -365,7 +374,7 @@ async def execute_single(
             logger.warning("Rate limiter check failed, proceeding", exc_info=True)
 
     # ── Step 4: Resolve API key ───────────────────────────────────────────
-    api_key, is_byok = await resolve_api_key(db, tenant_id, provider_name)
+    api_key, is_byok = await resolve_api_key(db, tenant_id, provider_name, skip_byok=skip_byok)
 
     # ── Step 5: Execute with retry ────────────────────────────────────────
     provider = provider_cls()

@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from server.auth.dependencies import TenantRef, get_tenant_from_token, require_credits
 from server.billing.service import check_and_hold, confirm_debit, release_hold
 from server.core.config import settings
-from server.core.database import get_db
+from server.core.database import get_db, set_tenant_context
 from server.core.exceptions import ProviderError
 from server.execution.schemas import (
     BatchExecuteRequest,
@@ -108,12 +108,14 @@ async def execute_operation(
             provider_name=body.provider,
             params=body.params,
             tenant_id=tenant.id,
+            skip_byok=tenant.is_service_token,
         )
     except ProviderError as exc:
         duration_ms = int((time.monotonic() - start_time) * 1000)
         # Release the hold on provider failure (local mode only)
         if hold_id is not None:
             try:
+                await set_tenant_context(db, tenant.id)
                 await release_hold(db, hold_id)
             except Exception:
                 logger.exception("Failed to release hold %s", hold_id)
@@ -140,6 +142,7 @@ async def execute_operation(
         # Release hold on any unexpected failure (local mode only)
         if hold_id is not None:
             try:
+                await set_tenant_context(db, tenant.id)
                 await release_hold(db, hold_id)
             except Exception:
                 logger.exception("Failed to release hold %s", hold_id)
@@ -179,11 +182,13 @@ async def execute_operation(
             from server.billing.platform_credit_service import debit_platform_credits
 
             asyncio.create_task(
-                debit_platform_credits(tenant.id, int(actual_cost), body.operation, agent_thread_id=workflow_id)
+                debit_platform_credits(tenant.id, int(actual_cost), event_name=body.operation, agent_thread_id=workflow_id)
             )
             credits_charged = actual_cost
     else:
         # Local mode: hold/debit/release
+        # Re-set RLS context — execute_single() commits internally, clearing SET LOCAL
+        await set_tenant_context(db, tenant.id)
         if is_cached or is_byok:
             try:
                 await release_hold(db, hold_id)
@@ -332,11 +337,13 @@ async def execute_batch_endpoint(
             concurrency=5,
             checkpoint_every=10,
             timeout_seconds=300.0,
+            skip_byok=tenant.is_service_token,
         )
     except Exception as exc:
         logger.exception("Batch execution failed")
         if hold_id is not None:
             try:
+                await set_tenant_context(db, tenant.id)
                 await release_hold(db, hold_id)
             except Exception:
                 logger.exception("Failed to release batch hold")
@@ -358,15 +365,22 @@ async def execute_batch_endpoint(
             from server.billing.platform_credit_service import debit_platform_credits
 
             asyncio.create_task(
-                debit_platform_credits(tenant.id, int(checkpoint.cost_so_far), "batch", agent_thread_id=workflow_id)
+                debit_platform_credits(
+                    tenant.id,
+                    int(checkpoint.cost_so_far),
+                    event_name=body.operations[0].operation,
+                    agent_thread_id=workflow_id,
+                )
             )
     elif hold_id is not None:
         # Local mode: hold/debit/release
+        # Re-set RLS context — execute_batch() commits internally, clearing SET LOCAL
+        await set_tenant_context(db, tenant.id)
         try:
             if all_free or checkpoint.cost_so_far == 0:
                 await release_hold(db, hold_id)
             else:
-                await confirm_debit(db, hold_id)
+                await confirm_debit(db, hold_id, actual_amount=checkpoint.cost_so_far)
         except Exception:
             logger.exception("Failed to settle batch billing")
 

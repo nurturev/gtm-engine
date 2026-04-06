@@ -21,37 +21,97 @@ def _headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {settings.PLATFORM_CREDIT_SERVICE_TOKEN}"}
 
 
-async def check_platform_credits(tenant_id: str) -> float:
+def _validate_tenant_id(tenant_id: str) -> int | None:
+    """Validate and cast tenant_id to int. Returns None if non-numeric."""
+    try:
+        return int(tenant_id)
+    except (ValueError, TypeError):
+        return None
+
+
+async def check_platform_credits(
+    tenant_id: str, required_amount: int | None = None
+) -> float:
     """Check credit balance via the platform credit service.
 
     Returns the current balance as a float. Returns 0.0 if the platform
-    returns null or if the request fails (fail-closed).
+    returns null, returns 402, or if the request fails (fail-closed).
     """
+    numeric_id = _validate_tenant_id(tenant_id)
+    if numeric_id is None:
+        logger.warning(
+            "Tenant %s is not a platform tenant — cannot check credits",
+            tenant_id,
+        )
+        return 0.0
+
     url = f"{settings.PLATFORM_CREDIT_SERVICE_URL}/tenant/credits"
+    params: dict[str, int] = {"tenant_id": numeric_id}
+    if required_amount is not None:
+        params["credit_count"] = required_amount
+
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-            resp = await client.get(
-                url,
-                params={"tenant_id": tenant_id},
-                headers=_headers(),
-            )
+            resp = await client.get(url, params=params, headers=_headers())
+            if resp.status_code == 402:
+                logger.debug(
+                    "Platform credit check: tenant=%s insufficient credits (402)",
+                    tenant_id,
+                )
+                return 0.0
             resp.raise_for_status()
             balance = resp.json()
             if balance is None:
                 return 0.0
+            logger.debug(
+                "Platform credit check: tenant=%s balance=%s required=%s",
+                tenant_id,
+                balance,
+                required_amount,
+            )
             return float(balance)
     except Exception:
         logger.exception(
-            "Failed to check platform credits for tenant %s — failing open",
+            "Platform credit check failed for tenant %s — returning 0.0 (fail-closed)",
             tenant_id,
         )
-        return float("inf")
+        return 0.0
+
+
+async def check_platform_credits_by_user(user_id: str) -> float:
+    """Check credit balance via platform using a Supabase user_id.
+
+    The platform resolves user → tenant internally. Returns 0.0 on any
+    failure (fail-closed), same as check_platform_credits.
+    """
+    url = f"{settings.PLATFORM_CREDIT_SERVICE_URL}/tenant/credits/by-user"
+    try:
+        async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+            resp = await client.get(
+                url, params={"user_id": user_id}, headers=_headers()
+            )
+            if resp.status_code == 402:
+                return 0.0
+            resp.raise_for_status()
+            balance = resp.json()
+            if balance is None:
+                return 0.0
+            logger.debug(
+                "Platform credit check: user_id=%s balance=%s", user_id, balance
+            )
+            return float(balance)
+    except Exception:
+        logger.exception(
+            "Platform credit check failed for user %s — returning 0.0 (fail-closed)",
+            user_id,
+        )
+        return 0.0
 
 
 async def debit_platform_credits(
     tenant_id: str,
     amount: int,
-    operation: str | None = None,
+    event_name: str,
     agent_thread_id: str | None = None,
 ) -> None:
     """Fire-and-forget debit to the platform credit service.
@@ -59,19 +119,34 @@ async def debit_platform_credits(
     Logs errors but never raises — the caller has already received their
     execution response by the time this runs.
     """
+    numeric_id = _validate_tenant_id(tenant_id)
+    if numeric_id is None:
+        logger.warning(
+            "Tenant %s is not a platform tenant — skipping debit", tenant_id
+        )
+        return
+
     url = f"{settings.PLATFORM_CREDIT_SERVICE_URL}/tenant/credit/deduct"
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
             resp = await client.post(
                 url,
                 json={
-                    "tenant_id": tenant_id,
+                    "tenant_id": numeric_id,
                     "credit_count": amount,
+                    "event_name": event_name,
                     "agent_thread_id": agent_thread_id,
                 },
                 headers=_headers(),
             )
-            if resp.status_code not in (200, 202):
+            if resp.status_code in (200, 202):
+                logger.info(
+                    "Platform credit debit: tenant=%s amount=%d event=%s",
+                    tenant_id,
+                    amount,
+                    event_name,
+                )
+            else:
                 logger.warning(
                     "Platform credit debit returned %s for tenant %s: %s",
                     resp.status_code,
@@ -80,7 +155,9 @@ async def debit_platform_credits(
                 )
     except Exception:
         logger.exception(
-            "Failed to debit %d credits from platform for tenant %s",
-            amount,
+            "Platform credit debit failed: tenant=%s amount=%d event=%s agent_thread_id=%s",
             tenant_id,
+            amount,
+            event_name,
+            agent_thread_id,
         )

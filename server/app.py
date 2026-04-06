@@ -116,6 +116,7 @@ app.add_middleware(RunStepMiddleware)
 # ---------------------------------------------------------------------------
 
 from server.auth.router import router as auth_router  # noqa: E402
+from server.auth.tenant_router import router as tenant_router  # noqa: E402
 from server.billing.router import router as credits_router  # noqa: E402
 from server.console.router import router as console_router  # noqa: E402
 from server.dashboards.router import router as dashboards_router  # noqa: E402
@@ -133,6 +134,7 @@ from server.connections.models import UserConnection  # noqa: E402, F401 — reg
 from server.admin.router import router as admin_router  # noqa: E402
 
 app.include_router(auth_router)
+app.include_router(tenant_router)
 app.include_router(execute_router)
 app.include_router(runs_router)
 app.include_router(tables_router)
