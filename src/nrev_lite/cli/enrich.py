@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 import click
 
 from nrev_lite.client.http import NrvApiError, NrvClient
+from nrev_lite.utils.cost_confirm import confirm_cost
 from nrev_lite.utils.display import (
     print_error,
     print_json,
@@ -19,6 +20,7 @@ from nrev_lite.utils.display import (
     print_table,
     print_warning,
     spinner,
+    warn_low_balance,
 )
 
 
@@ -63,6 +65,8 @@ def enrich() -> None:
 @click.option("--reveal-phone", is_flag=True, help="Include phone numbers (Apollo credits).")
 @click.option("--provider", default=None, help="Force a specific provider (default: apollo).")
 @click.option("--dry-run", is_flag=True, help="Show what would run without executing.")
+@click.option("--yes", "-y", is_flag=True, help="Skip cost confirmation prompt.")
+@click.option("--json-output", "-j", "json_out", is_flag=True, help="Output raw JSON instead of formatted display.")
 def person(
     email: str | None,
     name: str | None,
@@ -75,6 +79,8 @@ def person(
     reveal_phone: bool,
     provider: str | None,
     dry_run: bool,
+    yes: bool,
+    json_out: bool,
 ) -> None:
     """Enrich a person by email, name+domain, or LinkedIn URL.
 
@@ -122,21 +128,34 @@ def person(
         return
 
     client = NrvClient()
+
+    if not confirm_cost(client, "enrich_person", params, skip_confirm=yes):
+        click.echo("Aborted.")
+        return
+
     try:
         with spinner("Enriching person..."):
             result = client.execute("enrich_person", params, providers=[provider] if provider else None)
     except NrvApiError as exc:
         print_error(f"Enrichment failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
 
-    _display_person_result(result)
+    warn_low_balance(result)
+    if json_out:
+        print_json(result)
+    else:
+        _display_person_result(result)
 
 
 @enrich.command()
 @click.option("--domain", required=True, help="Company domain (e.g. google.com, https://www.google.com).")
 @click.option("--provider", default=None, help="Force a specific provider.")
 @click.option("--dry-run", is_flag=True, help="Show what would run without executing.")
-def company(domain: str, provider: str | None, dry_run: bool) -> None:
+@click.option("--yes", "-y", is_flag=True, help="Skip cost confirmation prompt.")
+@click.option("--json-output", "-j", "json_out", is_flag=True, help="Output raw JSON instead of formatted display.")
+def company(domain: str, provider: str | None, dry_run: bool, yes: bool, json_out: bool) -> None:
     """Enrich a company by domain.
 
     \b
@@ -162,14 +181,25 @@ def company(domain: str, provider: str | None, dry_run: bool) -> None:
         return
 
     client = NrvClient()
+
+    if not confirm_cost(client, "enrich_company", params, skip_confirm=yes):
+        click.echo("Aborted.")
+        return
+
     try:
         with spinner(f"Enriching {clean}..."):
             result = client.execute("enrich_company", params, providers=[provider] if provider else None)
     except NrvApiError as exc:
         print_error(f"Enrichment failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
 
-    _display_company_result(result)
+    warn_low_balance(result)
+    if json_out:
+        print_json(result)
+    else:
+        _display_company_result(result)
 
 
 @enrich.command()
@@ -187,7 +217,9 @@ def company(domain: str, provider: str | None, dry_run: bool) -> None:
     help="Execution strategy.",
 )
 @click.option("--dry-run", is_flag=True, help="Show what would run without executing.")
-def batch(file_path: str, strategy: str, dry_run: bool) -> None:
+@click.option("--yes", "-y", is_flag=True, help="Skip cost confirmation prompt.")
+@click.option("--json-output", "-j", "json_out", is_flag=True, help="Output raw JSON instead of formatted display.")
+def batch(file_path: str, strategy: str, dry_run: bool, yes: bool, json_out: bool) -> None:
     """Enrich a batch of records from a CSV file.
 
     \b
@@ -218,7 +250,7 @@ def batch(file_path: str, strategy: str, dry_run: bool) -> None:
         # Cost estimate
         cost = len(items) * 1.0  # 1 credit per record (estimate)
         click.echo(f"Estimated cost: ~{cost:.0f} credits (BYOK = free)")
-        if not dry_run and not click.confirm("Proceed?"):
+        if not dry_run and not yes and not click.confirm("Proceed?"):
             return
 
     if dry_run:
@@ -236,14 +268,19 @@ def batch(file_path: str, strategy: str, dry_run: bool) -> None:
             result = client.execute_batch(operation, items, strategy=strategy)
     except NrvApiError as exc:
         print_error(f"Batch enrichment failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
 
-    summary = result.get("summary", {})
-    click.echo(
-        f"\nCompleted: {summary.get('succeeded', '?')} succeeded, "
-        f"{summary.get('failed', '?')} failed"
-    )
-    print_json(result.get("results", result))
+    if json_out:
+        print_json(result)
+    else:
+        summary = result.get("summary", {})
+        click.echo(
+            f"\nCompleted: {summary.get('succeeded', '?')} succeeded, "
+            f"{summary.get('failed', '?')} failed"
+        )
+        print_json(result.get("results", result))
 
 
 # ---------------------------------------------------------------------------
