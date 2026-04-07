@@ -142,6 +142,7 @@ async def execute_operation(
         # Release hold on any NrvError subclass failure
         if hold_id is not None:
             try:
+                await set_tenant_context(db, tenant.id)
                 await release_hold(db, hold_id)
             except Exception:
                 logger.exception("Failed to release hold %s", hold_id)
@@ -244,6 +245,9 @@ async def execute_operation(
     )
 
     # Query current balance after billing settlement
+    # Re-set RLS context defensively — covers platform mode where set_tenant_context
+    # was not called above (local mode sets it before billing settlement at line ~217)
+    await set_tenant_context(db, tenant.id)
     balance_info = await get_balance(db, tenant.id)
     balance_remaining = balance_info.get("balance", 0.0)
 
@@ -374,6 +378,7 @@ async def execute_batch_endpoint(
         logger.exception("Batch execution failed")
         if hold_id is not None:
             try:
+                await set_tenant_context(db, tenant.id)
                 await release_hold(db, hold_id)
             except Exception:
                 logger.exception("Failed to release batch hold")
