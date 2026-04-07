@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class ExecuteRequest(BaseModel):
@@ -18,6 +18,7 @@ class ExecuteResponse(BaseModel):
     status: str
     credits_charged: float
     result: dict[str, Any]
+    balance_remaining: float | None = None
 
 
 class CostEstimateRequest(BaseModel):
@@ -34,6 +35,23 @@ class CostEstimateResponse(BaseModel):
 
 class BatchExecuteRequest(BaseModel):
     operations: list[ExecuteRequest]
+
+    @model_validator(mode="before")
+    @classmethod
+    def convert_legacy_format(cls, data: Any) -> Any:
+        """Convert legacy ``{"operation": "...", "items": [...]}`` to the
+        canonical ``{"operations": [{"operation": ..., "params": item}, ...]}``
+        format so older CLI versions keep working."""
+        if isinstance(data, dict) and "items" in data and "operations" not in data:
+            operation = data.get("operation", "")
+            items = data.get("items", [])
+            data = {
+                "operations": [
+                    {"operation": operation, "params": item}
+                    for item in items
+                ],
+            }
+        return data
 
 
 class BatchExecuteResponse(BaseModel):

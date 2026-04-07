@@ -993,6 +993,7 @@ async def tenant_dashboard(
             "request": request,
             "tenant_id": tenant.id,
             "tenant_name": tenant.name,
+            "tenant_domain": tenant.domain or "",
             "status": "active",
             "plan": "platform",
             "active_tab": tab,
@@ -1203,6 +1204,7 @@ class ActionExecuteRequest(BaseModel):
     app_id: str  # catalog key, e.g. "gmail", "google_sheets"
     action: str  # Composio action name, e.g. "GMAIL_SEND_EMAIL"
     params: dict  # action input parameters
+    connection_id: str | None = None  # optional: use a specific connection instead of auto-resolving
 
 
 async def _get_auth_config_id(
@@ -1501,10 +1503,16 @@ async def initiate_connection(
                             pass
 
                 if redirect_url:
+                    from datetime import datetime, timezone, timedelta
+                    now = datetime.now(timezone.utc)
+                    expires_at = now + timedelta(seconds=600)
                     return JSONResponse({
                         "status": "redirect",
                         "redirect_url": redirect_url,
                         "connection_id": conn_id,
+                        "expires_in_seconds": 600,
+                        "expires_at": expires_at.isoformat(),
+                        "warning": "This OAuth URL expires in 10 minutes. Complete authorization promptly.",
                     })
                 return JSONResponse({
                     "status": "connected",
@@ -2030,6 +2038,25 @@ async def _find_connected_account(
     return None
 
 
+async def _fetch_specific_connection(
+    client: httpx.AsyncClient, composio_key: str, connection_id: str,
+) -> dict | None:
+    """Fetch a specific connected account by ID and return id + v2 UUID."""
+    resp = await client.get(
+        f"{COMPOSIO_V3}/connected_accounts/{connection_id}",
+        headers={"x-api-key": composio_key},
+    )
+    if resp.status_code != 200:
+        return None
+    item = resp.json()
+    if item.get("status") != "ACTIVE":
+        return None
+    return {
+        "id": item["id"],
+        "v2_uuid": (item.get("deprecated") or {}).get("uuid"),
+    }
+
+
 @router.post("/api/v1/connections/execute")
 async def execute_action(
     request: Request,
@@ -2064,18 +2091,30 @@ async def execute_action(
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
-            # Find the active connected account (prefer current user's)
-            account = await _find_connected_account(
-                client, composio_key, entity_id, composio_app,
-                user_id=current_user.id if current_user else None,
-                tenant_id=tenant.id,
-            )
-            if not account:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No active connection for '{body.app_id}'. "
-                           "Connect it first from the dashboard.",
+            # Use specific connection_id if provided, otherwise auto-resolve
+            if body.connection_id:
+                account = await _fetch_specific_connection(
+                    client, composio_key, body.connection_id,
                 )
+                if not account:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Connection '{body.connection_id}' not found or not active. "
+                               "Use nrev_list_connections to find valid connection IDs.",
+                    )
+            else:
+                # Find the active connected account (prefer current user's)
+                account = await _find_connected_account(
+                    client, composio_key, entity_id, composio_app,
+                    user_id=current_user.id if current_user else None,
+                    tenant_id=tenant.id,
+                )
+                if not account:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"No active connection for '{body.app_id}'. "
+                               "Connect it first from the dashboard.",
+                    )
             v2_uuid = account.get("v2_uuid")
             if not v2_uuid:
                 raise HTTPException(
@@ -2094,6 +2133,19 @@ async def execute_action(
                 },
             )
 
+            # Catch stale connection errors (401/403 from Composio)
+            if resp.status_code in (401, 403):
+                return JSONResponse({
+                    "status": "error",
+                    "error_code": "CONNECTION_STALE",
+                    "error": (
+                        f"The OAuth connection for '{body.app_id}' has expired or been revoked. "
+                        "Please reconnect the app from the dashboard."
+                    ),
+                    "reconnect_url": f"/console/{tenant.id}?tab=connections",
+                    "app_id": body.app_id,
+                }, status_code=401)
+
             if resp.status_code == 200:
                 data = resp.json()
                 if data.get("successful") or data.get("successfull"):
@@ -2106,9 +2158,24 @@ async def execute_action(
                         "data": data.get("data", {}),
                     })
                 else:
+                    error_msg = data.get("error") or data.get("message", "Action failed")
+                    # Check for stale connection indicators in the error message
+                    stale_keywords = ("token expired", "invalid_grant", "token revoked",
+                                      "unauthorized", "access denied", "refresh token")
+                    if any(kw in str(error_msg).lower() for kw in stale_keywords):
+                        return JSONResponse({
+                            "status": "error",
+                            "error_code": "CONNECTION_STALE",
+                            "error": (
+                                f"The OAuth connection for '{body.app_id}' appears stale: {error_msg}. "
+                                "Please reconnect the app from the dashboard."
+                            ),
+                            "reconnect_url": f"/console/{tenant.id}?tab=connections",
+                            "app_id": body.app_id,
+                        }, status_code=401)
                     return JSONResponse({
                         "status": "error",
-                        "error": data.get("error") or data.get("message", "Action failed"),
+                        "error": error_msg,
                         "data": data.get("data", {}),
                     }, status_code=422)
             else:
