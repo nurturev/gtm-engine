@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 
 
 class ExecuteRequest(BaseModel):
@@ -33,6 +33,29 @@ class CostEstimateResponse(BaseModel):
     is_free_with_byok: bool = True
 
 
+class BulkCostEstimateRequest(BaseModel):
+    operations: list[CostEstimateRequest] = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        description="1–50 operations to estimate. Mixed operation types are allowed.",
+    )
+
+
+class BulkCostEstimateItem(BaseModel):
+    index: int  # 0-based position in the request list
+    operation: str
+    estimated_credits: float
+    breakdown: str
+
+
+class BulkCostEstimateResponse(BaseModel):
+    total_estimated_credits: float
+    item_count: int
+    is_free_with_byok: bool = True
+    items: list[BulkCostEstimateItem]
+
+
 class BatchExecuteRequest(BaseModel):
     operations: list[ExecuteRequest]
 
@@ -47,8 +70,7 @@ class BatchExecuteRequest(BaseModel):
             items = data.get("items", [])
             data = {
                 "operations": [
-                    {"operation": operation, "params": item}
-                    for item in items
+                    {"operation": operation, "params": item} for item in items
                 ],
             }
         return data
