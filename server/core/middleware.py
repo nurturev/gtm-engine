@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 
 from fastapi import Request, Response
@@ -9,16 +11,41 @@ from jose import jwt
 
 from server.core.config import settings
 
+logger = logging.getLogger(__name__)
+
 
 async def request_id_middleware(request: Request, call_next) -> Response:
     """Attach a unique X-Request-ID header to every response.
 
     If the client supplies an X-Request-ID header it is reused; otherwise
-    a new UUID4 is generated.
+    a new UUID4 is generated. Also emits an entry/exit log for every request
+    so we can confirm requests are reaching the app even if a downstream
+    handler hangs or never responds.
     """
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     request.state.request_id = request_id
-    response: Response = await call_next(request)
+
+    client_host = request.client.host if request.client else "unknown"
+    logger.info(
+        "Request received: %s %s from=%s request_id=%s",
+        request.method, request.url.path, client_host, request_id,
+    )
+    start = time.monotonic()
+    try:
+        response: Response = await call_next(request)
+    except Exception:
+        duration_ms = int((time.monotonic() - start) * 1000)
+        logger.exception(
+            "Request raised: %s %s request_id=%s duration_ms=%d",
+            request.method, request.url.path, request_id, duration_ms,
+        )
+        raise
+    duration_ms = int((time.monotonic() - start) * 1000)
+    logger.info(
+        "Request completed: %s %s status=%d request_id=%s duration_ms=%d",
+        request.method, request.url.path, response.status_code,
+        request_id, duration_ms,
+    )
     response.headers["X-Request-ID"] = request_id
     return response
 

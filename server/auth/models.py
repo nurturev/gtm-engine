@@ -52,18 +52,27 @@ class User(Base):
 
     # relationships
     tenant: Mapped["Tenant"] = relationship(back_populates="users")
-    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user")
 
 
 class RefreshToken(Base):
-    """Hashed refresh token for session management."""
+    """Hashed refresh token for session management.
+
+    Keyed on `subject_id` (the Supabase user UUID from the gtm-engine JWT
+    `sub` claim) — no FK to the local `users` table because the exchange
+    flow does not create local user rows.
+
+    Per spec §13, the per-token claims (`tenant_id`, `email`, `channel`)
+    are stored on the row so that on rotation we can mint a new access
+    token without consulting Supabase or any local user/tenant table.
+    """
 
     __tablename__ = "refresh_tokens"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[str] = mapped_column(
-        Text, ForeignKey("users.id"), nullable=False
-    )
+    subject_id: Mapped[str] = mapped_column(Text, nullable=False)
+    tenant_id: Mapped[str] = mapped_column(Text, nullable=False)
+    email: Mapped[str | None] = mapped_column(Text)
+    channel: Mapped[str] = mapped_column(Text, nullable=False, server_default="cli")
     token_hash: Mapped[str] = mapped_column(Text, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
@@ -71,6 +80,3 @@ class RefreshToken(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-
-    # relationships
-    user: Mapped["User"] = relationship(back_populates="refresh_tokens")

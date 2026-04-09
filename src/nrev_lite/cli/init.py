@@ -20,7 +20,7 @@ from pathlib import Path
 import click
 
 from nrev_lite.client.auth import is_authenticated, load_credentials
-from nrev_lite.utils.config import get_api_base_url
+from nrev_lite.utils.config import get_api_base_url, get_platform_base_url
 from nrev_lite.utils.display import print_error, print_success, print_warning
 
 
@@ -499,12 +499,12 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
         if not click.confirm("  Use existing session?", default=True):
             click.echo("  Opening browser for authentication...")
             from nrev_lite.cli.auth import _browser_oauth_flow
-            _browser_oauth_flow(get_api_base_url())
+            _browser_oauth_flow(get_platform_base_url())
     else:
-        click.echo("  Opening browser for Google authentication...")
+        click.echo("  Opening browser for authentication...")
         click.echo()
         from nrev_lite.cli.auth import _browser_oauth_flow
-        _browser_oauth_flow(get_api_base_url())
+        _browser_oauth_flow(get_platform_base_url())
 
     # Verify auth succeeded
     if not is_authenticated():
