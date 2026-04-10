@@ -21,8 +21,8 @@ _LEGACY_DIR = Path.home() / ".nrv"
 CONFIG_FILE = NREV_LITE_DIR / "config.toml"
 CREDENTIALS_FILE = NREV_LITE_DIR / "credentials"
 
-DEFAULT_API_BASE_URL = "https://nrev-lite-api.public.prod.nurturev.com"
-DEFAULT_PLATFORM_BASE_URL = "https://app.nrev.ai"
+from nrev_lite.constants.urls import API_BASE_URL as DEFAULT_API_BASE_URL
+from nrev_lite.constants.urls import PLATFORM_BASE_URL as DEFAULT_PLATFORM_BASE_URL
 
 
 def _migrate_legacy() -> None:
@@ -110,13 +110,9 @@ def get_api_base_url() -> str:
     """Get the server URL.
 
     Resolution order:
-      1. `NREV_API_URL` env var (lets dev/prod CLIs target different servers)
-      2. `server.url` in `~/.nrev-lite/config.toml`
-      3. Default (production)
+      1. `server.url` in `~/.nrev-lite/config.toml`
+      2. Constants (env var `NREV_API_URL` → prod default)
     """
-    env_url = os.environ.get("NREV_API_URL")
-    if env_url:
-        return env_url.rstrip("/")
     url = get_config("server.url")
     if url and isinstance(url, str):
         return url.rstrip("/")
@@ -128,16 +124,9 @@ def get_platform_base_url() -> str:
 
     Resolution order:
       1. `platform.url` in `~/.nrev-lite/config.toml`
-      2. `NREV_PLATFORM_URL` env var
-      3. Default (`https://app.nrev.ai`)
-
-    Used by the CLI auth flow to redirect the user to the platform's `/login`
-    page (which handles Supabase SSO and the gtm-engine token exchange).
+      2. Constants (env var `NREV_PLATFORM_URL` → prod default)
     """
     url = get_config("platform.url")
     if url and isinstance(url, str):
         return url.rstrip("/")
-    env_url = os.environ.get("NREV_PLATFORM_URL")
-    if env_url:
-        return env_url.rstrip("/")
     return DEFAULT_PLATFORM_BASE_URL
