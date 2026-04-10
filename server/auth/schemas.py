@@ -42,7 +42,7 @@ class UserInfoResponse(BaseModel):
 
 class ExchangeRequest(BaseModel):
     supabase_jwt: str
-    tenant_id: str
+    tenant_id: int | str
     email: str | None = None
     channel: str = "consultant"
 

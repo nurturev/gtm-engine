@@ -16,6 +16,7 @@ from urllib.parse import quote, urlparse
 import click
 
 from nrev_lite.client.auth import (
+    _user_info_from_jwt,
     clear_credentials,
     load_credentials,
     save_credentials,
@@ -166,12 +167,17 @@ def auth() -> None:
 
 
 @auth.command()
-def login() -> None:
+@click.option(
+    "--no-browser",
+    is_flag=True,
+    help="Print the login URL instead of auto-opening a browser. Useful for debugging in a Chrome window with DevTools already open.",
+)
+def login(no_browser: bool) -> None:
     """Log in to nrev-lite via the platform's browser SSO flow."""
-    _browser_oauth_flow(get_platform_base_url())
+    _browser_oauth_flow(get_platform_base_url(), open_browser=not no_browser)
 
 
-def _browser_oauth_flow(platform_base_url: str) -> None:
+def _browser_oauth_flow(platform_base_url: str, open_browser: bool = True) -> None:
     """Open the platform login page and wait for a localhost POST callback.
 
     Concurrent ``nrev-lite auth login`` invocations are first-callback-wins:
@@ -199,9 +205,13 @@ def _browser_oauth_flow(platform_base_url: str) -> None:
 
     login_url = _build_login_url(platform_base_url, nonce, cli_callback)
 
-    click.echo("Opening browser for authentication...")
-    click.echo(f"If the browser does not open, visit:\n  {login_url}\n")
-    webbrowser.open(login_url)
+    if open_browser:
+        click.echo("Opening browser for authentication...")
+        click.echo(f"If the browser does not open, visit:\n  {login_url}\n")
+        webbrowser.open(login_url)
+    else:
+        click.echo("Open this URL in a browser (DevTools-friendly debug mode):\n")
+        click.echo(f"  {login_url}\n")
 
     try:
         with spinner("Waiting for authentication..."):
@@ -221,15 +231,19 @@ def _browser_oauth_flow(platform_base_url: str) -> None:
         print_error("No access token received from platform.")
         sys.exit(1)
 
+    user_info = result.user_info or {}
+    if not user_info.get("email"):
+        user_info = _user_info_from_jwt(result.access_token) or user_info
+
     save_credentials(
         access_token=result.access_token,
         refresh_token=result.refresh_token or "",
-        user_info=result.user_info or {},
+        user_info=user_info,
         expires_at=result.expires_at,
     )
 
-    email = (result.user_info or {}).get("email", "unknown")
-    tenant = (result.user_info or {}).get("tenant", "default")
+    email = user_info.get("email", "unknown")
+    tenant = user_info.get("tenant", "default")
     print_success(f"Logged in as {email} (tenant: {tenant})")
 
 
