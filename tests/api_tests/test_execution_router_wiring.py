@@ -266,6 +266,97 @@ async def test_require_credits_passes_rich_tenant(client: httpx.AsyncClient) -> 
     print("PASS")
 
 
+async def test_cost_bulk_mixed_types(client: httpx.AsyncClient) -> None:
+    """Test 4a: /execute/cost/bulk happy path with mixed operation types.
+
+    Sends one search_people (per_page=50), one bulk_enrich_people (2 records),
+    and one enrich_person. Expected total: 2 + 2 + 1 = 5 credits.
+    """
+    print("\n--- Test 4a: cost/bulk mixed types — total adds up correctly ---")
+
+    resp = await client.post(
+        f"{BASE_URL}/api/v1/execute/cost/bulk",
+        headers=_svc_headers(RICH_TENANT_ID),
+        json={
+            "operations": [
+                {"operation": "search_people", "params": {"per_page": 50}},
+                {
+                    "operation": "bulk_enrich_people",
+                    "params": {
+                        "details": [
+                            {"email": "a@x.com"},
+                            {"email": "b@x.com"},
+                        ]
+                    },
+                },
+                {"operation": "enrich_person", "params": {"email": "c@x.com"}},
+            ]
+        },
+    )
+    print(f"Status: {resp.status_code}")
+    body = resp.json()
+    print(f"Body:   {body}")
+
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    assert body["item_count"] == 3
+    assert body["total_estimated_credits"] == 5.0
+    assert len(body["items"]) == 3
+    assert [item["index"] for item in body["items"]] == [0, 1, 2]
+    assert [item["operation"] for item in body["items"]] == [
+        "search_people",
+        "bulk_enrich_people",
+        "enrich_person",
+    ]
+    assert [item["estimated_credits"] for item in body["items"]] == [2.0, 2.0, 1.0]
+    print("PASS")
+
+
+async def test_cost_bulk_max_size(client: httpx.AsyncClient) -> None:
+    """Test 4b: /execute/cost/bulk accepts exactly 50, rejects 51."""
+    print("\n--- Test 4b: cost/bulk respects 50-item ceiling ---")
+
+    fifty_ops = [
+        {"operation": "enrich_person", "params": {"email": f"u{i}@x.com"}}
+        for i in range(50)
+    ]
+    resp = await client.post(
+        f"{BASE_URL}/api/v1/execute/cost/bulk",
+        headers=_svc_headers(RICH_TENANT_ID),
+        json={"operations": fifty_ops},
+    )
+    assert resp.status_code == 200, f"Expected 200 for 50 items, got {resp.status_code}"
+    assert resp.json()["item_count"] == 50
+    print("  50 items: 200 OK")
+
+    fifty_one_ops = fifty_ops + [
+        {"operation": "enrich_person", "params": {"email": "extra@x.com"}}
+    ]
+    resp = await client.post(
+        f"{BASE_URL}/api/v1/execute/cost/bulk",
+        headers=_svc_headers(RICH_TENANT_ID),
+        json={"operations": fifty_one_ops},
+    )
+    assert resp.status_code == 422, f"Expected 422 for 51 items, got {resp.status_code}"
+    assert "at most 50" in resp.text
+    print("  51 items: 422 with 'at most 50'")
+    print("PASS")
+
+
+async def test_cost_bulk_empty_rejected(client: httpx.AsyncClient) -> None:
+    """Test 4c: /execute/cost/bulk rejects an empty operations list."""
+    print("\n--- Test 4c: cost/bulk rejects empty operations list ---")
+
+    resp = await client.post(
+        f"{BASE_URL}/api/v1/execute/cost/bulk",
+        headers=_svc_headers(RICH_TENANT_ID),
+        json={"operations": []},
+    )
+    print(f"Status: {resp.status_code}")
+    assert resp.status_code == 422, f"Expected 422, got {resp.status_code}"
+    assert "at least 1" in resp.text
+    print("PASS")
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
@@ -335,6 +426,9 @@ async def main():
             test_require_credits_402_broke_tenant,
             test_require_credits_402_batch_broke_tenant,
             test_require_credits_passes_rich_tenant,
+            test_cost_bulk_mixed_types,
+            test_cost_bulk_max_size,
+            test_cost_bulk_empty_rejected,
         ]
         for test in tests:
             try:
