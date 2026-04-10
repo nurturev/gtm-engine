@@ -89,6 +89,10 @@ async def create_tenant(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> TenantResponse:
+    logger.info(
+        "create_tenant called: id=%s name=%s domain=%s",
+        body.id, body.name, body.domain,
+    )
     tenant = Tenant(id=body.id, name=body.name, domain=body.domain)
     db.add(tenant)
     try:

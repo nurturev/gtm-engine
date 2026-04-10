@@ -4,8 +4,7 @@ Tests that CLI credit commands correctly route through the platform
 credit service instead of the local DB.
 
 - balance: returns platform balance via /credits/balance endpoint
-- balance via user_id (JWT): server calls /private/tenant/credits/by-user
-- balance via tenant_id (service token): falls back to tenant_id-based call
+- balance via tenant_id (service token): server calls /private/tenant/credits
 - topup: CLI opens https://app.nrev.ai/payments (tested via CLI subprocess)
 - history: CLI prints redirect message (tested via CLI subprocess)
 
@@ -22,18 +21,12 @@ from __future__ import annotations
 import asyncio
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
 
 import httpx
-from jose import jwt
 
 BASE_URL = "http://localhost:8000"
 SERVICE_TOKEN = "XRWnB_IpZa0f3T1G1rpsItpa_S2qJKHBZuY_3Bc8WDM"
 TENANT_ID = "4"
-
-# JWT config
-JWT_SECRET = "93tWCOj8x9P0kaB62H_sADHJlWBnD3Pt5MbjFlH-V57WsPrMp0lo20ACiQA1hRRK"
-JWT_ALGORITHM = "HS256"
 
 # UM platform
 PLATFORM_URL = "https://umws.public.staging.nurturev.com/private"
@@ -46,21 +39,6 @@ def _svc_headers(tenant_id: str = TENANT_ID) -> dict[str, str]:
         "Authorization": f"Bearer {SERVICE_TOKEN}",
         "X-Tenant-Id": tenant_id,
         "X-Agent-Type": "test",
-    }
-
-
-def _jwt_headers(tenant_id: str = TENANT_ID, user_id: str = "test-user-1") -> dict[str, str]:
-    payload = {
-        "sub": user_id,
-        "tenant_id": tenant_id,
-        "email": "test@example.com",
-        "type": "access",
-        "exp": datetime.now(timezone.utc) + timedelta(hours=24),
-    }
-    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-    return {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}",
     }
 
 
@@ -109,34 +87,6 @@ async def test_balance_via_service_token(client: httpx.AsyncClient) -> None:
         f"Balance mismatch: GTM={body['balance']}, Platform={platform_balance}"
     )
     print("PASS (service token → tenant_id-based balance)")
-
-
-async def test_balance_via_jwt(client: httpx.AsyncClient) -> None:
-    """Test 2: GET /credits/balance with JWT → platform balance via user_id.
-
-    JWT path extracts user_id from 'sub' claim and calls
-    check_platform_credits_by_user(user_id). If that fails (user not found
-    on platform), it may return 0 or fall back.
-
-    Since we don't have a real platform user_id, we verify the endpoint
-    accepts JWT auth and returns a response. Check server logs for the
-    by-user call.
-    """
-    print("\n--- Test 2: Balance via JWT → by-user or tenant_id path ---")
-
-    resp = await client.get(
-        f"{BASE_URL}/api/v1/credits/balance",
-        headers=_jwt_headers(),
-    )
-    print(f"Status: {resp.status_code}")
-    body = resp.json()
-    print(f"Body:   {body}")
-
-    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
-    print(f"Balance: {body['balance']}")
-    print("PASS")
-    print("  -> Check server logs for: 'Platform credit check: user_id=test-user-1'")
-    print("     If user not found on platform, balance may be 0.0 (fail-closed)")
 
 
 async def test_cli_credits_balance() -> None:
@@ -264,7 +214,6 @@ async def main():
         # API-level tests
         api_tests = [
             test_balance_via_service_token,
-            test_balance_via_jwt,
         ]
         for test in api_tests:
             try:

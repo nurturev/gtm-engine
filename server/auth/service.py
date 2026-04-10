@@ -21,9 +21,6 @@ logger = logging.getLogger(__name__)
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 
-BUSINESS_SIGNUP_CREDITS = 10.0   # $10 for new business-domain tenants
-PERSONAL_SIGNUP_CREDITS = 2.0    # $2 for personal-domain tenants
-
 # Common personal/free email domains — users from these get individual tenants
 PERSONAL_DOMAINS = frozenset({
     "gmail.com", "googlemail.com", "yahoo.com", "yahoo.co.in", "yahoo.co.uk",
@@ -103,11 +100,13 @@ async def find_or_create_user(
     Domain-based tenant logic:
     - **Business domains** (e.g. @nurturev.com): look for an existing tenant
       with that domain.  If found, the new user joins it as a member.  If not,
-      create a new tenant and grant $10 signup credits.
+      create a new tenant.
     - **Personal domains** (gmail, hotmail, etc.): always create a separate
-      tenant per user with $2 signup credits and encourage work-email signup.
+      tenant per user.
 
-    Free credits are granted **once per new tenant creation**, not per user.
+    Free credit allocation now happens entirely on the platform side (the user
+    management service is the source of truth). gtm-engine no longer grants
+    signup credits.
     """
     google_id = google_user["id"]
     email = google_user["email"]
@@ -146,7 +145,6 @@ async def find_or_create_user(
     is_personal = domain is None or _is_personal_domain(domain)
 
     existing_tenant: Tenant | None = None
-    created_new_tenant = True
 
     if not is_personal and domain:
         # Business domain — try to find an existing tenant for this domain
@@ -159,7 +157,6 @@ async def find_or_create_user(
         # Join the existing business-domain tenant as a member
         tenant = existing_tenant
         role = "member"
-        created_new_tenant = False
         logger.info(
             "User %s joining existing tenant %s (domain: %s)",
             email, tenant.id, domain,
@@ -191,60 +188,55 @@ async def find_or_create_user(
     await db.commit()
     await db.refresh(user)
 
-    # Grant signup credits only when a NEW tenant is created
-    if created_new_tenant:
-        bonus = PERSONAL_SIGNUP_CREDITS if is_personal else BUSINESS_SIGNUP_CREDITS
-        source = "signup_bonus_personal" if is_personal else "signup_bonus_business"
-        try:
-            from server.billing.service import add_credits
-
-            new_balance = await add_credits(
-                db,
-                tenant_id=tenant.id,
-                amount=bonus,
-                source=source,
-                reference_id=user_id,
-            )
-            logger.info(
-                "Granted $%.2f signup credits to tenant %s (%s domain, balance: $%.2f)",
-                bonus, tenant.id, "personal" if is_personal else "business", new_balance,
-            )
-        except Exception:
-            logger.exception("Failed to grant signup credits to tenant %s", tenant.id)
-
-    if is_personal and created_new_tenant:
-        logger.info(
-            "Personal-domain signup (%s) — tenant %s gets $%.0f credits. "
-            "User should be encouraged to sign in with a work email for $%.0f.",
-            email, tenant.id, PERSONAL_SIGNUP_CREDITS, BUSINESS_SIGNUP_CREDITS,
-        )
-
     return user
 
 
-async def generate_tokens(db: AsyncSession, user: User) -> dict[str, str]:
-    """Create an access token and refresh token pair for the given user.
+def build_access_token(
+    *,
+    subject_id: str,
+    tenant_id: str,
+    email: str | None,
+    channel: str,
+    role: str | None = None,
+) -> str:
+    """Build a signed gtm-engine access JWT.
 
-    The refresh token hash is stored in the database for later validation.
-    Returns a dict with ``access_token`` and ``refresh_token``.
+    Pure function — no DB access. Used by both the legacy Google OAuth path
+    and the Supabase exchange path. The `channel` claim distinguishes CLI vs
+    consultant callers; `role` is optional and only set by the legacy path.
     """
-    # Access token
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    access_payload = {
-        "sub": user.id,
-        "tenant_id": user.tenant_id,
-        "email": user.email,
-        "role": user.role,
+    payload: dict[str, Any] = {
+        "sub": subject_id,
+        "tenant_id": tenant_id,
+        "email": email or "",
+        "channel": channel,
         "exp": expire,
         "type": "access",
     }
-    access_token = jwt.encode(
-        access_payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    if role is not None:
+        payload["role"] = role
+    return jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
     )
 
-    # Refresh token
+
+async def persist_refresh_token(
+    db: AsyncSession,
+    *,
+    subject_id: str,
+    tenant_id: str,
+    email: str | None,
+    channel: str,
+) -> str:
+    """Generate an opaque refresh token, persist its hash, return the raw value.
+
+    The per-token claims (`tenant_id`, `email`, `channel`) are stored on the
+    row so that the refresh endpoint can re-mint an access token on rotation
+    without consulting Supabase or the local users/tenants tables.
+    """
     raw_refresh = secrets.token_urlsafe(48)
     refresh_hash = hashlib.sha256(raw_refresh.encode()).hexdigest()
     refresh_expires = datetime.now(timezone.utc) + timedelta(
@@ -252,13 +244,38 @@ async def generate_tokens(db: AsyncSession, user: User) -> dict[str, str]:
     )
 
     refresh_record = RefreshToken(
-        user_id=user.id,
+        subject_id=subject_id,
+        tenant_id=tenant_id,
+        email=email,
+        channel=channel,
         token_hash=refresh_hash,
         expires_at=refresh_expires,
     )
     db.add(refresh_record)
     await db.commit()
+    return raw_refresh
 
+
+async def generate_tokens(db: AsyncSession, user: User) -> dict[str, str]:
+    """Create an access + refresh token pair for the given local user.
+
+    Used by the legacy Google OAuth callback. New callers (Supabase exchange)
+    should use `build_access_token` and `persist_refresh_token` directly.
+    """
+    access_token = build_access_token(
+        subject_id=user.id,
+        tenant_id=user.tenant_id,
+        email=user.email,
+        channel="console",
+        role=user.role,
+    )
+    raw_refresh = await persist_refresh_token(
+        db,
+        subject_id=user.id,
+        tenant_id=user.tenant_id,
+        email=user.email,
+        channel="console",
+    )
     return {
         "access_token": access_token,
         "refresh_token": raw_refresh,

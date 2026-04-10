@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import time
@@ -11,6 +12,21 @@ from typing import Any
 import httpx
 
 from nrev_lite.utils.config import CREDENTIALS_FILE, _migrate_legacy, ensure_config_dir, get_api_base_url
+
+
+def _user_info_from_jwt(token: str) -> dict[str, Any] | None:
+    """Decode JWT payload (no verification) to extract user_info fields."""
+    try:
+        payload_b64 = token.split(".")[1]
+        padded = payload_b64 + "=" * (-len(payload_b64) % 4)
+        claims = json.loads(base64.urlsafe_b64decode(padded))
+        return {
+            "email": claims.get("email", ""),
+            "name": claims.get("name", ""),
+            "tenant": claims.get("tenant_id", ""),
+        }
+    except Exception:
+        return None
 
 
 def save_credentials(
@@ -86,17 +102,21 @@ def refresh_token_if_needed() -> str | None:
     base_url = get_api_base_url()
     try:
         resp = httpx.post(
-            f"{base_url}/auth/refresh",
+            f"{base_url}/api/v1/auth/refresh",
             json={"refresh_token": refresh_tok},
             timeout=15,
         )
         resp.raise_for_status()
         data = resp.json()
+        user_info = creds.get("user_info", {})
+        if not user_info.get("email"):
+            user_info = _user_info_from_jwt(data["access_token"]) or user_info
+        expires_in = data.get("expires_in", 3600)
         save_credentials(
             access_token=data["access_token"],
             refresh_token=data.get("refresh_token", refresh_tok),
-            user_info=creds.get("user_info", {}),
-            expires_at=data.get("expires_at", time.time() + 3600),
+            user_info=user_info,
+            expires_at=time.time() + expires_in,
         )
         return data["access_token"]
     except (httpx.HTTPError, KeyError):

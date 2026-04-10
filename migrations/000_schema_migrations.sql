@@ -18,5 +18,6 @@ INSERT INTO schema_migrations (version, filename) VALUES
     ('005', '005_datasets.sql'),
     ('006', '006_scheduled_workflows.sql'),
     ('007', '007_dashboard_datasets.sql'),
-    ('008', '008_hosted_apps.sql')
+    ('008', '008_hosted_apps.sql'),
+    ('015', '015_refresh_tokens_subject_id.sql')
 ON CONFLICT (version) DO NOTHING;

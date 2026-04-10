@@ -31,18 +31,6 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
-class DeviceCodeResponse(BaseModel):
-    device_code: str
-    user_code: str
-    verification_uri: str
-    expires_in: int
-    interval: int
-
-
-class DeviceTokenRequest(BaseModel):
-    device_code: str
-
-
 class UserInfoResponse(BaseModel):
     id: str
     email: str
@@ -54,12 +42,13 @@ class UserInfoResponse(BaseModel):
 
 class ExchangeRequest(BaseModel):
     supabase_jwt: str
-    tenant_id: str
+    tenant_id: int | str
     email: str | None = None
     channel: str = "consultant"
 
 
 class ExchangeResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     expires_in: int
