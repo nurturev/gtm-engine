@@ -1,4 +1,4 @@
-"""Authentication router: Google OAuth, JWT issuance, device auth."""
+"""Authentication router: Google OAuth, JWT issuance, Supabase exchange."""
 
 from __future__ import annotations
 
@@ -6,13 +6,12 @@ import json as _json
 import logging
 import secrets
 import urllib.parse
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from string import Template
-from typing import Any
 from urllib.parse import urlencode
 
 from jose import JWTError, jwt
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,8 +21,6 @@ from server.core.database import get_db
 from server.core.security import hash_token
 from server.auth.models import RefreshToken, User
 from server.auth.schemas import (
-    DeviceCodeResponse,
-    DeviceTokenRequest,
     ExchangeRequest,
     ExchangeResponse,
     GoogleAuthRequest,
@@ -34,9 +31,11 @@ from server.auth.schemas import (
 )
 from server.auth.dependencies import get_current_user
 from server.auth.service import (
+    build_access_token,
     find_or_create_user,
     generate_tokens,
     google_exchange_code,
+    persist_refresh_token,
 )
 
 logger = logging.getLogger(__name__)
@@ -85,11 +84,6 @@ _COOKIE_SECURE = settings.ENVIRONMENT != "development"  # HTTPS only in prod
 
 # Redis TTLs
 _PENDING_AUTH_TTL = 600  # 10 minutes
-_DEVICE_CODE_TTL = 900  # 15 minutes
-
-# Rate limiting for device token polling
-_DEVICE_TOKEN_RATE_LIMIT_MAX = 10  # max requests
-_DEVICE_TOKEN_RATE_LIMIT_WINDOW = 60  # per 60 seconds
 
 
 # ---------------------------------------------------------------------------
@@ -127,48 +121,6 @@ async def _pop_pending_auth(state: str) -> dict[str, str]:
         return {}
     await redis.delete(key)
     return _json.loads(data)
-
-
-async def _set_device_code(device_code: str, data: dict[str, Any]) -> None:
-    """Store device code state in Redis with TTL."""
-    redis = _get_redis()
-    if redis is None:
-        raise RuntimeError("Redis not available")
-    await redis.set(
-        f"auth:device:{device_code}",
-        _json.dumps(data, default=str),
-        ex=_DEVICE_CODE_TTL,
-    )
-
-
-async def _get_device_code(device_code: str) -> dict[str, Any] | None:
-    """Retrieve device code state from Redis."""
-    redis = _get_redis()
-    if redis is None:
-        return None
-    data = await redis.get(f"auth:device:{device_code}")
-    if data is None:
-        return None
-    return _json.loads(data)
-
-
-async def _delete_device_code(device_code: str) -> None:
-    """Delete device code from Redis."""
-    redis = _get_redis()
-    if redis is not None:
-        await redis.delete(f"auth:device:{device_code}")
-
-
-async def _check_device_token_rate_limit(client_ip: str) -> bool:
-    """Check rate limit for device token polling. Returns True if allowed."""
-    redis = _get_redis()
-    if redis is None:
-        return True
-    key = f"ratelimit:auth:device:{client_ip}"
-    current = await redis.incr(key)
-    if current == 1:
-        await redis.expire(key, _DEVICE_TOKEN_RATE_LIMIT_WINDOW)
-    return current <= _DEVICE_TOKEN_RATE_LIMIT_MAX
 
 
 # ---------------------------------------------------------------------------
@@ -399,15 +351,21 @@ async def google_callback(
 @router.post("/exchange", response_model=ExchangeResponse)
 async def exchange_supabase_token(
     body: ExchangeRequest,
+    db: AsyncSession = Depends(get_db),
 ) -> ExchangeResponse:
-    """Exchange a Supabase JWT + tenant_id for a gtm-engine access token.
+    """Exchange a Supabase JWT + tenant_id for a gtm-engine access + refresh pair.
 
-    Used by platform microservices (consultant agent, orchestrator) that
-    already have a Supabase JWT and know the tenant_id. Issues a gtm-engine
-    JWT with tenant_id in claims so execution endpoints can set RLS context.
+    Used by platform microservices (consultant agent, user management
+    orchestrator) that already have a Supabase JWT and know the tenant_id.
+    Issues a gtm-engine JWT carrying tenant_id in claims so execution
+    endpoints can set RLS context.
 
-    No User or Tenant DB records are created. No refresh token is issued —
-    services re-exchange when the 24h token expires.
+    Per spec §13, the response always includes a refresh token for both
+    `cli` and `consultant` channels — the consultant simply ignores it.
+    The CLI requires it because it does not retain a Supabase JWT after
+    login and would otherwise re-authenticate every 24 hours.
+
+    No User or Tenant DB records are created here.
     """
     if not settings.SUPABASE_JWT_SECRET:
         raise HTTPException(
@@ -442,32 +400,33 @@ async def exchange_supabase_token(
             detail="tenant_id is required",
         )
 
-    # Issue a gtm-engine JWT with tenant_id in claims
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
+    tenant_id_str = str(body.tenant_id)
+    email = body.email or supabase_payload.get("email", "")
+
+    access_token = build_access_token(
+        subject_id=supabase_user_id,
+        tenant_id=tenant_id_str,
+        email=email,
+        channel=body.channel,
     )
-    access_payload = {
-        "sub": supabase_user_id,
-        "tenant_id": str(body.tenant_id),
-        "email": body.email or supabase_payload.get("email", ""),
-        "channel": body.channel,
-        "type": "access",
-    }
-    access_token = jwt.encode(
-        {**access_payload, "exp": expire},
-        settings.JWT_SECRET_KEY,
-        algorithm=settings.JWT_ALGORITHM,
+    refresh_token = await persist_refresh_token(
+        db,
+        subject_id=supabase_user_id,
+        tenant_id=tenant_id_str,
+        email=email,
+        channel=body.channel,
     )
 
     logger.info(
-        "Token exchange: supabase_sub=%s tenant=%s channel=%s",
+        "Token exchange: supabase_sub=%s tenant=%s channel=%s refresh_token_issued=true",
         supabase_user_id,
-        body.tenant_id,
+        tenant_id_str,
         body.channel,
     )
 
     return ExchangeResponse(
         access_token=access_token,
+        refresh_token=refresh_token,
         expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 
@@ -477,7 +436,12 @@ async def refresh_access_token(
     body: RefreshRequest,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
-    """Exchange a valid refresh token for a new access + refresh pair."""
+    """Exchange a valid refresh token for a new access + refresh pair.
+
+    Rotation: the existing row is deleted and a fresh pair is issued, so a
+    stolen refresh token is single-use. Per-token claims are read directly
+    off the stored row — no Supabase or local users/tenants lookup required.
+    """
     token_hash = hash_token(body.refresh_token)
     result = await db.execute(
         select(RefreshToken).where(
@@ -487,94 +451,44 @@ async def refresh_access_token(
     )
     stored = result.scalar_one_or_none()
     if stored is None:
+        logger.warning("Refresh token lookup failed: lookup_failed=true")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token",
         )
 
+    subject_id = stored.subject_id
+    tenant_id = stored.tenant_id
+    email = stored.email
+    channel = stored.channel
+
     await db.delete(stored)
+    await db.commit()
 
-    user_result = await db.execute(select(User).where(User.id == stored.user_id))
-    user = user_result.scalar_one()
+    access_token = build_access_token(
+        subject_id=subject_id,
+        tenant_id=tenant_id,
+        email=email,
+        channel=channel,
+    )
+    new_refresh = await persist_refresh_token(
+        db,
+        subject_id=subject_id,
+        tenant_id=tenant_id,
+        email=email,
+        channel=channel,
+    )
 
-    tokens = await generate_tokens(db, user)
+    logger.info(
+        "Refresh token rotated: subject_id=%s tenant=%s channel=%s rotated=true",
+        subject_id,
+        tenant_id,
+        channel,
+    )
+
     return TokenResponse(
-        access_token=tokens["access_token"],
-        refresh_token=tokens["refresh_token"],
-        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
-
-
-@router.post("/device/code", response_model=DeviceCodeResponse)
-async def request_device_code() -> DeviceCodeResponse:
-    """Issue a device code for headless CLI authentication."""
-    device_code = secrets.token_urlsafe(32)
-    user_code = secrets.token_hex(3).upper()
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
-
-    await _set_device_code(
-        device_code,
-        {
-            "user_code": user_code,
-            "expires_at": expires_at.isoformat(),
-            "user_id": None,
-            "tenant_id": None,
-            "completed": False,
-        },
-    )
-
-    return DeviceCodeResponse(
-        device_code=device_code,
-        user_code=user_code,
-        verification_uri=f"{settings.GOOGLE_REDIRECT_URI.rsplit('/', 1)[0]}/device/verify",
-        expires_in=900,
-        interval=5,
-    )
-
-
-@router.post("/device/token", response_model=TokenResponse)
-async def poll_device_token(
-    body: DeviceTokenRequest,
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-) -> TokenResponse:
-    """Poll for device auth completion. Returns 428 while pending."""
-    # Rate limit to prevent brute-force of device codes
-    client_ip = request.client.host if request.client else "unknown"
-    if not await _check_device_token_rate_limit(client_ip):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many requests. Try again later.",
-            headers={"Retry-After": str(_DEVICE_TOKEN_RATE_LIMIT_WINDOW)},
-        )
-
-    entry = await _get_device_code(body.device_code)
-    if entry is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Unknown device code"
-        )
-
-    expires_at = datetime.fromisoformat(entry["expires_at"])
-    if expires_at < datetime.now(timezone.utc):
-        await _delete_device_code(body.device_code)
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE, detail="Device code expired"
-        )
-
-    if not entry["completed"]:
-        raise HTTPException(
-            status_code=status.HTTP_428_PRECONDITION_REQUIRED,
-            detail="authorization_pending",
-        )
-
-    user_result = await db.execute(select(User).where(User.id == entry["user_id"]))
-    user = user_result.scalar_one()
-    await _delete_device_code(body.device_code)
-
-    tokens = await generate_tokens(db, user)
-    return TokenResponse(
-        access_token=tokens["access_token"],
-        refresh_token=tokens["refresh_token"],
+        access_token=access_token,
+        refresh_token=new_refresh,
         expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
-import click
+from dotenv import load_dotenv
 
-from nrev_lite import __version__
+load_dotenv()
+
+import click  # noqa: E402
+
+from nrev_lite import __version__  # noqa: E402
 
 
 @click.group()

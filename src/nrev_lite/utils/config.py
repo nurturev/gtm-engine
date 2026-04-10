@@ -14,12 +14,15 @@ else:
     import tomli
 import tomli_w
 
-NREV_LITE_DIR = Path.home() / ".nrev-lite"
+# Honor NREV_LITE_HOME so dev/prod CLIs can keep separate credentials + config.
+# Resolved at import time — load_dotenv() must run before this module is imported.
+NREV_LITE_DIR = Path(os.environ["NREV_LITE_HOME"]).expanduser() if os.environ.get("NREV_LITE_HOME") else Path.home() / ".nrev-lite"
 _LEGACY_DIR = Path.home() / ".nrv"
 CONFIG_FILE = NREV_LITE_DIR / "config.toml"
 CREDENTIALS_FILE = NREV_LITE_DIR / "credentials"
 
 DEFAULT_API_BASE_URL = "https://nrev-lite-api.public.prod.nurturev.com"
+DEFAULT_PLATFORM_BASE_URL = "https://app.nrev.ai"
 
 
 def _migrate_legacy() -> None:
@@ -104,8 +107,37 @@ def set_config(key: str, value: Any) -> None:
 
 
 def get_api_base_url() -> str:
-    """Get the server URL from config, falling back to the default."""
+    """Get the server URL.
+
+    Resolution order:
+      1. `NREV_API_URL` env var (lets dev/prod CLIs target different servers)
+      2. `server.url` in `~/.nrev-lite/config.toml`
+      3. Default (production)
+    """
+    env_url = os.environ.get("NREV_API_URL")
+    if env_url:
+        return env_url.rstrip("/")
     url = get_config("server.url")
     if url and isinstance(url, str):
         return url.rstrip("/")
     return DEFAULT_API_BASE_URL
+
+
+def get_platform_base_url() -> str:
+    """Get the platform (nrev-ui-2) base URL.
+
+    Resolution order:
+      1. `platform.url` in `~/.nrev-lite/config.toml`
+      2. `NREV_PLATFORM_URL` env var
+      3. Default (`https://app.nrev.ai`)
+
+    Used by the CLI auth flow to redirect the user to the platform's `/login`
+    page (which handles Supabase SSO and the gtm-engine token exchange).
+    """
+    url = get_config("platform.url")
+    if url and isinstance(url, str):
+        return url.rstrip("/")
+    env_url = os.environ.get("NREV_PLATFORM_URL")
+    if env_url:
+        return env_url.rstrip("/")
+    return DEFAULT_PLATFORM_BASE_URL

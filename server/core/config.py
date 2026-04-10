@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     """
 
     # --- Database ---
-    DATABASE_URL: str = "postgresql+asyncpg://nrev_lite:nrev_lite@localhost:5432/nrev_lite"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://nrev_lite:nrev_lite@localhost:5432/nrev_lite"
+    )
 
     # --- Redis ---
     REDIS_URL: str = "redis://localhost:6379/0"

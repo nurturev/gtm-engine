@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import base64
-import hashlib
 import json
 import secrets
 import socket
@@ -13,102 +11,106 @@ import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import quote, urlparse
 
 import click
 
 from nrev_lite.client.auth import (
+    _user_info_from_jwt,
     clear_credentials,
-    is_authenticated,
     load_credentials,
     save_credentials,
 )
-from nrev_lite.utils.config import get_api_base_url
+from nrev_lite.utils.config import get_platform_base_url
 from nrev_lite.utils.display import print_error, print_success, print_warning, spinner
 
 
 # ---------------------------------------------------------------------------
-# Localhost callback server for OAuth
+# Localhost callback server (POST from platform's /cli/auth/done page)
 # ---------------------------------------------------------------------------
 
 
 class _OAuthCallbackResult:
     """Mutable container shared between the HTTP handler and the main thread."""
 
-    def __init__(self) -> None:
+    def __init__(self, expected_state: str) -> None:
+        self.expected_state = expected_state
         self.access_token: str | None = None
         self.refresh_token: str | None = None
-        self.user_info: dict[str, Any] | None = None
         self.expires_at: float | None = None
+        self.user_info: dict[str, Any] | None = None
         self.error: str | None = None
         self.received = threading.Event()
 
 
-def _make_handler(result: _OAuthCallbackResult):
-    """Create a request-handler class that captures the callback."""
+def _make_handler(result: _OAuthCallbackResult, allowed_origin: str):
+    """Create a request-handler class that captures the POSTed credentials."""
 
     class Handler(BaseHTTPRequestHandler):
-        def do_GET(self) -> None:  # noqa: N802
-            parsed = urlparse(self.path)
-            params = parse_qs(parsed.query)
+        def do_OPTIONS(self) -> None:  # noqa: N802
+            # CORS preflight from the platform's /cli/auth/done page
+            self.send_response(204)
+            self._cors_headers()
+            self.end_headers()
 
-            if parsed.path != "/callback":
+        def do_POST(self) -> None:  # noqa: N802
+            if urlparse(self.path).path != "/callback":
                 self.send_response(404)
+                self._cors_headers()
                 self.end_headers()
                 return
 
-            if "error" in params:
-                raw_error = params["error"][0]
-                # URL-decode in case the server encoded the message
-                from urllib.parse import unquote
-                result.error = unquote(raw_error)
-                self._respond("Authentication failed. You can close this tab.")
-                result.received.set()
+            length = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(length) if length else b""
+            try:
+                payload = json.loads(raw.decode("utf-8")) if raw else {}
+            except json.JSONDecodeError:
+                self._reject(400, "invalid_json")
                 return
 
-            result.access_token = params.get("access_token", [None])[0]
-            result.refresh_token = params.get("refresh_token", [None])[0]
-            expires_in = params.get("expires_in", [None])[0]
+            state = payload.get("state")
+            if not state or state != result.expected_state:
+                self._reject(400, "state_mismatch")
+                return
+
+            access_token = payload.get("access_token")
+            if not access_token:
+                self._reject(400, "missing_access_token")
+                return
+
+            result.access_token = access_token
+            result.refresh_token = payload.get("refresh_token") or ""
+            expires_in = payload.get("expires_in")
             if expires_in:
-                result.expires_at = time.time() + float(expires_in)
-
-            # user_info may arrive as JSON-encoded query param
-            user_info_raw = params.get("user_info", [None])[0]
-            if user_info_raw:
                 try:
-                    result.user_info = json.loads(user_info_raw)
-                except json.JSONDecodeError:
-                    result.user_info = {}
+                    result.expires_at = time.time() + float(expires_in)
+                except (TypeError, ValueError):
+                    result.expires_at = None
+            result.user_info = payload.get("user_info") or {}
 
-            # Also accept individual fields
-            if not result.user_info:
-                result.user_info = {}
-            if "email" in params:
-                result.user_info["email"] = params["email"][0]
-            if "tenant" in params:
-                result.user_info["tenant"] = params["tenant"][0]
-
-            if result.access_token:
-                self._respond(
-                    "Authentication successful! You can close this tab and "
-                    "return to your terminal."
-                )
-            else:
-                result.error = "No access token received"
-                self._respond("Authentication failed — no token received.")
-
+            self.send_response(200)
+            self._cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"ok":true}')
             result.received.set()
 
-        def _respond(self, body: str) -> None:
-            html = (
-                "<html><body style='font-family:sans-serif;text-align:center;"
-                "padding-top:80px'>"
-                f"<h2>{body}</h2></body></html>"
-            )
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html")
+        def _reject(self, status_code: int, reason: str) -> None:
+            result.error = reason
+            self.send_response(status_code)
+            self._cors_headers()
+            self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(html.encode())
+            self.wfile.write(json.dumps({"ok": False, "error": reason}).encode())
+            result.received.set()
+
+        def _cors_headers(self) -> None:
+            self.send_header("Access-Control-Allow-Origin", allowed_origin)
+            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header(
+                "Access-Control-Allow-Headers", "Content-Type"
+            )
+            self.send_header("Access-Control-Max-Age", "600")
 
         def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
             # Silence HTTP server logs
@@ -123,15 +125,35 @@ def _find_free_port() -> int:
         return s.getsockname()[1]
 
 
-def _generate_pkce() -> tuple[str, str]:
-    """Generate a PKCE code_verifier and code_challenge (S256).
+def _platform_origin(platform_base_url: str) -> str:
+    """Return scheme://host[:port] for use as a CORS Allow-Origin value."""
+    parsed = urlparse(platform_base_url)
+    if not parsed.scheme or not parsed.netloc:
+        return platform_base_url.rstrip("/")
+    return f"{parsed.scheme}://{parsed.netloc}"
 
-    Returns (code_verifier, code_challenge).
+
+def _build_login_url(
+    platform_base_url: str, nonce: str, cli_callback: str
+) -> str:
+    """Construct the platform login URL with state + cli_callback nested
+    inside the URL-encoded ``finalRedirect`` value.
+
+    Shape::
+
+        {platform}/login?finalRedirect=%2Fcli%2Fauth%2Fdone%3Fstate%3D{nonce}%26cli_callback%3D{enc}
+
+    The nrev-ui-2 ``/login`` page reads the ``finalRedirect`` query param,
+    completes Supabase auth, then navigates the browser to that path. The
+    ``/cli/auth/done`` page in nrev-ui-2 then reads ``state`` and
+    ``cli_callback`` from its own query string and POSTs the issued tokens
+    to the CLI's localhost listener.
     """
-    code_verifier = secrets.token_urlsafe(64)  # 86 chars, well within 43-128
-    digest = hashlib.sha256(code_verifier.encode("ascii")).digest()
-    code_challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
-    return code_verifier, code_challenge
+    inner = (
+        f"/cli/auth/done?state={quote(nonce, safe='')}"
+        f"&cli_callback={quote(cli_callback, safe='')}"
+    )
+    return f"{platform_base_url.rstrip('/')}/login?finalRedirect={quote(inner, safe='')}"
 
 
 # ---------------------------------------------------------------------------
@@ -145,61 +167,57 @@ def auth() -> None:
 
 
 @auth.command()
-@click.option("--headless", is_flag=True, help="Use device-code flow (no browser).")
-def login(headless: bool) -> None:
-    """Log in to nrev-lite."""
-    base_url = get_api_base_url()
+@click.option(
+    "--no-browser",
+    is_flag=True,
+    help="Print the login URL instead of auto-opening a browser. Useful for debugging in a Chrome window with DevTools already open.",
+)
+def login(no_browser: bool) -> None:
+    """Log in to nrev-lite via the platform's browser SSO flow."""
+    _browser_oauth_flow(get_platform_base_url(), open_browser=not no_browser)
 
-    if headless:
-        _device_code_flow(base_url)
-    else:
-        _browser_oauth_flow(base_url)
 
+def _browser_oauth_flow(platform_base_url: str, open_browser: bool = True) -> None:
+    """Open the platform login page and wait for a localhost POST callback.
 
-def _browser_oauth_flow(base_url: str) -> None:
-    """Run the browser-based Google OAuth flow with a localhost callback."""
-    import httpx
+    Concurrent ``nrev-lite auth login`` invocations are first-callback-wins:
+    each call binds its own random localhost port, so they cannot collide
+    on the listener; whichever browser tab completes first wins on the
+    server side because the platform's /cli/auth/done POSTs to that
+    invocation's specific localhost URL.
+    """
+    try:
+        port = _find_free_port()
+    except OSError as exc:
+        print_error(
+            f"Could not bind a localhost port for the auth callback: {exc}"
+        )
+        sys.exit(1)
 
-    port = _find_free_port()
-    cli_redirect = f"http://localhost:{port}/callback"
+    cli_callback = f"http://localhost:{port}/callback"
+    nonce = secrets.token_urlsafe(32)
 
-    # Generate PKCE challenge pair
-    code_verifier, code_challenge = _generate_pkce()
-
-    result = _OAuthCallbackResult()
-    handler_cls = _make_handler(result)
+    result = _OAuthCallbackResult(expected_state=nonce)
+    handler_cls = _make_handler(result, allowed_origin=_platform_origin(platform_base_url))
     server = HTTPServer(("127.0.0.1", port), handler_cls)
-
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
 
-    # Ask the nrev-lite server for the Google OAuth URL (with PKCE)
+    login_url = _build_login_url(platform_base_url, nonce, cli_callback)
+
+    if open_browser:
+        click.echo("Opening browser for authentication...")
+        click.echo(f"If the browser does not open, visit:\n  {login_url}\n")
+        webbrowser.open(login_url)
+    else:
+        click.echo("Open this URL in a browser (DevTools-friendly debug mode):\n")
+        click.echo(f"  {login_url}\n")
+
     try:
-        resp = httpx.post(
-            f"{base_url}/api/v1/auth/google",
-            json={
-                "redirect_uri": cli_redirect,
-                "code_challenge": code_challenge,
-                "code_verifier": code_verifier,
-            },
-            timeout=15,
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        oauth_url = data["auth_url"]
-    except httpx.HTTPError as exc:
-        print_error(f"Failed to initiate auth: {exc}")
+        with spinner("Waiting for authentication..."):
+            result.received.wait(timeout=300)
+    finally:
         server.shutdown()
-        sys.exit(1)
-
-    click.echo("Opening browser for authentication...")
-    click.echo(f"If the browser does not open, visit:\n  {oauth_url}\n")
-    webbrowser.open(oauth_url)
-
-    with spinner("Waiting for authentication..."):
-        result.received.wait(timeout=120)
-
-    server.shutdown()
 
     if not result.received.is_set():
         print_error("Timed out waiting for authentication callback.")
@@ -210,80 +228,23 @@ def _browser_oauth_flow(base_url: str) -> None:
         sys.exit(1)
 
     if not result.access_token:
-        print_error("No access token received from server.")
+        print_error("No access token received from platform.")
         sys.exit(1)
+
+    user_info = result.user_info or {}
+    if not user_info.get("email"):
+        user_info = _user_info_from_jwt(result.access_token) or user_info
 
     save_credentials(
         access_token=result.access_token,
         refresh_token=result.refresh_token or "",
-        user_info=result.user_info or {},
+        user_info=user_info,
         expires_at=result.expires_at,
     )
 
-    email = (result.user_info or {}).get("email", "unknown")
-    tenant = (result.user_info or {}).get("tenant", "default")
+    email = user_info.get("email", "unknown")
+    tenant = user_info.get("tenant", "default")
     print_success(f"Logged in as {email} (tenant: {tenant})")
-
-
-def _device_code_flow(base_url: str) -> None:
-    """Run the headless device-code flow."""
-    import httpx
-
-    try:
-        resp = httpx.post(f"{base_url}/api/v1/auth/device/code", timeout=15)
-        resp.raise_for_status()
-        data = resp.json()
-    except httpx.HTTPError as exc:
-        print_error(f"Failed to start device auth: {exc}")
-        sys.exit(1)
-
-    device_code = data["device_code"]
-    verification_url = data["verification_uri"]
-    user_code = data["user_code"]
-    interval = data.get("interval", 5)
-
-    click.echo(f"\nVisit:  {verification_url}")
-    click.echo(f"Code:   {user_code}\n")
-
-    with spinner("Waiting for you to authorize..."):
-        deadline = time.time() + 300  # 5 minute timeout
-        while time.time() < deadline:
-            time.sleep(interval)
-            try:
-                poll_resp = httpx.post(
-                    f"{base_url}/api/v1/auth/device/token",
-                    json={"device_code": device_code},
-                    timeout=15,
-                )
-                if poll_resp.status_code == 200:
-                    token_data = poll_resp.json()
-                    save_credentials(
-                        access_token=token_data["access_token"],
-                        refresh_token=token_data.get("refresh_token", ""),
-                        user_info=token_data.get("user_info", {}),
-                        expires_at=token_data.get(
-                            "expires_at", time.time() + 3600
-                        ),
-                    )
-                    email = token_data.get("user_info", {}).get("email", "unknown")
-                    tenant = token_data.get("user_info", {}).get("tenant", "default")
-                    print_success(f"Logged in as {email} (tenant: {tenant})")
-                    return
-                if poll_resp.status_code == 428:
-                    # Authorization pending — keep polling
-                    continue
-                # Unexpected status
-                print_error(
-                    f"Unexpected response ({poll_resp.status_code}): "
-                    f"{poll_resp.text}"
-                )
-                sys.exit(1)
-            except httpx.HTTPError as exc:
-                print_error(f"Polling error: {exc}")
-                sys.exit(1)
-
-    print_error("Timed out waiting for device authorization.")
-    sys.exit(1)
 
 
 @auth.command()
