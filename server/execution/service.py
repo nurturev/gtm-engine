@@ -372,8 +372,9 @@ async def execute_single(
                 return {
                     "provider": provider_name,
                     "operation": operation,
-                    "is_byok": cached.get("is_byok", True),
+                    "is_byok": cached.get("is_byok", False),
                     "cached": True,
+                    "actual_cost": 0.0,
                     "data": cached.get("data", cached),
                 }
         except Exception:

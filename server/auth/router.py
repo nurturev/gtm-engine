@@ -5,6 +5,7 @@ from __future__ import annotations
 import json as _json
 import logging
 import secrets
+import urllib.parse
 from datetime import datetime, timezone
 from string import Template
 from urllib.parse import urlencode
@@ -38,6 +39,34 @@ from server.auth.service import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Friendly messages for common Google OAuth error codes
+_GOOGLE_ERROR_MESSAGES: dict[str, str] = {
+    "access_denied": "You declined the sign-in request. Please try again and allow access.",
+    "invalid_grant": "The authorization code has expired or was already used. Please try signing in again.",
+    "invalid_scope": "The requested permissions are not available. Please contact support.",
+    "server_error": "Google encountered an error. Please try again in a moment.",
+    "temporarily_unavailable": "Google sign-in is temporarily unavailable. Please try again shortly.",
+    "invalid_request": "The sign-in request was malformed. Please try again.",
+    "unauthorized_client": "This application is not authorized for sign-in. Please contact support.",
+}
+
+
+def _friendly_auth_error(raw_error: str) -> str:
+    """Convert raw OAuth/token-exchange errors into user-friendly messages."""
+    error_lower = raw_error.lower()
+    for code, message in _GOOGLE_ERROR_MESSAGES.items():
+        if code in error_lower:
+            return message
+    if "code_verifier" in error_lower:
+        return "Sign-in verification failed. Please try again."
+    if "invalid_client" in error_lower:
+        return "Application configuration error. Please contact support."
+    if "redirect_uri" in error_lower:
+        return "Sign-in callback mismatch. Please try again."
+    # Generic fallback — never leak raw details
+    return "Sign-in failed. Please try again."
+
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -248,15 +277,19 @@ async def google_callback(
 
     # Handle Google errors (user denied access, etc.)
     if error:
-        logger.warning("Google OAuth error: %s", error)
+        logger.warning("Google OAuth error param: %s", error)
+        friendly = _friendly_auth_error(error)
+        encoded_error = urllib.parse.quote(friendly)
         if cli_redirect:
-            return RedirectResponse(url=f"{cli_redirect}?error={error}")
-        raise HTTPException(status_code=400, detail=f"Google auth error: {error}")
+            return RedirectResponse(url=f"{cli_redirect}?error={encoded_error}")
+        raise HTTPException(status_code=400, detail=friendly)
 
     if not code:
+        friendly = "No authorization code received. Please try signing in again."
+        encoded_error = urllib.parse.quote(friendly)
         if cli_redirect:
-            return RedirectResponse(url=f"{cli_redirect}?error=no_authorization_code")
-        raise HTTPException(status_code=400, detail="No authorization code received")
+            return RedirectResponse(url=f"{cli_redirect}?error={encoded_error}")
+        raise HTTPException(status_code=400, detail=friendly)
 
     # Exchange the Google auth code for user info (include PKCE verifier)
     try:
@@ -264,11 +297,12 @@ async def google_callback(
             code, code_verifier=code_verifier or None
         )
     except (ValueError, Exception) as exc:
-        logger.error("Google token exchange failed: %s", exc)
-        error_msg = str(exc)[:200]
+        logger.warning("Google token exchange failed: %s", exc)
+        friendly = _friendly_auth_error(str(exc))
+        encoded_error = urllib.parse.quote(friendly)
         if cli_redirect:
-            return RedirectResponse(url=f"{cli_redirect}?error={error_msg}")
-        raise HTTPException(status_code=400, detail=f"Google auth failed: {error_msg}")
+            return RedirectResponse(url=f"{cli_redirect}?error={encoded_error}")
+        raise HTTPException(status_code=400, detail=friendly)
 
     user = await find_or_create_user(db, google_user)
     tokens = await generate_tokens(db, user)

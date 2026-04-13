@@ -8,6 +8,7 @@ from typing import Any
 import click
 
 from nrev_lite.client.http import NrvApiError, NrvClient
+from nrev_lite.utils.cost_confirm import confirm_cost
 from nrev_lite.utils.display import (
     print_error,
     print_json,
@@ -15,6 +16,7 @@ from nrev_lite.utils.display import (
     print_table,
     print_warning,
     spinner,
+    warn_low_balance,
 )
 
 
@@ -43,13 +45,14 @@ def web() -> None:
 
 @web.command("search")
 @click.argument("query")
-@click.option("--num", default=10, help="Number of results (1-300).")
+@click.option("--limit", "--num", "-n", "num", default=10, help="Number of results (1-300).")
 @click.option("--country", "gl", default=None, help="Country code (us, in, gb).")
 @click.option("--time", "tbs", default=None,
               help="Time filter: hour, day, week, month, year.")
 @click.option("--site", default=None,
               help="Restrict to a domain (e.g. linkedin.com).")
 @click.option("--json-output", is_flag=True, help="Output raw JSON.")
+@click.option("--yes", "-y", is_flag=True, help="Skip cost confirmation prompt.")
 def search_web(
     query: str,
     num: int,
@@ -57,6 +60,7 @@ def search_web(
     tbs: str | None,
     site: str | None,
     json_output: bool,
+    yes: bool,
 ) -> None:
     """Google search for GTM intelligence.
 
@@ -83,12 +87,21 @@ def search_web(
         params["site"] = site
 
     client = NrvClient()
+
+    if not confirm_cost(client, "search_web", params, skip_confirm=yes):
+        click.echo("Aborted.")
+        return
+
     try:
         with spinner(f'Searching Google: "{query}"'):
             result = client.execute("search_web", params, providers=["rapidapi_google"])
     except NrvApiError as exc:
         print_error(f"Search failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
+
+    warn_low_balance(result)
 
     data = result.get("result") or result.get("data") or result
 
@@ -132,6 +145,8 @@ def bulk_search(
             result = client.execute("search_web", params, providers=["rapidapi_google"])
     except NrvApiError as exc:
         print_error(f"Bulk search failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
 
     data = result.get("result") or result.get("data") or result
@@ -157,11 +172,13 @@ def bulk_search(
 @click.option("--full-content", is_flag=True,
               help="Return full page content (not just excerpts).")
 @click.option("--json-output", is_flag=True, help="Output raw JSON.")
+@click.option("--yes", "-y", is_flag=True, help="Skip cost confirmation prompt.")
 def scrape_page(
     url: str,
     objective: str | None,
     full_content: bool,
     json_output: bool,
+    yes: bool,
 ) -> None:
     """Scrape a webpage via Parallel.ai and get clean content.
 
@@ -184,12 +201,21 @@ def scrape_page(
         params["full_content"] = True
 
     client = NrvClient()
+
+    if not confirm_cost(client, "scrape_page", params, skip_confirm=yes):
+        click.echo("Aborted.")
+        return
+
     try:
         with spinner(f"Scraping {url}..."):
             result = client.execute("scrape_page", params, providers=["parallel_web"])
     except NrvApiError as exc:
         print_error(f"Scrape failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
+
+    warn_low_balance(result)
 
     data = result.get("result") or result.get("data") or result
 
@@ -246,6 +272,8 @@ def crawl_site(
             result = client.execute("scrape_page", params, providers=["parallel_web"])
     except NrvApiError as exc:
         print_error(f"Crawl failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
 
     data = result.get("result") or result.get("data") or result
@@ -299,6 +327,8 @@ def extract_structured(
             result = client.execute("extract_structured", params, providers=["parallel_web"])
     except NrvApiError as exc:
         print_error(f"Extraction failed: {exc.message}")
+        if exc.user_action:
+            click.echo(f"  Hint: {exc.user_action}")
         sys.exit(1)
 
     data = result.get("result") or result.get("data") or result
