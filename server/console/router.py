@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from string import Template
 from typing import Optional
@@ -1503,7 +1504,6 @@ async def initiate_connection(
                             pass
 
                 if redirect_url:
-                    from datetime import datetime, timezone, timedelta
                     now = datetime.now(timezone.utc)
                     expires_at = now + timedelta(seconds=600)
                     return JSONResponse({
@@ -2161,7 +2161,7 @@ async def execute_action(
                     error_msg = data.get("error") or data.get("message", "Action failed")
                     # Check for stale connection indicators in the error message
                     stale_keywords = ("token expired", "invalid_grant", "token revoked",
-                                      "unauthorized", "access denied", "refresh token")
+                                      "401 unauthorized", "access denied", "refresh token")
                     if any(kw in str(error_msg).lower() for kw in stale_keywords):
                         return JSONResponse({
                             "status": "error",
