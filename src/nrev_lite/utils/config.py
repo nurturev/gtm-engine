@@ -16,7 +16,18 @@ import tomli_w
 
 # Honor NREV_LITE_HOME so dev/prod CLIs can keep separate credentials + config.
 # Resolved at import time — load_dotenv() must run before this module is imported.
-NREV_LITE_DIR = Path(os.environ["NREV_LITE_HOME"]).expanduser() if os.environ.get("NREV_LITE_HOME") else Path.home() / ".nrev-lite"
+NREV_LITE_DIR = (
+    Path(os.environ["NREV_LITE_HOME"]).expanduser()
+    if os.environ.get("NREV_LITE_HOME")
+    else Path.home() / ".nrev-lite"
+)
+# Honor NREV_LITE_HOME so dev/prod CLIs can keep separate credentials + config.
+# Resolved at import time — load_dotenv() must run before this module is imported.
+NREV_LITE_DIR = (
+    Path(os.environ["NREV_LITE_HOME"]).expanduser()
+    if os.environ.get("NREV_LITE_HOME")
+    else Path.home() / ".nrev-lite"
+)
 _LEGACY_DIR = Path.home() / ".nrv"
 CONFIG_FILE = NREV_LITE_DIR / "config.toml"
 CREDENTIALS_FILE = NREV_LITE_DIR / "credentials"
@@ -33,6 +44,7 @@ def _migrate_legacy() -> None:
     if legacy_creds.exists():
         NREV_LITE_DIR.mkdir(parents=True, exist_ok=True)
         import shutil
+
         shutil.copy2(legacy_creds, CREDENTIALS_FILE)
         os.chmod(CREDENTIALS_FILE, 0o600)
     # Also migrate config.toml if it exists
@@ -40,6 +52,7 @@ def _migrate_legacy() -> None:
     if legacy_config.exists() and not CONFIG_FILE.exists():
         NREV_LITE_DIR.mkdir(parents=True, exist_ok=True)
         import shutil
+
         shutil.copy2(legacy_config, CONFIG_FILE)
 
 
