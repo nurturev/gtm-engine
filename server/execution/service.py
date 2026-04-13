@@ -202,6 +202,29 @@ def calculate_cost(operation: str, params: dict[str, Any]) -> float:
 
     return base
 
+
+def build_cost_breakdown(operation: str, params: dict[str, Any], cost: float) -> str:
+    """Human-readable explanation of how `calculate_cost` arrived at `cost`.
+
+    Kept in sync with the branches in `calculate_cost` so the single and bulk
+    cost-estimate endpoints share the same wording.
+    """
+    if operation in SEARCH_OPERATIONS:
+        per_page = int(params.get("per_page") or params.get("limit") or 25)
+        page = int(params.get("page") or 1)
+        return (
+            f"Search: {per_page} results/page × 1 credit per 25 results = "
+            f"{cost:.1f} credits (page {page})"
+        )
+    if operation in BULK_OPERATIONS:
+        if operation == "bulk_enrich_people":
+            count = len(params.get("details", []))
+        else:
+            count = len(params.get("domains", []))
+        return f"Bulk: {count} records × 1 credit each = {cost:.1f} credits"
+    return f"Single enrichment = {cost:.1f} credit"
+
+
 # Platform API keys loaded from environment (fallback when no BYOK key).
 # These are the nrev-lite platform keys — used when a tenant hasn't added their own.
 # NEVER logged, NEVER returned to users, NEVER exposed in any response.

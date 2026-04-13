@@ -638,17 +638,18 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_estimate_cost",
         "description": (
-            "Estimate credit cost for an operation before executing it. "
-            "Returns estimated credits, dollar equivalent, and whether BYOK keys "
-            "would make it free. Call this before large batch operations to show "
-            "the user what they will spend."
+            "Estimate credit cost before executing operations. Two modes:\n"
+            "  • Single: pass `operation` (+ optional `count`) for a quick estimate.\n"
+            "  • Bulk: pass `operations` — a list of up to 50 {operation, params} "
+            "items, mixed types allowed. Use this before any multi-step plan to "
+            "show the user the full spend in one number."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
                 "operation": {
                     "type": "string",
-                    "description": "The operation type to estimate",
+                    "description": "Single mode: the operation type to estimate.",
                     "enum": [
                         "enrich_person", "enrich_company", "search_people",
                         "search_web", "scrape_page", "google_search",
@@ -658,11 +659,30 @@ TOOLS: list[dict[str, Any]] = [
                 },
                 "count": {
                     "type": "integer",
-                    "description": "Number of records/URLs to process",
+                    "description": "Single mode: number of records/URLs to process.",
                     "default": 1,
                 },
+                "operations": {
+                    "type": "array",
+                    "maxItems": 50,
+                    "description": (
+                        "Bulk mode: list of up to 50 {operation, params} items. "
+                        "`params` is the same shape you would send to /execute "
+                        "(e.g. {\"per_page\": 100} for search_people, "
+                        "{\"details\": [...]} for bulk_enrich_people). "
+                        "Mutually exclusive with `operation`."
+                    ),
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "operation": {"type": "string"},
+                            "params": {"type": "object"},
+                        },
+                        "required": ["operation"],
+                    },
+                },
             },
-            "required": ["operation"],
+            "required": [],
         },
     },
     # ---- Account ----
@@ -2044,11 +2064,41 @@ def _handle_nrev_search_people(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def _handle_nrev_estimate_cost(arguments: dict) -> dict:
-    """Estimate credit cost for an operation using real per-op pricing."""
+    """Estimate credit cost for one or many operations.
+
+    Bulk mode (`operations` list) delegates to /execute/cost/bulk so the server's
+    `calculate_cost` is the source of truth. Single mode keeps the local pricing
+    table for backward compatibility.
+    """
+    CREDIT_TO_USD = 0.08
+
+    # ── Bulk mode: delegate to server endpoint ────────────────────────────
+    operations = arguments.get("operations")
+    if isinstance(operations, list) and operations:
+        payload = {
+            "operations": [
+                {
+                    "operation": op.get("operation", ""),
+                    "params": op.get("params") or {},
+                }
+                for op in operations
+            ]
+        }
+        result = _api_request("POST", "/execute/cost/bulk", json_body=payload)
+        if "error" in result:
+            return result
+        result["estimated_usd"] = round(
+            result.get("total_estimated_credits", 0) * CREDIT_TO_USD, 2
+        )
+        for item in result.get("items", []):
+            item["estimated_usd"] = round(
+                item.get("estimated_credits", 0) * CREDIT_TO_USD, 2
+            )
+        return result
+
+    # ── Single mode: existing local-dict pricing ──────────────────────────
     operation = arguments.get("operation", "")
     count = arguments.get("count", 1)
-
-    CREDIT_TO_USD = 0.08
 
     # Real per-operation credit costs (platform key pricing)
     OP_COSTS = {

@@ -317,17 +317,3 @@ class NrvClient:
         """Disconnect an app."""
         return self._delete(f"/connections/{connection_id}")
 
-    # ------------------------------------------------------------------
-    # Auth (server-side endpoints)
-    # ------------------------------------------------------------------
-
-    def start_device_auth(self) -> dict:
-        return self._request("POST", "/auth/device", retry_on_401=False)
-
-    def poll_device_auth(self, device_code: str) -> dict:
-        return self._request(
-            "POST",
-            "/auth/device/token",
-            json={"device_code": device_code},
-            retry_on_401=False,
-        )

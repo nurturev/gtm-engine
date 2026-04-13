@@ -22,6 +22,9 @@ from server.execution.schemas import (
     BatchExecuteRequest,
     BatchExecuteResponse,
     BatchStatusResponse,
+    BulkCostEstimateItem,
+    BulkCostEstimateRequest,
+    BulkCostEstimateResponse,
     CostEstimateRequest,
     CostEstimateResponse,
     ExecuteRequest,
@@ -31,6 +34,7 @@ from server.execution.service import (
     OPERATION_COSTS,
     SEARCH_OPERATIONS,
     BULK_OPERATIONS,
+    build_cost_breakdown,
     calculate_cost,
     execute_single,
 )
@@ -271,29 +275,40 @@ async def estimate_cost(
     cost and a human-readable breakdown of how it was calculated.
     """
     cost = calculate_cost(body.operation, body.params)
-
-    # Build breakdown explanation
-    if body.operation in SEARCH_OPERATIONS:
-        per_page = int(body.params.get("per_page") or body.params.get("limit") or 25)
-        page = int(body.params.get("page") or 1)
-        breakdown = (
-            f"Search: {per_page} results/page × 1 credit per 25 results = "
-            f"{cost:.1f} credits (page {page})"
-        )
-    elif body.operation in BULK_OPERATIONS:
-        if body.operation == "bulk_enrich_people":
-            count = len(body.params.get("details", []))
-        else:
-            count = len(body.params.get("domains", []))
-        breakdown = f"Bulk: {count} records × 1 credit each = {cost:.1f} credits"
-    else:
-        breakdown = f"Single enrichment = {cost:.1f} credit"
-
     return CostEstimateResponse(
         operation=body.operation,
         estimated_credits=cost,
-        breakdown=breakdown,
+        breakdown=build_cost_breakdown(body.operation, body.params, cost),
         is_free_with_byok=True,
+    )
+
+
+@router.post("/execute/cost/bulk", response_model=BulkCostEstimateResponse)
+async def estimate_cost_bulk(
+    body: BulkCostEstimateRequest,
+    tenant: TenantRef = Depends(get_tenant_from_token),
+) -> BulkCostEstimateResponse:
+    """Estimate credit cost for up to 50 mixed-type operations in one call.
+
+    Pure computation — no provider calls, no credit holds, no DB writes.
+    Auth + RLS context happen exactly once for the whole request, replacing
+    N round trips against `/execute/cost`.
+    """
+    items: list[BulkCostEstimateItem] = []
+    for idx, op in enumerate(body.operations):
+        cost = calculate_cost(op.operation, op.params)
+        items.append(
+            BulkCostEstimateItem(
+                index=idx,
+                operation=op.operation,
+                estimated_credits=cost,
+                breakdown=build_cost_breakdown(op.operation, op.params, cost),
+            )
+        )
+    return BulkCostEstimateResponse(
+        total_estimated_credits=sum(i.estimated_credits for i in items),
+        item_count=len(items),
+        items=items,
     )
 
 

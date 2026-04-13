@@ -78,36 +78,6 @@ async def check_platform_credits(
         return 0.0
 
 
-async def check_platform_credits_by_user(user_id: str) -> float:
-    """Check credit balance via platform using a Supabase user_id.
-
-    The platform resolves user → tenant internally. Returns 0.0 on any
-    failure (fail-closed), same as check_platform_credits.
-    """
-    url = f"{settings.PLATFORM_CREDIT_SERVICE_URL}/tenant/credits/by-user"
-    try:
-        async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-            resp = await client.get(
-                url, params={"user_id": user_id}, headers=_headers()
-            )
-            if resp.status_code == 402:
-                return 0.0
-            resp.raise_for_status()
-            balance = resp.json()
-            if balance is None:
-                return 0.0
-            logger.debug(
-                "Platform credit check: user_id=%s balance=%s", user_id, balance
-            )
-            return float(balance)
-    except Exception:
-        logger.exception(
-            "Platform credit check failed for user %s — returning 0.0 (fail-closed)",
-            user_id,
-        )
-        return 0.0
-
-
 async def debit_platform_credits(
     tenant_id: str,
     amount: int,
