@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 _TIMEOUT = httpx.Timeout(5.0, connect=3.0)
 
+FLEXPRICE_EVENT_NAME = "data_enrichment_api"
+
 
 def _headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {settings.PLATFORM_CREDIT_SERVICE_TOKEN}"}
@@ -81,7 +83,7 @@ async def check_platform_credits(
 async def debit_platform_credits(
     tenant_id: str,
     amount: int,
-    event_name: str,
+    event_type: str,
     agent_thread_id: str | None = None,
 ) -> None:
     """Fire-and-forget debit to the platform credit service.
@@ -104,17 +106,18 @@ async def debit_platform_credits(
                 json={
                     "tenant_id": numeric_id,
                     "credit_count": amount,
-                    "event_name": event_name,
+                    "event_name": FLEXPRICE_EVENT_NAME,
+                    "event_type": event_type,
                     "agent_thread_id": agent_thread_id,
                 },
                 headers=_headers(),
             )
             if resp.status_code in (200, 202):
                 logger.info(
-                    "Platform credit debit: tenant=%s amount=%d event=%s",
+                    "Platform credit debit: tenant=%s amount=%d event_type=%s",
                     tenant_id,
                     amount,
-                    event_name,
+                    event_type,
                 )
             else:
                 logger.warning(
@@ -125,9 +128,9 @@ async def debit_platform_credits(
                 )
     except Exception:
         logger.exception(
-            "Platform credit debit failed: tenant=%s amount=%d event=%s agent_thread_id=%s",
+            "Platform credit debit failed: tenant=%s amount=%d event_type=%s agent_thread_id=%s",
             tenant_id,
             amount,
-            event_name,
+            event_type,
             agent_thread_id,
         )
