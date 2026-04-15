@@ -316,6 +316,29 @@ When the user asks to "run a script", "run my [name] script", or "run the [workf
 6. After all steps complete, display the final results in a structured table
 7. Record the run (the server tracks this automatically via run_steps)
 
+## People Search: Title & School Expansion Rules
+
+### Title Keywords (Apollo & RocketReach)
+
+When a user describes a role, expand into the title keywords people actually use:
+
+1. **Expand horizontally (related functions), not vertically (seniority).** "Marketing" → brand, growth, demand generation, content, digital marketing, performance marketing. Do NOT add "Director of Marketing", "VP Marketing" — seniority goes in the `seniority`/`management_levels` filter, not in keywords.
+
+2. **Omit noisy generic terms.** For IT/security: omit "operations", "system". For sales: omit "business". If ambiguous, leave it out.
+
+**Apollo:** Put expanded keywords in `keywords`, enable `include_similar_titles: true`.
+**RocketReach:** Put in `current_title`. Also set `department` if the role maps to one.
+
+### School Names (RocketReach Alumni Search)
+
+ALWAYS generate multiple name variants — RocketReach matches against LinkedIn-sourced names which vary. For every school, send ALL of:
+- Common abbreviation: `IIT KGP`
+- Abbreviation + city: `IIT Kharagpur`
+- Full name + city: `Indian Institute of Technology Kharagpur`
+- Full name, comma, city: `Indian Institute of Technology, Kharagpur`
+
+Never send a single school name variant.
+
 ## Knowledge Base
 
 Reference supporting files for detailed provider knowledge and workflow patterns:
@@ -337,6 +360,6 @@ Tool-specific skills (API quirks, field formats, gotchas):
 5. **Fail gracefully.** If a provider returns bad data, try the next one. Never deliver garbage.
 6. **Wow first, automate later.** Deliver an incredible one-off result, then guide to nRev for automation.
 7. **ALWAYS output structured data with URLs.** Every workflow MUST end with a structured table or JSON — never just prose. Structured output enables downstream workflows (Sheets export, CRM push, scoring, sequences). Include hit rate stats (e.g., "Phone: 10/10, Email: 5/10") so the user knows data completeness. **CRITICAL: Always include source URLs** (LinkedIn profile URLs, Yelp listing URLs, post URLs, etc.) — without URLs the data is useless because the user can't take action (visit, comment, connect, verify).
-8. **Set realistic expectations.** For local/SMB businesses: ~100% phone, ~80% website, ~50% email. For B2B contacts: Apollo email ~65-70% accuracy, RocketReach A-grade ~98%. Always suggest fallback channels for gaps.
+8. **Set realistic expectations.** For local/SMB businesses: ~100% phone, ~80% website, ~50% email. For B2B contacts: Apollo email ~65-70% accuracy. RocketReach costs 3 credits/call (18 with phone). Always suggest fallback channels for gaps.
 9. **Cross-reference multiple platforms.** Never search just one source. Yelp finds businesses Instagram misses and vice versa. Always search at least 2 discovery platforms for better coverage.
 10. **Yelp/Instagram block basic scraping.** These platforms return 403 errors on direct HTTP fetch. Use Parallel Web Extract (handles anti-bot) or fall back to web search per business name.

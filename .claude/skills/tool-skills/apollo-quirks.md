@@ -144,6 +144,21 @@ Credits do NOT roll over.
 
 **Always verify Apollo emails through ZeroBounce/NeverBounce before sending campaigns.**
 
+## Title Keyword Expansion
+
+When a user describes a role, expand into the title keywords people actually use:
+
+**1. Expand horizontally (related functions), not vertically (seniority).** Seniority goes in the `person_seniorities` filter, NOT in title keywords.
+- "Marketing" → brand, growth, demand generation, loyalty, content, digital marketing, performance marketing
+- Do NOT add "Director of Marketing", "VP Marketing" — that pollutes results
+
+**2. Omit noisy generic terms that attract irrelevant results.**
+- For IT/security roles: omit "operations", "system" — pulls in sysadmins, IT ops
+- For sales roles: omit "business" — pulls in business analysts, business ops
+- If ambiguous and would match more wrong than right people, leave it out
+
+Put the expanded keywords in `person_titles` or `q_keywords`. Enable `include_similar_titles: true` for additional coverage.
+
 ## Advanced Techniques
 
 ### Title fallback strategy
