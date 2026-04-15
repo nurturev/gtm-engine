@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from string import Template
 from typing import Optional
@@ -262,16 +263,53 @@ class _AuthFailRedirect(Exception):
     """Raised when browser auth fails and we should redirect to login."""
 
 
+@dataclass
+class SessionIdentity:
+    """Lightweight session identity built from the cookie JWT.
+
+    ``sub`` is the Google subject id (opaque string), ``email`` is the
+    user's email, ``role`` is always None (role is UM-owned).
+    """
+
+    sub: str
+    email: str
+    role: str | None = None
+    # Legacy compatibility — callers reading .id get .sub.
+    name: str | None = None
+    avatar_url: str | None = None
+
+    @property
+    def id(self) -> str:
+        return self.sub
+
+    @property
+    def tenant_id(self) -> str:  # pragma: no cover — not expected to be read
+        raise AttributeError(
+            "SessionIdentity has no tenant_id; read it from the URL."
+        )
+
+
+def _auth_unauthorized(allow_redirect: bool, detail: str) -> None:
+    if allow_redirect:
+        raise _AuthFailRedirect()
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=detail,
+    )
+
+
 async def _authenticate_console(
     request: Request,
     token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     allow_redirect: bool = True,
-) -> tuple[Tenant, "User | None", AsyncSession]:
+    tenant_id: str | None = None,
+) -> tuple[Tenant, SessionIdentity, AsyncSession]:
     """Authenticate via cookie, query param, or Authorization header.
 
-    Returns (Tenant, User | None, AsyncSession).  The User is resolved
-    from the JWT ``sub`` claim when available.
+    Returns (Tenant, SessionIdentity, AsyncSession). Identity is derived
+    from the cookie JWT's ``sub``/``email`` claims. Tenant authorization
+    is delegated to the UM service via ``has_tenant_access``.
 
     For browser page requests (allow_redirect=True), redirects to the
     login page instead of returning raw JSON errors.
@@ -293,12 +331,7 @@ async def _authenticate_console(
             jwt_token = auth_header.removeprefix("Bearer ")
 
     if not jwt_token:
-        if allow_redirect:
-            raise _AuthFailRedirect()
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-        )
+        _auth_unauthorized(allow_redirect, "Authentication required")
 
     try:
         payload = jwt.decode(
@@ -307,23 +340,56 @@ async def _authenticate_console(
             algorithms=[settings.JWT_ALGORITHM],
         )
     except JWTError:
-        if allow_redirect:
-            raise _AuthFailRedirect()
+        _auth_unauthorized(allow_redirect, "Session expired. Please sign in again.")
+
+    return await _authenticate_console_via_um(
+        payload=payload,
+        request=request,
+        db=db,
+        allow_redirect=allow_redirect,
+        url_tenant_id=tenant_id,
+    )
+
+
+async def _authenticate_console_via_um(
+    *,
+    payload: dict,
+    request: Request,
+    db: AsyncSession,
+    allow_redirect: bool,
+    url_tenant_id: str | None,
+) -> tuple[Tenant, SessionIdentity, AsyncSession]:
+    """New auth path: URL is the tenant anchor, UM is the access authority.
+
+    Cookie carries identity only (sub + email). The tenant_id comes from
+    the URL path (preferred) or the ``X-Tenant-Id`` header (API calls).
+    """
+    from server.auth.platform_access_service import has_tenant_access
+
+    email: str = payload.get("email") or ""
+    sub: str = payload.get("sub") or ""
+    if not email or not sub:
+        _auth_unauthorized(allow_redirect, "Invalid session")
+
+    resolved_tenant_id = url_tenant_id or request.headers.get("x-tenant-id")
+    if not resolved_tenant_id:
+        _auth_unauthorized(allow_redirect, "tenant_id is required")
+
+    allowed = await has_tenant_access(email, resolved_tenant_id)
+    if not allowed:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session expired. Please sign in again.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "You don't currently have access to this workspace. "
+                "Switch to it on app.nrev.ai and reload."
+            ),
         )
 
-    tenant_id: str | None = payload.get("tenant_id")
-    if not tenant_id:
-        if allow_redirect:
-            raise _AuthFailRedirect()
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid session",
-        )
-
-    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    # Read the Tenant row only for display fields (name). Authorization is
+    # already decided by UM above.
+    result = await db.execute(
+        select(Tenant).where(Tenant.id == resolved_tenant_id)
+    )
     tenant = result.scalar_one_or_none()
     if tenant is None:
         raise HTTPException(
@@ -331,15 +397,9 @@ async def _authenticate_console(
             detail="Tenant not found",
         )
 
-    # Resolve the User from JWT sub claim
-    user: User | None = None
-    user_id = payload.get("sub")
-    if user_id:
-        user_result = await db.execute(select(User).where(User.id == user_id))
-        user = user_result.scalar_one_or_none()
-
     await set_tenant_context(db, tenant.id)
-    return tenant, user, db
+    identity = SessionIdentity(sub=sub, email=email)
+    return tenant, identity, db
 
 
 # ---------------------------------------------------------------------------
@@ -348,30 +408,19 @@ async def _authenticate_console(
 
 
 @router.get("/console", response_class=HTMLResponse)
-async def console_root(request: Request):
-    """Redirect /console to the user's tenant dashboard using the session cookie."""
-    jwt_token = request.cookies.get(_COOKIE_NAME)
-    if not jwt_token:
-        return RedirectResponse(url=_LOGIN_URL, status_code=302)
-    try:
-        payload = jwt.decode(
-            jwt_token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM],
-        )
-        tenant_id = payload.get("tenant_id")
-        if tenant_id:
-            return RedirectResponse(url=f"/console/{tenant_id}", status_code=302)
-    except JWTError:
-        pass
-    response = RedirectResponse(url=_LOGIN_URL, status_code=302)
-    response.delete_cookie(_COOKIE_NAME, path="/")
-    return response
+async def console_root():
+    """/console has no canonical destination — identity cookies carry no
+    tenant. Users must arrive at /console/<tenant_id> directly (the URL is
+    the tenant anchor). Anything landing here goes to login.
+    """
+    return RedirectResponse(url=_LOGIN_URL, status_code=302)
 
 
 @router.get("/console/{tenant_id}", response_class=HTMLResponse)
 async def tenant_dashboard(
     request: Request,
     tenant_id: str,
-    tab: str = Query("keys", pattern="^(keys|connections|apps|usage|runs|datasets|dashboards|team)$"),
+    tab: str = Query("keys", pattern="^(keys|connections|apps|usage|runs|datasets|dashboards)$"),
     token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
@@ -382,18 +431,19 @@ async def tenant_dashboard(
         tab = "apps"
 
     try:
-        tenant, current_user, db = await _authenticate_console(request, token=token, db=db, allow_redirect=True)
+        tenant, current_user, db = await _authenticate_console(
+            request, token=token, db=db, allow_redirect=True, tenant_id=tenant_id,
+        )
     except _AuthFailRedirect:
-        response = RedirectResponse(url=_LOGIN_URL, status_code=302)
+        # Preserve the original URL (including tab) through login.
+        next_url = str(request.url.path)
+        if request.url.query:
+            next_url = f"{next_url}?{request.url.query}"
+        login_url = f"{_LOGIN_URL}?next={next_url}"
+        response = RedirectResponse(url=login_url, status_code=302)
         response.delete_cookie(_COOKIE_NAME, path="/")
         return response
 
-    # Verify the URL tenant_id matches the token
-    if tenant.id != tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Token tenant_id does not match URL",
-        )
 
     # ------------------------------------------------------------------
     # API Keys tab data
@@ -899,25 +949,8 @@ async def tenant_dashboard(
         "total_dashboards": len(dashboards_list),
     }
 
-    # ------------------------------------------------------------------
-    # Team tab data — list all users in the tenant
-    # ------------------------------------------------------------------
-    team_result = await db.execute(
-        select(User)
-        .where(User.tenant_id == tenant.id)
-        .order_by(User.created_at)
-    )
-    team_members = [
-        {
-            "id": u.id,
-            "email": u.email,
-            "name": u.name or u.email.split("@")[0],
-            "avatar_url": u.avatar_url,
-            "role": u.role or "member",
-            "created_at": u.created_at,
-        }
-        for u in team_result.scalars().all()
-    ]
+    # Team tab is removed in V1 — UM does not expose a membership endpoint.
+    team_members: list[dict] = []
 
     # ------------------------------------------------------------------
     # Runs tab — add user attribution per workflow
@@ -1017,7 +1050,7 @@ async def tenant_dashboard(
             "current_user": {
                 "id": current_user.id,
                 "email": current_user.email,
-                "name": current_user.name,
+                "name": current_user.name or current_user.email,
                 "avatar_url": current_user.avatar_url,
                 "role": current_user.role,
             } if current_user else None,
