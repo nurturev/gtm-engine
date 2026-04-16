@@ -30,7 +30,7 @@ from typing import Any
 
 import httpx
 
-from nrev_lite.client.auth import load_credentials, refresh_token_if_needed, get_token
+from nrev_lite.client.auth import load_credentials, refresh_token_if_needed, force_refresh, get_token
 from nrev_lite.utils.config import get_api_base_url
 
 # ---------------------------------------------------------------------------
@@ -99,6 +99,13 @@ def _api_request(
     if not headers:
         return {"error": "Not authenticated. Run `nrev-lite auth login` first."}
 
+    # Add tenant header for console endpoints (e.g. /connections/*) that
+    # resolve tenant from X-Tenant-Id rather than JWT claims alone.
+    creds = load_credentials()
+    tenant_id = (creds or {}).get("user_info", {}).get("tenant", "")
+    if tenant_id:
+        headers["X-Tenant-Id"] = str(tenant_id)
+
     # Add workflow tracking headers
     headers["X-Workflow-Id"] = WORKFLOW_ID
     if WORKFLOW_LABEL:
@@ -118,8 +125,9 @@ def _api_request(
             )
 
         if resp.status_code == 401:
-            # Try one refresh
-            new_token = refresh_token_if_needed()
+            # Force a refresh — the server rejected the token even if it
+            # hasn't expired locally (e.g. secret rotation, server restart).
+            new_token = force_refresh()
             if new_token:
                 headers["Authorization"] = f"Bearer {new_token}"
                 with httpx.Client(timeout=timeout) as client:
@@ -131,6 +139,21 @@ def _api_request(
                         params=params,
                     )
             if resp.status_code == 401:
+                # Force-refresh failed too — re-read credentials from disk
+                # in case the user just ran `nrev-lite auth login` in another terminal.
+                disk_token = get_token()
+                if disk_token and disk_token != headers.get("Authorization", "").removeprefix("Bearer "):
+                    headers["Authorization"] = f"Bearer {disk_token}"
+                    with httpx.Client(timeout=timeout) as client:
+                        resp = client.request(
+                            method,
+                            url,
+                            headers=headers,
+                            json=json_body,
+                            params=params,
+                        )
+            if resp.status_code == 401:
+                logger.warning("All auth recovery attempts failed (refresh + disk re-read)")
                 return {"error": "Session expired. Run `nrev-lite auth login` to re-authenticate."}
 
         if resp.status_code == 204:
@@ -1622,7 +1645,7 @@ def _handle_nrev_delete_dataset(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def _handle_nrev_credit_balance(args: dict[str, Any]) -> dict[str, Any]:
-    result = _api_request("GET", "/credits")
+    result = _api_request("GET", "/credits/balance")
     if "error" not in result:
         # Add the console URL for easy topup
         creds = load_credentials()
@@ -1929,8 +1952,8 @@ def _handle_nrev_health(args: dict[str, Any]) -> dict[str, Any]:
     tenant_id = (creds or {}).get("user_info", {}).get("tenant", "")
     base_url = get_api_base_url()
 
-    # Try to hit the credits endpoint as a lightweight auth check
-    result = _api_request("GET", "/credits")
+    # Use /credits/balance — lightweight auth (no User DB record needed)
+    result = _api_request("GET", "/credits/balance")
     if "error" in result:
         return {"status": "error", "error": result["error"]}
 
@@ -2252,7 +2275,7 @@ def _handle_nrev_deploy_site(arguments: dict) -> dict:
         "dataset_ids": dataset_ids,
         "entry_point": entry_point,
     }
-    return _api_request("POST", "/sites", json=body)
+    return _api_request("POST", "/sites", json_body=body)
 
 
 def _handle_nrev_save_script(args: dict[str, Any]) -> dict[str, Any]:
