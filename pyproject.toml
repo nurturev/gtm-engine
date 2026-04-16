@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nrev-lite"
-version = "1.0.0"
+version = "1.0.1"
 description = "nrev-lite — agent-native GTM execution platform"
 readme = "README.md"
 license = {text = "MIT"}
