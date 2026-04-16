@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.auth.dependencies import TenantRef, get_current_tenant, get_tenant_from_token
+from server.auth.dependencies import TenantRef, get_tenant_from_token
+from server.auth.flexible import get_tenant_flexible as _get_tenant_flexible
 from server.auth.models import Tenant
 from server.core.config import settings
 from server.core.database import get_db
@@ -55,10 +58,19 @@ async def get_credit_balance_lightweight(
 
 @router.get("/credits", response_model=CreditBalanceResponse)
 async def get_credit_balance(
-    tenant: Tenant = Depends(get_current_tenant),
+    request: Request,
+    token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> CreditBalanceResponse:
     """Return the current credit balance for the tenant."""
+    tenant, db = await _get_tenant_flexible(request, token, db)
+    if settings.PLATFORM_CREDIT_SERVICE_URL:
+        balance = await check_platform_credits(tenant.id)
+        return CreditBalanceResponse(
+            tenant_id=tenant.id,
+            balance=balance,
+            spend_this_month=0.0,
+        )
     balance_info = await get_balance(db, tenant.id)
     return CreditBalanceResponse(
         tenant_id=tenant.id,
@@ -69,13 +81,15 @@ async def get_credit_balance(
 
 @router.get("/credits/history", response_model=CreditHistoryResponse)
 async def get_credit_history(
+    request: Request,
     limit: int = 50,
     offset: int = 0,
-    tenant: Tenant = Depends(get_current_tenant),
+    token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> CreditHistoryResponse:
     """Return the credit transaction history for the tenant."""
-    entries, total = await get_history(db, tenant.id, limit=limit, offset=offset)
+    tenant, db = await _get_tenant_flexible(request, token, db)
+    entries, total = await get_history(db, str(tenant.id), limit=limit, offset=offset)
     return CreditHistoryResponse(
         entries=[
             LedgerEntryResponse(
@@ -97,7 +111,9 @@ async def get_credit_history(
 @router.post("/credits/topup", response_model=TopupResponse)
 async def initiate_topup(
     body: TopupRequest,
-    tenant: Tenant = Depends(get_current_tenant),
+    request: Request,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
 ) -> TopupResponse:
     """Initiate a Stripe checkout session for credit top-up.
 

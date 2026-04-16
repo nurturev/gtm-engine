@@ -94,7 +94,24 @@ def refresh_token_if_needed() -> str | None:
     if time.time() < expires_at - 60:
         return access_token
 
-    # Attempt refresh
+    return _do_refresh(creds)
+
+
+def force_refresh() -> str | None:
+    """Force a token refresh regardless of expiry.
+
+    Used when the server rejects a token with 401 even though it hasn't
+    expired locally (e.g. server-side invalidation, secret rotation).
+    Returns the new access token or None if refresh fails.
+    """
+    creds = load_credentials()
+    if creds is None:
+        return None
+    return _do_refresh(creds)
+
+
+def _do_refresh(creds: dict[str, Any]) -> str | None:
+    """Attempt to refresh the access token using the stored refresh token."""
     refresh_tok = creds.get("refresh_token")
     if not refresh_tok:
         return None
