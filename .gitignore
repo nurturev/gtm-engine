@@ -61,3 +61,5 @@ out/
 # === Generated Claude Code config ===
 # Keep CLAUDE.md and .claude/ tracked for nrev-lite
 .mcp.json
+
+.pylintrc

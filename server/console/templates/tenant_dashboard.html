@@ -1182,7 +1182,7 @@
         const TENANT_ID = '{{ tenant_id }}';
 
         function getAuthHeaders() {
-            return { 'Content-Type': 'application/json' };
+            return { 'Content-Type': 'application/json', 'X-Tenant-Id': TENANT_ID };
         }
 
         // All fetch calls include credentials so the HttpOnly cookie is sent

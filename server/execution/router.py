@@ -31,9 +31,6 @@ from server.execution.schemas import (
     ExecuteResponse,
 )
 from server.execution.service import (
-    OPERATION_COSTS,
-    SEARCH_OPERATIONS,
-    BULK_OPERATIONS,
     build_cost_breakdown,
     calculate_cost,
     execute_single,
@@ -88,16 +85,25 @@ async def execute_operation(
     start_time = time.monotonic()
 
     # Dynamic cost based on operation + params (per_page, batch size, etc.)
-    estimated_cost = calculate_cost(body.operation, body.params)
+    estimated_cost = calculate_cost(body.operation, body.params, vendor=body.provider)
     use_platform_credits = bool(settings.PLATFORM_CREDIT_SERVICE_URL)
 
     # Step 1: Hold credits (local mode) or rely on require_credits pre-check (platform mode)
-    workflow_id = request.headers.get("X-Workflow-Id") or getattr(request.state, "workflow_id", None)
+    workflow_id = request.headers.get("X-Workflow-Id") or getattr(
+        request.state, "workflow_id", None
+    )
     user_id = getattr(request.state, "user_id", None)
     hold_id: int | None = None
     if not use_platform_credits:
         try:
-            hold_id = await check_and_hold(db, tenant.id, estimated_cost, body.operation, workflow_id=workflow_id, user_id=user_id)
+            hold_id = await check_and_hold(
+                db,
+                tenant.id,
+                estimated_cost,
+                body.operation,
+                workflow_id=workflow_id,
+                user_id=user_id,
+            )
         except ValueError as exc:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
@@ -186,7 +192,12 @@ async def execute_operation(
             from server.billing.platform_credit_service import debit_platform_credits
 
             asyncio.create_task(
-                debit_platform_credits(tenant.id, int(actual_cost), event_name=body.operation, agent_thread_id=workflow_id)
+                debit_platform_credits(
+                    tenant.id,
+                    int(actual_cost),
+                    event_type=body.operation,
+                    agent_thread_id=workflow_id,
+                )
             )
             credits_charged = actual_cost
     else:
@@ -239,7 +250,7 @@ async def estimate_cost(
     Useful for CLI dry-run and batch cost preview. Returns the estimated
     cost and a human-readable breakdown of how it was calculated.
     """
-    cost = calculate_cost(body.operation, body.params)
+    cost = calculate_cost(body.operation, body.params, vendor=body.provider)
     return CostEstimateResponse(
         operation=body.operation,
         estimated_credits=cost,
@@ -321,17 +332,27 @@ async def execute_batch_endpoint(
 
     # Estimate total cost
     total_estimated_cost = sum(
-        calculate_cost(op.operation, op.params) for op in body.operations
+        calculate_cost(op.operation, op.params, vendor=op.provider)
+        for op in body.operations
     )
     use_platform_credits = bool(settings.PLATFORM_CREDIT_SERVICE_URL)
 
     # Hold credits for the full batch (local mode only)
-    workflow_id = request.headers.get("X-Workflow-Id") or getattr(request.state, "workflow_id", None)
+    workflow_id = request.headers.get("X-Workflow-Id") or getattr(
+        request.state, "workflow_id", None
+    )
     user_id = getattr(request.state, "user_id", None)
     hold_id: int | None = None
     if not use_platform_credits:
         try:
-            hold_id = await check_and_hold(db, tenant.id, total_estimated_cost, "batch", workflow_id=workflow_id, user_id=user_id)
+            hold_id = await check_and_hold(
+                db,
+                tenant.id,
+                total_estimated_cost,
+                "batch",
+                workflow_id=workflow_id,
+                user_id=user_id,
+            )
         except ValueError as exc:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
@@ -369,9 +390,7 @@ async def execute_batch_endpoint(
 
     # Billing: check if all results were BYOK/cached (free) or need charging
     all_free = all(
-        r.is_byok or r.cached
-        for r in checkpoint.results
-        if r.status == "success"
+        r.is_byok or r.cached for r in checkpoint.results if r.status == "success"
     )
 
     if use_platform_credits:
@@ -383,7 +402,7 @@ async def execute_batch_endpoint(
                 debit_platform_credits(
                     tenant.id,
                     int(checkpoint.cost_so_far),
-                    event_name=body.operations[0].operation,
+                    event_type=body.operations[0].operation,
                     agent_thread_id=workflow_id,
                 )
             )
@@ -465,8 +484,12 @@ async def get_batch_status(
 
 @router.get("/search/patterns")
 async def search_patterns(
-    platform: str | None = Query(None, description="Filter by platform: linkedin_jobs, twitter_posts, etc."),
-    use_case: str | None = Query(None, description="Filter by GTM use case: hiring_signals, funding_news, etc."),
+    platform: str | None = Query(
+        None, description="Filter by platform: linkedin_jobs, twitter_posts, etc."
+    ),
+    use_case: str | None = Query(
+        None, description="Filter by GTM use case: hiring_signals, funding_news, etc."
+    ),
     tenant: TenantRef = Depends(get_tenant_from_token),
 ) -> JSONResponse:
     """Return platform-specific Google search patterns and GTM query intelligence.

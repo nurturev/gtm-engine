@@ -165,11 +165,19 @@ COMING_SOON_PROVIDERS = {
 }
 
 def get_credit_cost(operation: str) -> int:
-    """Get the credit cost for an operation. Returns 0 for BYOK-only operations."""
+    """Get the credit cost for an operation. Returns 0 for BYOK-only operations.
+
+    Delegates to the DB-backed cost cache when available, falling back to
+    the hardcoded VENDOR_CATALOG values.
+    """
+    from server.billing.cost_config_service import get_base_cost, _cache_loaded
+    if _cache_loaded:
+        return int(get_base_cost(operation))
+    # Fallback to hardcoded catalog (before DB cache is loaded)
     for vendor in VENDOR_CATALOG.values():
         if operation in vendor.get("credit_costs", {}):
             return vendor["credit_costs"][operation]
-    return 1  # default fallback
+    return 1
 
 
 def get_provider_for_operation(operation: str) -> str | None:

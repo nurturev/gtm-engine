@@ -120,67 +120,39 @@ DEFAULT_PROVIDERS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 # Credit cost model
 # ---------------------------------------------------------------------------
-# Base costs per operation (for the simplest case: 1 record, 1 page)
-BASE_COSTS: dict[str, float] = {
-    "enrich_person": 1.0,
-    "enrich_company": 1.0,
-    "search_people": 1.0,       # base cost per search page
-    "search_companies": 1.0,    # base cost per search page
-    "bulk_enrich_people": 1.0,  # per-record in bulk
-    "bulk_enrich_companies": 1.0,
-    # PredictLeads signals — 1 credit per API call
-    "company_jobs": 1.0,
-    "company_technologies": 1.0,
-    "company_news": 1.0,
-    "company_financing": 1.0,
-    "similar_companies": 1.0,
-    # Web intelligence (Parallel) — 1 credit per API call
-    "scrape_page": 1.0,
-    "crawl_site": 1.0,         # base cost; actual scales with URLs extracted
-    "extract_structured": 1.0,
-    "batch_extract": 1.0,      # per-item in batch
-    # Google Search (RapidAPI) — 1 credit per query
-    "search_web": 1.0,
-}
+
+from server.billing.cost_config_service import get_base_cost
 
 # Search operations: cost scales with results requested
-# Formula: base + (per_page / 25) — requesting 100 results costs 4x requesting 25
+# Formula: base × ceil(per_page / 25) — requesting 100 results costs 4x requesting 25
 SEARCH_OPERATIONS = {"search_people", "search_companies"}
 
 # Bulk operations: cost scales with number of records
 BULK_OPERATIONS = {"bulk_enrich_people", "bulk_enrich_companies"}
 
-# Legacy flat lookup (used by router for minimum hold estimate)
-OPERATION_COSTS = BASE_COSTS
 
-
-def calculate_cost(operation: str, params: dict[str, Any]) -> float:
+def calculate_cost(operation: str, params: dict[str, Any], vendor: str | None = None) -> float:
     """Calculate the credit cost for an operation based on its parameters.
 
-    Pricing model:
-    - Enrichment (single):     1 credit flat
-    - Search (per page):       1 credit per 25 results requested
-                               e.g., per_page=25 → 1 credit, per_page=100 → 4 credits
-                               Pages beyond page 1 cost the same per page
-    - Search (bulk queries):   1 credit per query in the queries array
-                               e.g., queries=["a","b","c"] → 3 credits
-                               Each query is a separate API call to the provider
-    - Bulk enrichment:         1 credit per record in the batch
-                               e.g., 10 records → 10 credits
+    Base costs are loaded from the ``operation_costs`` DB table (managed via
+    the admin API).  Dynamic scaling rules are applied on top:
+
+    - Enrichment (single):     base cost flat (default 1 credit)
+    - Search (per page):       base cost per 25 results requested
+    - Search (bulk queries):   base cost per query in the queries array
+    - Bulk enrichment:         base cost per record in the batch
 
     BYOK calls are always free regardless of this calculation.
     Cache hits are always free regardless of this calculation.
     """
-    base = BASE_COSTS.get(operation, 1.0)
+    base = get_base_cost(operation, vendor)
 
     if operation in SEARCH_OPERATIONS:
-        # Scale with results per page: 1 credit per 25 results
         per_page = int(params.get("per_page") or params.get("limit") or 25)
-        per_page = max(1, min(per_page, 100))  # clamp to 1-100
+        per_page = max(1, min(per_page, 100))
         import math
         page_cost = math.ceil(per_page / 25) * base
 
-        # Bulk queries: each query is a separate API call, charge per query
         queries = params.get("queries")
         if queries and isinstance(queries, list) and len(queries) > 1:
             return page_cost * len(queries)
@@ -188,14 +160,12 @@ def calculate_cost(operation: str, params: dict[str, Any]) -> float:
         return page_cost
 
     if operation in BULK_OPERATIONS:
-        # Scale with batch size
         if operation == "bulk_enrich_people":
             count = len(params.get("details", []))
         else:
             count = len(params.get("domains", []))
         return max(1.0, count * base)
 
-    # Bulk queries on any operation: charge per query
     queries = params.get("queries")
     if queries and isinstance(queries, list) and len(queries) > 1:
         return base * len(queries)

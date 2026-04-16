@@ -22,6 +22,7 @@ class ExecuteResponse(BaseModel):
 
 class CostEstimateRequest(BaseModel):
     operation: str
+    provider: str | None = None
     params: dict[str, Any] = {}
 
 

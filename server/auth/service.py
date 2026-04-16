@@ -223,6 +223,22 @@ def build_access_token(
     )
 
 
+def build_access_token_from_claims(claims: dict[str, Any]) -> str:
+    """Sign an access JWT from an already-built claims dict.
+
+    Used by the console browser path when no tenant_id is attached — claims
+    are `{ sub, email, channel, type }`. An `exp` field is added here.
+    """
+    payload = dict(claims)
+    payload["exp"] = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+    payload.setdefault("type", "access")
+    return jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
+
+
 async def persist_refresh_token(
     db: AsyncSession,
     *,

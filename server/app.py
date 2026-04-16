@@ -102,6 +102,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception:
         pass  # Table may not exist yet during initial setup
 
+    # Load operation credit costs into memory cache
+    try:
+        from server.billing.cost_config_service import load_cost_cache
+        from server.core.database import async_session_factory
+
+        async with async_session_factory() as db:
+            await load_cost_cache(db)
+    except Exception:
+        pass  # Table may not exist yet during initial setup
+
     yield
 
     # Shutdown
@@ -172,6 +182,7 @@ from server.connections.models import (
     UserConnection,
 )  # noqa: E402, F401 — register model
 from server.admin.router import router as admin_router  # noqa: E402
+from server.admin.cost_router import router as cost_admin_router  # noqa: E402
 
 app.include_router(auth_router)
 app.include_router(tenant_router)
@@ -187,6 +198,7 @@ app.include_router(scripts_router)
 app.include_router(learning_router)
 app.include_router(feedback_router)
 app.include_router(admin_router)
+app.include_router(cost_admin_router)
 app.include_router(apps_router)
 app.include_router(console_router)
 
