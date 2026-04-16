@@ -49,11 +49,11 @@ Used via: `nrev_search_people` (auto-selects RocketReach for alumni/school/depar
 
 | Parameter | API Field | Type | Notes |
 |-----------|-----------|------|-------|
-| Current Company(s) | `company_domain` | string | Comma-separated domains. Variables allowed. |
+| Current Company(s) | `company_domain` | string | Comma-separated domains. **Always use domain, never company name.** If you only have a name, find the domain first via Company Lookup. Variables allowed. |
 | Title Keywords | `current_title` | string | Use with Include Past Titles toggle. |
 | Include Past Titles | switches to `current_or_previous_title` | boolean | If true, uses `current_or_previous_title` instead of `current_title` |
 | Seniority | `management_levels` | multi-select | See Seniority enum below. Variables allowed. |
-| Department | `department` | multi-select | See Department enum below. Variables allowed. |
+| Department | `department` | multi-select | See Department enum below. Multiple departments in ONE query (e.g. `["Sales", "Marketing"]`), no need for separate calls. Variables allowed. |
 
 **Query filters — Previous Employment:**
 

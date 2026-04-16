@@ -23,46 +23,60 @@ Free-text with fuzzy/NLP matching against LinkedIn-sourced company names. Multip
 
 **Most reliable alternative:** Look up the RocketReach company ID first via Company Search, then use `previous_company_id`.
 
-### 2. `current_employer` is also free text (same rules)
-Use `company_domain` instead for reliability:
+### 2. `current_employer` is free text — AVOID for search
+**Never search people by company name.** Use `company_domain` instead:
 ```json
-// Preferred
+// WRONG — unreliable free-text matching
+"current_employer": ["Salesforce"]
+
+// CORRECT — domain-based, exact match
 "company_domain": ["salesforce.com"]
 ```
+If you only have a company name, **first find the domain** via Company Search or Company Lookup, then use `company_domain` for the person search.
 
-### 3. Title Keywords + Include Past Titles toggle
+**Exception:** `previous_employer` and `company_competitors` accept company names because there's no domain alternative for those filters.
+
+### 3. Multi-department queries — single request
+Multiple departments can be searched in ONE query — no need for separate API calls:
+```json
+// ONE call, not two
+"department": ["Sales", "Marketing"]
+```
+Same applies to titles, locations, industries, and all other array filters. Multiple values use OR logic within the same filter.
+
+### 4. Title Keywords + Include Past Titles toggle
 - `current_title` — matches current title only
 - `current_or_previous_title` — matches current OR past titles
 - The node uses a boolean `include_past_titles` toggle to switch between these two API fields
 
-### 4. Lookups can be ASYNC
+### 5. Lookups can be ASYNC
 Initial lookup may return `status: "searching"` or `"progress"`. Check the `status` field and poll if needed.
 `return_cached_emails` (default true) returns cached emails immediately while async lookup continues.
 
-### 5. Authentication is `Api-Key` header
+### 6. Authentication is `Api-Key` header
 ```
 Api-Key: your_api_key_here
 ```
 NOT `Authorization: Bearer`. NOT a query parameter.
 
-### 6. Pagination is 1-indexed, max 10,000
+### 7. Pagination is 1-indexed, max 10,000
 `start`: 1-indexed page number. `page_size`: max 100. Cannot paginate beyond 10,000 results.
 
-### 7. Company Revenue empty-field handling
+### 8. Company Revenue empty-field handling
 - Both empty: don't send the parameter
 - Only min empty: send as 0
 - Only max empty: send as 1000000000000
 
-### 8. Company Size — special max value
+### 9. Company Size — special max value
 If `100001+` is selected, send max value as `10000000`.
 
-### 9. Department Growth format
+### 10. Department Growth format
 Structured string: `min_pct-max_pct::Department,TimeRange`
 - TimeRange values: `six_months`, `one_year`
 - Example: `5-30::Engineering,six_months`
 - Negative growth: `-10--20::Sales,one_year`
 
-### 10. Boolean Logic
+### 11. Boolean Logic
 - **Same filter, multiple values = OR**: `current_title: ["CEO", "CTO"]` matches either
 - **Different filters = AND**: title + location + industry must ALL match
 - **Exclude with `-` prefix**: `current_title: ["Engineer", "-Senior"]`
