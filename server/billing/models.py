@@ -16,7 +16,9 @@ class CreditLedger(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     tenant_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)
     user_id: Mapped[str | None] = mapped_column(Text)
-    entry_type: Mapped[str] = mapped_column(Text, nullable=False)  # credit|debit|hold|release
+    entry_type: Mapped[str] = mapped_column(
+        Text, nullable=False
+    )  # credit|debit|hold|release
     amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     balance_after: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     operation: Mapped[str | None] = mapped_column(Text)
@@ -34,12 +36,38 @@ class CreditBalance(Base):
     __tablename__ = "credit_balances"
 
     tenant_id: Mapped[str] = mapped_column(Text, primary_key=True)
-    balance: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, server_default="0")
+    balance: Mapped[float] = mapped_column(
+        Numeric(10, 2), nullable=False, server_default="0"
+    )
     spend_this_month: Mapped[float] = mapped_column(
         Numeric(10, 2), nullable=False, server_default="0"
     )
     month_reset_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class OperationCost(Base):
+    """Global credit cost configuration per vendor/operation.
+
+    Admins can add/edit/delete rows to change how many credits each
+    data-provider operation costs.  No RLS — this is platform-wide config.
+    """
+
+    __tablename__ = "operation_costs"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    vendor: Mapped[str] = mapped_column(Text, nullable=False)
+    operation: Mapped[str] = mapped_column(Text, nullable=False)
+    base_cost: Mapped[float] = mapped_column(
+        Numeric(10, 2), nullable=False, server_default="1.0"
+    )
+    description: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

@@ -31,6 +31,7 @@ from server.auth.schemas import (
 from server.auth.dependencies import get_current_user
 from server.auth.service import (
     build_access_token,
+    build_access_token_from_claims,
     find_or_create_user,
     generate_tokens,
     google_exchange_code,
@@ -183,9 +184,32 @@ Sign in with Google
 </html>"""
 
 
+def _sanitize_next(next_param: str | None) -> str:
+    """Return *next_param* if it is a safe same-origin /console/ path, else ""."""
+    if not next_param:
+        return ""
+    # Reject protocol-relative (//evil.com), absolute URLs, and paths that
+    # don't begin with /console/. Also reject backslashes (Windows-style
+    # URL smuggling) and newlines.
+    if not next_param.startswith("/console/"):
+        return ""
+    if next_param.startswith("//"):
+        return ""
+    if any(c in next_param for c in ("\\", "\r", "\n")):
+        return ""
+    return next_param
+
+
 @router.get("/login", response_class=HTMLResponse)
-async def console_login_page(error: str | None = None):
-    """Render a sign-in page for browser-based console access."""
+async def console_login_page(
+    error: str | None = None,
+    next: str | None = None,
+):
+    """Render a sign-in page for browser-based console access.
+
+    The optional ``next`` query param is preserved through the Google OAuth
+    hop so the user lands back on the tenant they originally requested.
+    """
     state = secrets.token_urlsafe(32)
     await _set_pending_auth(
         state,
@@ -193,6 +217,7 @@ async def console_login_page(error: str | None = None):
             "cli_redirect": "",
             "code_verifier": "",
             "console_login": "1",
+            "next": _sanitize_next(next),
         },
     )
 
@@ -245,6 +270,7 @@ async def google_callback(
     pending = await _pop_pending_auth(state) if state else {}
     cli_redirect = pending.get("cli_redirect", "")
     code_verifier = pending.get("code_verifier", "")
+    next_path = _sanitize_next(pending.get("next", ""))
 
     # Handle Google errors (user denied access, etc.)
     if error:
@@ -270,19 +296,20 @@ async def google_callback(
             return RedirectResponse(url=f"{cli_redirect}?error={error_msg}")
         raise HTTPException(status_code=400, detail=f"Google auth failed: {error_msg}")
 
-    user = await find_or_create_user(db, google_user)
-    tokens = await generate_tokens(db, user)
-
-    user_info = {
-        "email": user.email,
-        "name": user.name or "",
-        "tenant": user.tenant_id,
-    }
-
-    logger.info("Auth success: email=%s tenant=%s", user.email, user.tenant_id)
-
     if cli_redirect:
-        # Redirect browser to CLI's localhost with tokens
+        # CLI flow — unchanged. Always uses the local users table so the CLI
+        # JWT carries tenant_id (see auth_migration_research.md §6a).
+        user = await find_or_create_user(db, google_user)
+        tokens = await generate_tokens(db, user)
+
+        user_info = {
+            "email": user.email,
+            "name": user.name or "",
+            "tenant": user.tenant_id,
+        }
+        logger.info(
+            "Auth success (cli): email=%s tenant=%s", user.email, user.tenant_id
+        )
         params = urlencode(
             {
                 "access_token": tokens["access_token"],
@@ -293,18 +320,27 @@ async def google_callback(
         )
         return RedirectResponse(url=f"{cli_redirect}?{params}")
 
-    # No CLI redirect → this is a browser-based console login.
-    # Always set cookie and redirect to dashboard.
-    # Logic: CLI flow always has cli_redirect (handled above). If we reach here,
-    # it's a browser login. No need to check _pending_auth state which is lost
-    # on server reload anyway.
-    response = RedirectResponse(
-        url=f"/console/{user.tenant_id}",
-        status_code=302,
+    # Browser console login — identity-only cookie. Tenant is read from the
+    # URL on every console request and authorized against UM. No writes to
+    # the local users/tenants tables.
+    access_token = build_access_token_from_claims(
+        {
+            "sub": google_user["id"],
+            "email": google_user["email"],
+            "type": "access",
+            "channel": "console",
+        }
     )
+    target = next_path or "/console"
+    logger.info(
+        "Auth success (console): email=%s next=%s",
+        google_user["email"],
+        target,
+    )
+    response = RedirectResponse(url=target, status_code=302)
     response.set_cookie(
         key=_COOKIE_NAME,
-        value=tokens["access_token"],
+        value=access_token,
         max_age=_COOKIE_MAX_AGE,
         httponly=True,
         secure=_COOKIE_SECURE,
