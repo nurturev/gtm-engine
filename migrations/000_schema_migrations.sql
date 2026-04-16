@@ -19,5 +19,9 @@ INSERT INTO schema_migrations (version, filename) VALUES
     ('006', '006_scheduled_workflows.sql'),
     ('007', '007_dashboard_datasets.sql'),
     ('008', '008_hosted_apps.sql'),
-    ('015', '015_refresh_tokens_subject_id.sql')
+    ('012', '012_ledger_workflow.sql'),
+    ('013', '013_user_attribution.sql'),
+    ('014', '014_key_label.sql'),
+    ('015', '015_refresh_tokens_subject_id.sql'),
+    ('016', '016_operation_costs.sql')
 ON CONFLICT (version) DO NOTHING;

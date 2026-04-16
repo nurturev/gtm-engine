@@ -1,5 +1,5 @@
 -- ============================================================
--- Combined Production Migration: 001-008 + 015
+-- Combined Production Migration: 001-008, 012-016
 -- Database: nrv | Role: nrv_api
 -- Run as: postgres (superuser) against the `nrv` database
 -- ============================================================
@@ -24,7 +24,11 @@ INSERT INTO schema_migrations (version, filename) VALUES
     ('006', '006_scheduled_workflows.sql'),
     ('007', '007_dashboard_datasets.sql'),
     ('008', '008_hosted_apps.sql'),
-    ('015', '015_refresh_tokens_subject_id.sql')
+    ('012', '012_ledger_workflow.sql'),
+    ('013', '013_user_attribution.sql'),
+    ('014', '014_key_label.sql'),
+    ('015', '015_refresh_tokens_subject_id.sql'),
+    ('016', '016_operation_costs.sql')
 ON CONFLICT (version) DO NOTHING;
 
 
@@ -526,6 +530,101 @@ CREATE TABLE refresh_tokens (
 
 CREATE INDEX idx_refresh_tokens_subject ON refresh_tokens(subject_id);
 CREATE INDEX idx_refresh_tokens_hash ON refresh_tokens(token_hash);
+
+
+-- ============================================================
+-- 012: Credit Ledger Workflow ID
+-- ============================================================
+
+ALTER TABLE credit_ledger ADD COLUMN IF NOT EXISTS workflow_id TEXT;
+CREATE INDEX IF NOT EXISTS idx_credit_ledger_workflow
+    ON credit_ledger (tenant_id, workflow_id) WHERE workflow_id IS NOT NULL;
+
+
+-- ============================================================
+-- 013: User Attribution + User Connections
+-- ============================================================
+
+ALTER TABLE run_steps ADD COLUMN IF NOT EXISTS user_id TEXT;
+CREATE INDEX IF NOT EXISTS idx_run_steps_user
+    ON run_steps (tenant_id, user_id) WHERE user_id IS NOT NULL;
+
+ALTER TABLE credit_ledger ADD COLUMN IF NOT EXISTS user_id TEXT;
+CREATE INDEX IF NOT EXISTS idx_credit_ledger_user
+    ON credit_ledger (tenant_id, user_id) WHERE user_id IS NOT NULL;
+
+CREATE TABLE user_connections (
+    id                  SERIAL PRIMARY KEY,
+    tenant_id           TEXT NOT NULL,
+    user_id             TEXT NOT NULL,
+    user_email          TEXT NOT NULL,
+    app_id              TEXT NOT NULL,
+    composio_entity_id  TEXT NOT NULL,
+    composio_account_id TEXT,
+    status              TEXT NOT NULL DEFAULT 'active',
+    connected_at        TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(tenant_id, user_id, app_id)
+);
+
+ALTER TABLE user_connections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_connections FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY user_connections_tenant ON user_connections
+    FOR ALL USING (tenant_id = current_setting('app.current_tenant', true));
+
+GRANT ALL ON user_connections TO nrv_api;
+GRANT USAGE, SELECT ON SEQUENCE user_connections_id_seq TO nrv_api;
+
+
+-- ============================================================
+-- 014: Tenant Key Labels
+-- ============================================================
+
+ALTER TABLE tenant_keys ADD COLUMN IF NOT EXISTS label TEXT;
+
+
+-- ============================================================
+-- 016: Configurable Operation Costs
+-- ============================================================
+
+CREATE TABLE operation_costs (
+    id          SERIAL PRIMARY KEY,
+    vendor      TEXT NOT NULL,
+    operation   TEXT NOT NULL,
+    base_cost   NUMERIC(10,2) NOT NULL DEFAULT 1.0,
+    description TEXT,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(vendor, operation)
+);
+
+CREATE INDEX idx_operation_costs_lookup
+    ON operation_costs(vendor, operation);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON operation_costs TO nrv_api;
+GRANT USAGE, SELECT ON SEQUENCE operation_costs_id_seq TO nrv_api;
+
+INSERT INTO operation_costs (vendor, operation, base_cost, description) VALUES
+    ('apollo', 'search_people',          3.0, 'Apollo people search'),
+    ('apollo', 'enrich_person',          3.0, 'Apollo person enrichment'),
+    ('apollo', 'enrich_company',         3.0, 'Apollo company enrichment'),
+    ('apollo', 'search_companies',       3.0, 'Apollo company search'),
+    ('apollo', 'bulk_enrich_people',     3.0, 'Apollo bulk people enrichment (per record)'),
+    ('apollo', 'bulk_enrich_companies',  3.0, 'Apollo bulk company enrichment (per record)'),
+    ('rocketreach', 'search_people',     3.0, 'RocketReach people search'),
+    ('rocketreach', 'enrich_person',     3.0, 'RocketReach person enrichment'),
+    ('rapidapi', 'search_web',           3.0, 'Google search via RapidAPI'),
+    ('rapidapi', 'google_search',        3.0, 'Google SERP via RapidAPI'),
+    ('parallel', 'scrape_page',          3.0, 'Parallel web scrape'),
+    ('parallel', 'crawl_site',           3.0, 'Parallel web crawl (base cost)'),
+    ('parallel', 'extract_structured',   3.0, 'Parallel structured extraction'),
+    ('parallel', 'batch_extract',        3.0, 'Parallel batch extraction (per item)'),
+    ('predictleads', 'company_jobs',          3.0, 'PredictLeads job signals'),
+    ('predictleads', 'company_technologies',  3.0, 'PredictLeads tech stack'),
+    ('predictleads', 'company_news',          3.0, 'PredictLeads news'),
+    ('predictleads', 'company_financing',     3.0, 'PredictLeads financing'),
+    ('predictleads', 'similar_companies',     3.0, 'PredictLeads similar companies')
+ON CONFLICT (vendor, operation) DO NOTHING;
 
 
 -- ============================================================
