@@ -21,13 +21,6 @@ NREV_LITE_DIR = (
     if os.environ.get("NREV_LITE_HOME")
     else Path.home() / ".nrev-lite"
 )
-# Honor NREV_LITE_HOME so dev/prod CLIs can keep separate credentials + config.
-# Resolved at import time — load_dotenv() must run before this module is imported.
-NREV_LITE_DIR = (
-    Path(os.environ["NREV_LITE_HOME"]).expanduser()
-    if os.environ.get("NREV_LITE_HOME")
-    else Path.home() / ".nrev-lite"
-)
 _LEGACY_DIR = Path.home() / ".nrv"
 CONFIG_FILE = NREV_LITE_DIR / "config.toml"
 CREDENTIALS_FILE = NREV_LITE_DIR / "credentials"

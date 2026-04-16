@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nrev-lite"
-version = "0.1.0"
+version = "1.0.0"
 description = "nrev-lite — agent-native GTM execution platform"
 readme = "README.md"
 license = {text = "MIT"}
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["gtm", "enrichment", "sales", "claude", "mcp", "agent", "go-to-market"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Office/Business",
     "Programming Language :: Python :: 3.10",
@@ -47,7 +47,7 @@ nrev-lite = "nrev_lite.cli.main:cli"
 
 [project.urls]
 Homepage = "https://nrev.ai"
-Repository = "https://github.com/sayanta-ghosh/nrev-lite"
+Repository = "https://github.com/nurturev/gtm-engine"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nrev_lite"]

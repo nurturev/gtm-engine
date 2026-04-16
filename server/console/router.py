@@ -398,6 +398,10 @@ async def _authenticate_console_via_um(
         )
 
     await set_tenant_context(db, tenant.id)
+    # Detach tenant from the session so that subsequent db.rollback()
+    # calls don't expire its attributes — accessing expired attrs on an
+    # async session triggers MissingGreenlet.
+    db.expunge(tenant)
     identity = SessionIdentity(sub=sub, email=email)
     return tenant, identity, db
 

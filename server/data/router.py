@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.auth.dependencies import get_current_tenant
+from server.auth.flexible import get_tenant_flexible as _get_tenant_flexible
 from server.auth.models import Tenant
 from server.core.database import get_db, set_tenant_context
 from server.data.schemas import (
@@ -26,32 +28,36 @@ ALLOWED_TABLES = {"contacts", "companies", "search_results", "enrichment_log"}
 
 @router.get("/tables", response_model=TableListResponse)
 async def list_tables(
-    tenant: Tenant = Depends(get_current_tenant),
+    request: Request,
+    token: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
 ) -> TableListResponse:
     """Return the list of interactive tables available to the tenant."""
+    await _get_tenant_flexible(request, token, db)
     return TableListResponse(tables=sorted(ALLOWED_TABLES))
 
 
 @router.get("/tables/{table}", response_model=TableQueryResponse)
 async def query_table(
     table: str,
+    request: Request,
     limit: int = 100,
     offset: int = 0,
     order_by: str | None = None,
-    tenant: Tenant = Depends(get_current_tenant),
+    token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> TableQueryResponse:
     """Query a specific interactive table with optional ordering and pagination.
 
     RLS ensures only the current tenant's rows are visible.
     """
+    tenant, db = await _get_tenant_flexible(request, token, db)
+
     if table not in ALLOWED_TABLES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Table '{table}' is not queryable. Allowed: {sorted(ALLOWED_TABLES)}",
         )
-
-    await set_tenant_context(db, tenant.id)
 
     from sqlalchemy import text
 
@@ -83,13 +89,16 @@ async def query_table(
 @router.post("/query", response_model=RawQueryResponse)
 async def execute_raw_query(
     body: RawQueryRequest,
-    tenant: Tenant = Depends(get_current_tenant),
+    request: Request,
+    token: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> RawQueryResponse:
     """Execute a read-only SQL query scoped to the current tenant via RLS.
 
     Only SELECT statements are permitted.
     """
+    tenant, db = await _get_tenant_flexible(request, token, db)
+
     normalized = body.sql.strip().upper()
     if not normalized.startswith("SELECT"):
         raise HTTPException(
@@ -104,8 +113,6 @@ async def execute_raw_query(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Query contains forbidden keyword: {keyword}",
             )
-
-    await set_tenant_context(db, tenant.id)
 
     from sqlalchemy import text
 
