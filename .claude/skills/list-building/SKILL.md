@@ -15,14 +15,14 @@ Apollo /mixed_people/search:
         "person_locations": ["United States"],
         "per_page": 100, "page": 1}
 
-Or RocketReach /search:
+Or RocketReach (Universal Person Search, 3 credits/call):
   params={"current_title": ["VP Sales"],
           "company_size": "51-200",
           "location": ["United States"]}
 
 ## Step 3: Enrich Each Prospect
 For each result, enrich with additional data:
-- Phone numbers (RocketReach /lookupProfile)
+- Phone numbers (RocketReach Universal Person Lookup — 18 credits with phone)
 - Email verification (ZeroBounce /validate)
 - Company data (Apollo /organizations/enrich)
 

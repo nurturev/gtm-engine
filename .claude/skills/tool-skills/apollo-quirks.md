@@ -59,7 +59,7 @@ Despite being a major UI feature, buying intent filters are API-only-not-exposed
 |-----------|------|-------------|
 | `person_titles` | string[] | OR logic. `["VP Sales", "Sales Director"]` |
 | `person_seniorities` | string[] | `c_suite`, `founder`, `owner`, `vp`, `director`, `manager`, `senior`, `head`, `entry`, `intern` |
-| `person_departments` | string[] | `engineering`, `sales`, `marketing`, `finance`, `human_resources`, `operations`, `information_technology`, `legal`, `product_management` |
+| `person_departments` | string[] | `engineering`, `sales`, `marketing`, `finance`, `human_resources`, `operations`, `information_technology`, `legal`, `product_management`. Multiple in ONE query (e.g. `["sales", "marketing"]`), no need for separate calls. |
 | `person_locations` | string[] | Where person lives (NOT company HQ). `["California, US"]` |
 | `q_keywords` | string | Free text across person records |
 | `contact_email_status` | string[] | `["verified"]` for best results |
@@ -69,7 +69,7 @@ Despite being a major UI feature, buying intent filters are API-only-not-exposed
 | Parameter | Type | Values/Notes |
 |-----------|------|-------------|
 | `q_organization_domains` | **STRING** | Newline-separated! `"apollo.io\ngoogle.com"` |
-| `q_organization_name` | string | Company name search |
+| `q_organization_name` | string | **Avoid for search — use `q_organization_domains` instead.** If you only have a name, find the domain first via Org Enrich. |
 | `organization_locations` | string[] | Company HQ. `["San Francisco, CA"]` |
 | `organization_not_locations` | string[] | Exclude HQ locations |
 | `organization_num_employees_ranges` | string[] | `["1,10"]`, `["51,200"]`, `["501,1000"]` |
@@ -143,6 +143,21 @@ Credits do NOT roll over.
 | Company firmographics | Strong | Revenue estimates rough for private companies |
 
 **Always verify Apollo emails through ZeroBounce/NeverBounce before sending campaigns.**
+
+## Title Keyword Expansion
+
+When a user describes a role, expand into the title keywords people actually use:
+
+**1. Expand horizontally (related functions), not vertically (seniority).** Seniority goes in the `person_seniorities` filter, NOT in title keywords.
+- "Marketing" → brand, growth, demand generation, loyalty, content, digital marketing, performance marketing
+- Do NOT add "Director of Marketing", "VP Marketing" — that pollutes results
+
+**2. Omit noisy generic terms that attract irrelevant results.**
+- For IT/security roles: omit "operations", "system" — pulls in sysadmins, IT ops
+- For sales roles: omit "business" — pulls in business analysts, business ops
+- If ambiguous and would match more wrong than right people, leave it out
+
+Put the expanded keywords in `person_titles` or `q_keywords`. Enable `include_similar_titles: true` for additional coverage.
 
 ## Advanced Techniques
 
