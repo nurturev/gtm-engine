@@ -28,8 +28,8 @@ Or RocketReach /search:
 ## Step 3: Enrich Each Prospect
 For each result, enrich with additional data:
 - Phone numbers (RocketReach /lookupProfile)
-- Email verification (ZeroBounce /validate)
 - Company data (Apollo /organizations/enrich)
+- Use Apollo/RocketReach email grades to filter low-quality addresses (standalone email verification is not integrated into nrev-lite today)
 
 ## Step 4: Score Against ICP
 Score each prospect 0-100 based on:
