@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     PARALLEL_KEY: str | None = None
     # RapidAPI Real-Time Web Search (OpenWeb Ninja)
     X_RAPIDAPI_KEY: str | None = None
+    # RapidAPI Fresh LinkedIn Profile Data (distinct key from X_RAPIDAPI_KEY —
+    # negotiated separately). Host is a module constant inside the provider file,
+    # not a setting.
+    LINKEDIN_RAPIDAPI_KEY: str | None = None
 
     # --- Supabase (for token exchange) ---
     SUPABASE_JWT_SECRET: str | None = None

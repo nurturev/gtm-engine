@@ -1,0 +1,64 @@
+{
+  "__probe_meta__": {
+    "slug": "company_by_domain",
+    "method": "GET",
+    "path": "/get-company-by-domain",
+    "status_code": 200,
+    "params": {
+      "domain": "google.com"
+    }
+  },
+  "response": {
+    "confident_score": "80%",
+    "data": {
+      "affiliated_companies": [],
+      "company_id": "18897734",
+      "company_name": "Google Japan",
+      "description": "",
+      "domain": "careers.google.com",
+      "email": "",
+      "employee_count": 270,
+      "employee_range": "1001-5000",
+      "follower_count": 6442,
+      "funding_info": {
+        "crunchbase_url": "",
+        "last_funding_round_amount": null,
+        "last_funding_round_currency": null,
+        "last_funding_round_month": null,
+        "last_funding_round_type": null,
+        "last_funding_round_year": null,
+        "num_funding_rounds": null
+      },
+      "hq_address_line1": "",
+      "hq_address_line2": "",
+      "hq_city": "Tokyo",
+      "hq_country": "JP",
+      "hq_full_address": "Tokyo, JP",
+      "hq_postalcode": "",
+      "hq_region": "",
+      "industries": [
+        "Software Development"
+      ],
+      "linkedin_url": "https://www.linkedin.com/company/google-japan/",
+      "locations": [
+        {
+          "city": "Tokyo",
+          "country": "JP",
+          "full_address": "Tokyo, JP",
+          "is_headquarter": true,
+          "line1": "",
+          "line2": "",
+          "region": "",
+          "zipcode": ""
+        }
+      ],
+      "logo_url": "https://media.licdn.com/dms/image/v2/C560BAQGSlgn96pPEEw/company-logo_400_400/company-logo_400_400/0/1630564153141?e=1778112000&v=beta&t=yYu0wFOcLy5w0SOR7n76ifZEzvRBnwwzMwcCLPleAFk",
+      "phone": "",
+      "specialties": "",
+      "tagline": "",
+      "website": "https://careers.google.com/locations/tokyo/",
+      "year_founded": ""
+    },
+    "message": "ok"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "__probe_meta__": {
+    "slug": "post_comments",
+    "path": "/get-post-comments",
+    "status_code": 200,
+    "params": {
+      "urn": "7450415215956987904"
+    }
+  },
+  "response": {
+    "data": [
+      {
+        "annotation": null,
+        "commenter": {
+          "headline": "Founder of Mindvalley | Join 150,0000 who have already studied AI with us. Join us at Mindvalley U 2026 in Tallinn, Estonia",
+          "image_url": "https://media.licdn.com/dms/image/v2/D4E03AQGU8JPqL8g4HQ/profile-displayphoto-scale_100_100/B4EZyPa4zLJ8Ac-/0/1771932716927?e=1778112000&v=beta&t=QOBh0_C7YnuO9uaAz4TzjtJGyDmWRPqDsqmrnbgvI9w",
+          "linkedin_url": "https://www.linkedin.com/in/vishen",
+          "name": "Vishen Lakhiani",
+          "urn": "ACoAAAAOlcAB_q32A05wyucl74fLAsxGcNd4lHs"
+        },
+        "created_at": 1776338156344,
+        "created_datetime": "2026-04-16 11:15:56",
+        "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7450415215956987904?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7450415215956987904%2C7450502234502643712%29&dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287450502234502643712%2Curn%3Ali%3Aactivity%3A7450415215956987904%29",
+        "pinned": false,
+        "replies": [],
+        "text": "Love the framing here. Small efficiency gains inside real workflows add up faster than dramatic overhauls.",
+        "thread_urn": null
+      }
+    ],
+    "message": "ok",
+    "pagination_token": "1491721209-1776506342006-390222d6fca581a614f1f77734aad0e9",
+    "total": 1
+  }
+}

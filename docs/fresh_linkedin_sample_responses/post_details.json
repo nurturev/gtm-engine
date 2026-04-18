@@ -1,0 +1,39 @@
+{
+  "__probe_meta__": {
+    "slug": "post_details_probe",
+    "path": "/get-post-details",
+    "status_code": 200,
+    "params": {
+      "urn": "7450415215956987904"
+    }
+  },
+  "response": {
+    "data": {
+      "attributes": [],
+      "images": [],
+      "num_comments": 1,
+      "num_likes": 11,
+      "num_reactions": 11,
+      "num_reposts": 0,
+      "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7450415215956987904/",
+      "posted": "2026-04-16 05:30:09",
+      "poster": {
+        "first": "Mohnish",
+        "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+        "image_url": "https://media.licdn.com/dms/image/v2/D4D03AQGl9z3Aqg0uSQ/profile-displayphoto-crop_800_800/B4DZk.wh2IHsAI-/0/1757694534143?e=1778112000&v=beta&t=qZqtws6TzdxAQnA61HjFC9SsrQhoKbqoTj4YkqMxhb4",
+        "last": "Kewlani",
+        "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "public_id": "mohnishkewlani",
+        "type": "person",
+        "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+      },
+      "reshared": false,
+      "shareUrl": "https://www.linkedin.com/posts/mohnishkewlani_saas-gtm-activity-7450415215956987904-3AaZ?utm_source=social_share_send&utm_medium=member_desktop_web&rcm=ACoAAFHXgxkBu8Ph0JGOZYBysforuhDnPrT2MlQ",
+      "shareUrn": "7446573244150792192",
+      "text": "Status as of today: AI shows up across GTM teams in useful and practical ways.\n\nNot as a dramatic replacement for work. More as support inside the workflow.\n\nYou will see it helping with things like:\n\u2022 summarizing notes\n\u2022 enriching lead context\n\u2022 drafting first-pass communication\n\u2022 reducing repetitive admin work\n\u2022 organizing information faster\n\nWhat makes these use cases valuable is that they save time inside real operating systems.\n\nThat matters, especially in teams where small efficiency gains can improve handoffs, speed and focus.\n\nThe real value tends to show up when AI is layered into a process that already has some structure behind it. It works best inside a clear system because AI improves the execution, it does not replace structure (yet :)).\u00a0\n#Saas #GTM",
+      "time": "2 days ago \u2022 Visible to anyone on or off LinkedIn",
+      "urn": "7450415215956987904"
+    },
+    "message": "ok"
+  }
+}

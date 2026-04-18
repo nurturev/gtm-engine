@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
+from dataclasses import dataclass
 from typing import Any, Callable, TypeVar
 
 from server.core.exceptions import ProviderError
@@ -20,6 +21,22 @@ logger = logging.getLogger(__name__)
 
 # Status codes that should NOT be retried (permanent client errors)
 _NON_RETRYABLE_STATUS_CODES = {400, 401, 403, 404, 422}
+
+
+@dataclass(frozen=True)
+class RetryConfig:
+    """Per-provider override for the retry policy applied by `retry_with_backoff`.
+
+    Defaults match the global policy used across all providers today. Providers
+    that need a different shape (e.g. a fixed long delay with no jitter for
+    upstream-rate-limit recovery) can set a class-level `retry_config` on
+    `BaseProvider`, and `execute_single` will honour it.
+    """
+
+    max_retries: int = 3
+    base_delay: float = 1.0
+    max_delay: float = 30.0
+    jitter: bool = True
 
 
 def _is_retryable(exc: Exception) -> bool:
