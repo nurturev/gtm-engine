@@ -1,0 +1,139 @@
+{
+  "__probe_meta__": {
+    "slug": "universal_company_search",
+    "method": "POST",
+    "url": "https://api.rocketreach.co/api/v2/universal/company/search",
+    "path": "/api/v2/universal/company/search",
+    "status_code": 201,
+    "request_body": {
+      "query": {
+        "name": [
+          "Stripe"
+        ]
+      },
+      "page_size": 10,
+      "start": 1
+    },
+    "response_headers": {}
+  },
+  "response": {
+    "pagination": {
+      "total": 337,
+      "thisPage": 1,
+      "nextPage": 11,
+      "pageSize": 10
+    },
+    "companies": [
+      {
+        "id": 2135371,
+        "name": "Stripe",
+        "ticker_symbol": null,
+        "industry_str": "Internet & Digital Media",
+        "city": "South San Francisco",
+        "region": "California",
+        "country_code": "US",
+        "linkedin_url": "https://www.linkedin.com/company/stripe",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/stripe-f6cc021c"
+      },
+      {
+        "id": 9186476,
+        "name": "BBPOS | A Stripe company",
+        "ticker_symbol": null,
+        "industry_str": "Information Services",
+        "city": null,
+        "region": null,
+        "country_code": "HK",
+        "linkedin_url": "https://www.linkedin.com/company/bbpos-limited",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/bbpos-a-stripe-company-777666b3"
+      },
+      {
+        "id": 1896651,
+        "name": "Stripe Communications",
+        "ticker_symbol": null,
+        "industry_str": "Public Relations & Communication",
+        "city": null,
+        "region": null,
+        "country_code": "UK",
+        "linkedin_url": "https://www.linkedin.com/company/stripe-communications",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/stripe-communications-8d4c9746"
+      },
+      {
+        "id": 59326,
+        "name": "Blue Stripe LLC dba Fresh Produce",
+        "ticker_symbol": null,
+        "industry_str": "Textiles, Fashion, & Apparel",
+        "city": "Gardena",
+        "region": "California",
+        "country_code": "US",
+        "linkedin_url": "https://www.linkedin.com/company/fresh-produce-sportswear",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/blue-stripe-llc-dba-fresh-produce-37915d59"
+      },
+      {
+        "id": 3012737,
+        "name": "TaxJar | A Stripe company",
+        "ticker_symbol": null,
+        "industry_str": "Accounting & Accounting Services",
+        "city": "Boston",
+        "region": "Massachusetts",
+        "country_code": "US",
+        "linkedin_url": "https://www.linkedin.com/company/taxjar",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/taxjar-a-stripe-company-134f7be9"
+      },
+      {
+        "id": 26452923,
+        "name": "Recko | A Stripe company",
+        "ticker_symbol": null,
+        "industry_str": "Software - General",
+        "city": "Dover",
+        "region": "Delaware",
+        "country_code": "US",
+        "linkedin_url": "https://www.linkedin.com/company/recko",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/recko-a-stripe-company-b61a5604"
+      },
+      {
+        "id": 26349614,
+        "name": "Red Stripe Corporate",
+        "ticker_symbol": null,
+        "industry_str": "Food & Beverages",
+        "city": "Kingston",
+        "region": "Kingston",
+        "country_code": "JM",
+        "linkedin_url": "https://www.linkedin.com/company/redstripejamaica",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/red-stripe-corporate-13f83f55"
+      },
+      {
+        "id": 1127294,
+        "name": "Stripe OLT",
+        "ticker_symbol": null,
+        "industry_str": "Information Services",
+        "city": null,
+        "region": null,
+        "country_code": "UK",
+        "linkedin_url": "https://www.linkedin.com/company/stripe-consulting-ltd",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/stripe-olt-3c06611b"
+      },
+      {
+        "id": 26242121,
+        "name": "Stripe Partners",
+        "ticker_symbol": null,
+        "industry_str": "Management Consulting",
+        "city": "London",
+        "region": "England",
+        "country_code": "GB",
+        "linkedin_url": "https://www.linkedin.com/company/stripe-partners",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/stripe-partners-be98489e"
+      },
+      {
+        "id": 25332256,
+        "name": "Stripe-A-Zone, LLC.",
+        "ticker_symbol": null,
+        "industry_str": "Construction - General",
+        "city": "Grand Prairie",
+        "region": "Texas",
+        "country_code": "US",
+        "linkedin_url": "https://www.linkedin.com/company/stripe-a-zone",
+        "logo_url": "https://d1hbpr09pwz0sk.cloudfront.net/logo_url/stripe-a-zone-llc-8a89f4de"
+      }
+    ]
+  }
+}

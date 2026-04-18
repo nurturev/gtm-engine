@@ -56,13 +56,17 @@ def normalize_person(raw: dict[str, Any], provider: str) -> dict[str, Any]:
         if raw.get("match_found") is False:
             return {"match_found": False, "people": [], "enrichment_sources": {"rocketreach": []}}
 
-        # Search results have a "profiles" array
+        # Search results have a "profiles" array. Search rows carry contact
+        # hints under teaser.* rather than full emails/phones at the top
+        # level — map them with the dedicated search-row helper so hints
+        # land in additional_data instead of being dropped.
         if "profiles" in raw and isinstance(raw["profiles"], list):
+            pagination = raw.get("pagination") or {}
             return {
-                "people": [_normalize_rr_person(p) for p in raw["profiles"]],
-                "total": raw.get("pagination", {}).get("total", len(raw["profiles"])),
-                "page": raw.get("pagination", {}).get("start", 1),
-                "per_page": raw.get("pagination", {}).get("page_size", 25),
+                "people": [_normalize_rr_person_search_row(p) for p in raw["profiles"]],
+                "total": pagination.get("total", len(raw["profiles"])),
+                "page": pagination.get("start", 1),
+                "per_page": pagination.get("page_size", 25),
             }
 
         # Single lookup returns a flat profile
@@ -397,6 +401,99 @@ def _normalize_rr_person(person: dict[str, Any]) -> dict[str, Any]:
     status = person.get("status")
     if status and status != "complete":
         extras["lookup_status"] = status
+
+    row = _build_person_row(canonical, extras, {"rocketreach": populated})
+
+    # Elevate in-progress signals to the top level so service.py can gate
+    # billing + cache-write on them without drilling into additional_data.
+    if person.get("lookup_status") == "in_progress":
+        row["lookup_status"] = "in_progress"
+        retry_hint = person.get("retry_hint")
+        if isinstance(retry_hint, dict):
+            row["retry_hint"] = retry_hint
+
+    return row
+
+
+def _normalize_rr_person_search_row(profile: dict[str, Any]) -> dict[str, Any]:
+    """Normalize a RocketReach person-search row.
+
+    Search rows never carry full emails/phones — only domain hints under
+    `teaser.*` and a masked first phone. Canonical `email` / `phone` stay
+    `None`; the hints land in `additional_data` so downstream agents can
+    decide whether to chain a lookup.
+    """
+    name = profile.get("name") or ""
+    parts = name.split(None, 1) if name else []
+    first_name = parts[0] if len(parts) >= 1 else profile.get("first_name")
+    last_name = parts[1] if len(parts) >= 2 else profile.get("last_name")
+
+    loc_parts = [
+        profile.get("city"),
+        profile.get("region"),
+        profile.get("country_code"),
+    ]
+    location = ", ".join(p for p in loc_parts if p) or profile.get("location") or None
+
+    canonical = {
+        "name": name or None,
+        "first_name": first_name,
+        "last_name": last_name,
+        "title": profile.get("current_title"),
+        "headline": None,
+        "experiences": None,
+        "linkedin_url": profile.get("linkedin_url"),
+        "email": None,
+        "phone": None,
+        "location": location,
+        "company_name": profile.get("current_employer"),
+        "company_domain": profile.get("current_employer_domain"),
+    }
+    populated = [k for k in CANONICAL_PERSON_KEYS if _nonempty(canonical.get(k))]
+
+    teaser = profile.get("teaser") or {}
+    email_domain_hints: list[str] = []
+    if isinstance(teaser, dict):
+        for key in ("professional_emails", "emails"):
+            raw_hints = teaser.get(key)
+            if isinstance(raw_hints, list):
+                for hint in raw_hints:
+                    if isinstance(hint, str) and hint and hint not in email_domain_hints:
+                        email_domain_hints.append(hint)
+                if email_domain_hints:
+                    break
+
+    phone_hint: str | None = None
+    if isinstance(teaser, dict):
+        raw_phones = teaser.get("phones")
+        if isinstance(raw_phones, list):
+            for entry in raw_phones:
+                if isinstance(entry, dict):
+                    candidate = entry.get("number")
+                    if isinstance(candidate, str) and candidate:
+                        phone_hint = candidate
+                        break
+                elif isinstance(entry, str) and entry:
+                    phone_hint = entry
+                    break
+
+    is_premium_phone_available = None
+    if isinstance(teaser, dict):
+        raw_flag = teaser.get("is_premium_phone_available")
+        if isinstance(raw_flag, bool):
+            is_premium_phone_available = raw_flag
+
+    extras: dict[str, Any] = {
+        "id": profile.get("id"),
+        "photo_url": profile.get("profile_pic"),
+        "city": profile.get("city"),
+        "state": profile.get("region"),
+        "country": profile.get("country_code"),
+        "connections": profile.get("connections"),
+        "email_domain_hints": email_domain_hints or None,
+        "phone_hint": phone_hint,
+        "is_premium_phone_available": is_premium_phone_available,
+    }
 
     return _build_person_row(canonical, extras, {"rocketreach": populated})
 
@@ -789,9 +886,14 @@ def normalize_company(raw: dict[str, Any], provider: str) -> dict[str, Any]:
             return {"match_found": False, "companies": [], "enrichment_sources": {"rocketreach": []}}
 
         if "companies" in raw and isinstance(raw["companies"], list):
+            pagination = raw.get("pagination") or {}
+            # Legacy v2 search returns {total, thisPage, nextPage, pageSize}.
+            # Universal returns {start, next, total}. Read either shape.
             return {
                 "companies": [_normalize_rr_company(c) for c in raw["companies"]],
-                "total": raw.get("pagination", {}).get("total", len(raw["companies"])),
+                "total": pagination.get("total", len(raw["companies"])),
+                "page": pagination.get("start") or pagination.get("thisPage") or 1,
+                "per_page": pagination.get("page_size") or pagination.get("pageSize") or 25,
             }
         if raw.get("id") or raw.get("name"):
             return _normalize_rr_company(raw)
@@ -857,26 +959,30 @@ def _normalize_rr_company(company: dict[str, Any]) -> dict[str, Any]:
     ]
     hq_location = ", ".join(p for p in loc_parts if p) or None
 
+    # Universal renames several v2 keys: email_domain→domain,
+    # industry_str→industry, num_employees→employees, ticker_symbol→ticker,
+    # website_url→website. Read both so the normalizer works against either
+    # vendor shape.
     canonical = {
         "name": company.get("name"),
-        "domain": company.get("email_domain") or company.get("domain"),
+        "domain": company.get("domain") or company.get("email_domain"),
         "linkedin_url": company.get("linkedin_url"),
-        "employee_count": company.get("num_employees"),
-        "industry": company.get("industry_str") or company.get("industry"),
+        "employee_count": company.get("employees") or company.get("num_employees"),
+        "industry": company.get("industry") or company.get("industry_str"),
         "hq_location": hq_location,
     }
     populated = [k for k in CANONICAL_COMPANY_KEYS if _nonempty(canonical.get(k))]
 
     extras: dict[str, Any] = {
         "id": company.get("id"),
-        "website": company.get("website_url"),
+        "website": company.get("website") or company.get("website_url"),
         "description": company.get("description"),
         "city": company.get("city"),
         "state": company.get("region"),
         "country": company.get("country_code"),
         "phone": company.get("phone"),
         "logo_url": company.get("logo_url"),
-        "ticker": company.get("ticker_symbol"),
+        "ticker": company.get("ticker") or company.get("ticker_symbol"),
         "revenue": company.get("revenue"),
     }
 

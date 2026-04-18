@@ -1,0 +1,22 @@
+{
+  "__probe_meta__": {
+    "slug": "v2_person_search",
+    "method": "POST",
+    "url": "https://api.rocketreach.co/api/v2/person/search",
+    "path": "/api/v2/person/search",
+    "status_code": 403,
+    "request_body": {
+      "query": {
+        "current_employer": [
+          "Microsoft"
+        ]
+      },
+      "page_size": 10,
+      "start": 1
+    },
+    "response_headers": {}
+  },
+  "response": {
+    "detail": "Please use the Universal Credit endpoints."
+  }
+}

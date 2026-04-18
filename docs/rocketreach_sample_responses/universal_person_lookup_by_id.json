@@ -1,0 +1,18 @@
+{
+  "__probe_meta__": {
+    "slug": "universal_person_lookup_by_id",
+    "method": "GET",
+    "url": "https://api.rocketreach.co/api/v2/universal/person/lookup",
+    "path": "/api/v2/universal/person/lookup",
+    "status_code": 400,
+    "request_params": {
+      "id": 123345169
+    },
+    "response_headers": {}
+  },
+  "response": {
+    "non_field_errors": [
+      "Please specify at least one enrichment type to perform a person lookup"
+    ]
+  }
+}

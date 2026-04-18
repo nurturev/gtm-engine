@@ -1,0 +1,72 @@
+{
+  "__probe_meta__": {
+    "slug": "universal_person_check_status",
+    "status_code": 200,
+    "params": {
+      "ids": "1606"
+    }
+  },
+  "response": [
+    {
+      "profile_list": {
+        "id": 32069239,
+        "name": "API Contacts"
+      },
+      "id": 1606,
+      "status": "complete",
+      "name": "Bill Gates",
+      "profile_pic": "https://d2gjqh9j26unp0.cloudfront.net/profilepic/8057c41311abc26bd9e33c7f247a37f6",
+      "linkedin_url": "https://www.linkedin.com/in/williamhgates",
+      "connections": 8,
+      "location": "Seattle, WA, US",
+      "current_title": "Co-chair",
+      "current_employer": "Gates Foundation",
+      "current_employer_id": 39806440,
+      "current_employer_domain": "gatesfoundation.org",
+      "current_employer_website": "https://gatesfoundation.org",
+      "current_employer_linkedin_url": "https://www.linkedin.com/company/gates-foundation",
+      "birth_year": null,
+      "region_latitude": 47.6062095,
+      "region_longitude": -122.3320708,
+      "city": "Seattle",
+      "region": "WA ",
+      "country": "United States",
+      "country_code": "US",
+      "return_cached_emails": true,
+      "linkedin_url_active": true,
+      "recommended_email": "billgates@gatesfoundation.org",
+      "emails": [
+        {
+          "email": "billgates@gatesfoundation.org",
+          "smtp_valid": "valid",
+          "type": "professional",
+          "last_validation_check": "2026-04-05",
+          "grade": "A"
+        },
+        {
+          "email": "billg@gatesfoundation.org",
+          "smtp_valid": "valid",
+          "type": "professional",
+          "last_validation_check": "2026-03-20",
+          "grade": "A"
+        },
+        {
+          "email": "gates@gatesfoundation.org",
+          "smtp_valid": "invalid",
+          "type": "professional",
+          "last_validation_check": "2018-09-06",
+          "grade": "F"
+        },
+        {
+          "email": "bill@gatesfoundation.org",
+          "smtp_valid": "invalid",
+          "type": "professional",
+          "last_validation_check": "2024-02-15",
+          "grade": "F"
+        }
+      ],
+      "recommended_professional_email": "billgates@gatesfoundation.org",
+      "current_work_email": "billgates@gatesfoundation.org"
+    }
+  ]
+}
