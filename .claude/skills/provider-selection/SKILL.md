@@ -1,3 +1,8 @@
+---
+name: provider-selection
+description: Decision matrix for picking the optimal data provider (Apollo, RocketReach, Hunter, Parallel, Perplexity, ZeroBounce, BetterContact, PredictLeads, etc.) for any GTM task — enrichment, search, scraping, verification, or AI research. Use BEFORE making any provider API call to choose the right one and avoid wasted credits.
+---
+
 # Provider Selection Guide
 
 This is the decision engine for choosing the right provider for any GTM task.
@@ -8,6 +13,7 @@ Use this guide BEFORE making any API call to pick the optimal provider.
 | I need to... | Provider | Operation | Why |
 |---|---|---|---|
 | Find people by email/name | **Apollo** | enrich_person | Best email match rate, includes company context |
+| **Enrich a person when I already have their LinkedIn URL** | **Fresh LinkedIn** | enrich_person | Direct-from-LinkedIn, richest profile data (experience, education, skills, about). 3 credits/call. Pass `provider="fresh_linkedin"` explicitly |
 | Find people by school/university | **RocketReach** | search_people | Only provider with working `school` filter. 3 credits/call |
 | Find alumni of a company (past employees) | **RocketReach** | search_people | `previous_employer` filter actually works. 3 credits/call |
 | Search people by title + company | **Apollo** | search_people | Largest B2B database, best filters |

@@ -1,3 +1,8 @@
+---
+name: list-building
+description: Step-by-step playbook for building targeted prospect lists from ICP criteria — defining titles, firmographics, signals, then searching, enriching, and de-duplicating. Use when the user asks to build a list, find prospects matching criteria, target accounts in an industry/geo, or run an ICP-based prospecting workflow.
+---
+
 # Prospect List Building
 
 ## Step 1: Define ICP Criteria

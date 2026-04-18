@@ -1,3 +1,8 @@
+---
+name: scraping-tools
+description: Parallel Web Systems scraping API for clean content extraction, structured-task extraction, and bulk URL processing — handles JS rendering, anti-bot, and PDFs. Use when the user wants to scrape a URL, extract data from a webpage, process a batch of URLs, or pull content from a JS-heavy or protected site.
+---
+
 # Web Scraping via Parallel Web Systems (provider: parallel_web)
 
 AI-native web intelligence API (parallel.ai). Extracts clean content

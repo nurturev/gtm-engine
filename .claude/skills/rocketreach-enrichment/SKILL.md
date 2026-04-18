@@ -1,3 +1,8 @@
+---
+name: rocketreach-enrichment
+description: RocketReach API reference for contact lookup, email finding, and people search through the gtm_enrich proxy. Use when the user wants direct dials, mobile numbers, or as a fallback after Apollo when person enrichment misses.
+---
+
 # RocketReach Enrichment
 
 ## Overview
