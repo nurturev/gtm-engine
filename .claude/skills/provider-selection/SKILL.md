@@ -13,11 +13,12 @@ Use this guide BEFORE making any API call to pick the optimal provider.
 | I need to... | Provider | Operation | Why |
 |---|---|---|---|
 | Find people by email/name | **Apollo** | enrich_person | Best email match rate, includes company context |
-| Find people by school/university | **RocketReach** | search_people | Only provider with working `school` filter |
-| Find alumni of a company (past employees) | **RocketReach** | search_people | `previous_employer` filter actually works |
+| **Enrich a person when I already have their LinkedIn URL** | **Fresh LinkedIn** | enrich_person | Direct-from-LinkedIn, richest profile data (experience, education, skills, about). 3 credits/call. Pass `provider="fresh_linkedin"` explicitly |
+| Find people by school/university | **RocketReach** | search_people | Only provider with working `school` filter. 3 credits/call |
+| Find alumni of a company (past employees) | **RocketReach** | search_people | `previous_employer` filter actually works. 3 credits/call |
 | Search people by title + company | **Apollo** | search_people | Largest B2B database, best filters |
 | Search people by department | **Apollo** | search_people | `person_department_or_subdepartments` filter |
-| Get someone's phone number | **RocketReach** | enrich_person | Higher phone data coverage |
+| Get someone's phone number | **RocketReach** | enrich_person | Higher phone data coverage. 18 credits/call with phone |
 | Enrich a company by domain | **Apollo** | enrich_company | Richest company profiles (tech, funding, size) |
 | Find a company's job openings | **PredictLeads** | company_jobs | Dedicated jobs API, better than scraping |
 | Find a company's tech stack | **PredictLeads** | company_technologies | Detects actual usage, not just marketing |
@@ -60,16 +61,17 @@ Use this guide BEFORE making any API call to pick the optimal provider.
 
 ### RocketReach (provider: `rocketreach`)
 **Best for:** Alumni searches, phone numbers, school-based filtering
+**Cost:** 3 credits ($0.03) per call. 18 credits if phone numbers requested.
 **Strengths:**
 - `school` filter WORKS RELIABLY for university/education searches
 - `previous_employer` filter WORKS for finding company alumni
 - Higher phone number coverage than Apollo
-- Email grading (A/A- grades are verified)
+- LinkedIn URL lookups ~99% match rate
 **Weaknesses:**
 - Smaller overall database than Apollo
-- No bulk enrichment in one call
 - Company enrichment is less detailed than Apollo
 - Async lookups: some requests return `status: "in_progress"` and need polling
+- Phone requests are expensive (18 credits vs 3 for email-only)
 
 **IMPORTANT for school searches:**
 - Always pass BOTH variants of the school name:
