@@ -1,0 +1,14 @@
+{
+  "__probe_meta__": {
+    "slug": "account",
+    "method": "GET",
+    "url": "https://api.rocketreach.co/api/v2/account",
+    "path": "/api/v2/account",
+    "status_code": 403,
+    "request_params": {},
+    "response_headers": {}
+  },
+  "response": {
+    "detail": "Please use the Universal Credit endpoints."
+  }
+}

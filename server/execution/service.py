@@ -422,8 +422,14 @@ async def execute_single(
     # ── Step 7: Store in cache ────────────────────────────────────────────
     # Mirror of the read-gate above: providers with `cacheable = False` also
     # skip the write so future calls don't get served stale data.
+    # Also skip the write when an async lookup is still in progress — caching
+    # a partial payload would serve stale in_progress data to the retry.
+    is_in_progress = (
+        isinstance(normalized, dict)
+        and normalized.get("lookup_status") == "in_progress"
+    )
     cache_payload = {"data": normalized, "is_byok": is_byok}
-    if cache is not None and provider_cls.cacheable:
+    if cache is not None and provider_cls.cacheable and not is_in_progress:
         try:
             ttl = CACHE_TTLS.get(operation, 3600)
             await cache.set(tenant_id, operation, params, cache_payload, ttl=ttl)
@@ -432,11 +438,16 @@ async def execute_single(
             logger.warning("Cache write failed", exc_info=True)
 
     # ── Step 8: Return ────────────────────────────────────────────────────
+    # When an async lookup caps out (e.g. RocketReach enrich_person still in
+    # flight at 30s), the caller must retry to get complete data. Vendor-side
+    # re-lookups are free, so billing this first call would double-charge the
+    # tenant. Surface zero cost here; the retry bills normally on completion.
+    actual_cost = 0.0 if is_in_progress else calculate_cost(operation, params)
     return {
         "provider": provider_name,
         "operation": operation,
         "is_byok": is_byok,
         "cached": False,
-        "actual_cost": calculate_cost(operation, params),
+        "actual_cost": actual_cost,
         "data": normalized,
     }

@@ -207,21 +207,52 @@ def companies(
     _require_auth()
     client = NrvClient()
 
-    params: dict[str, Any] = {"per_page": min(limit, 100), "page": min(page, 500)}
+    is_rr = provider == "rocketreach"
+    params: dict[str, Any] = {}
+    if is_rr:
+        params["page_size"] = min(limit, 100)
+        params["start"] = max(page, 1)
+    else:
+        params["per_page"] = min(limit, 100)
+        params["page"] = min(page, 500)
+
     if name:
-        params["q_organization_name"] = name.strip()
+        if is_rr:
+            params["company_name"] = [name.strip()]
+        else:
+            params["q_organization_name"] = name.strip()
     if industry:
-        params["organization_industry_tag_ids"] = [i.strip() for i in industry.split(",")]
+        industries = [i.strip() for i in industry.split(",")]
+        if is_rr:
+            params["industry"] = industries
+        else:
+            params["organization_industry_tag_ids"] = industries
     if size:
-        params["organization_num_employees_ranges"] = [size.strip()]
+        if is_rr:
+            params["employees"] = [size.strip()]
+        else:
+            params["organization_num_employees_ranges"] = [size.strip()]
     if location:
-        params["organization_locations"] = [loc.strip() for loc in location.split(",")]
+        locs = [loc.strip() for loc in location.split(",")]
+        if is_rr:
+            params["geo"] = locs
+        else:
+            params["organization_locations"] = locs
     if domain:
         cleaned = [_clean_domain(d) for d in domain.split(",") if d.strip()]
         if cleaned:
-            params["q_organization_domains"] = "\n".join(cleaned)
+            if is_rr:
+                params["domain"] = cleaned
+            else:
+                params["q_organization_domains"] = "\n".join(cleaned)
 
-    if not any(k for k in params if k not in ("per_page", "page")):
+    filter_keys = {
+        "q_organization_name", "organization_industry_tag_ids",
+        "organization_num_employees_ranges", "organization_locations",
+        "q_organization_domains",
+        "company_name", "industry", "employees", "geo", "domain",
+    }
+    if not any(k in params for k in filter_keys):
         print_error("At least one search filter is required.")
         sys.exit(1)
 
