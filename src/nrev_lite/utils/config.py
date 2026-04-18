@@ -112,27 +112,45 @@ def set_config(key: str, value: Any) -> None:
     save_config(config)
 
 
-def get_api_base_url() -> str:
-    """Get the server URL.
+def get_api_base_url_with_source() -> tuple[str, str]:
+    """Return (url, source) where source ∈ {"env", "config", "default"}.
 
-    Resolution order:
-      1. `server.url` in `~/.nrev-lite/config.toml`
-      2. Constants (env var `NREV_API_URL` → prod default)
+    Resolution order (highest priority first):
+      1. `NREV_API_URL` env var — explicit per-invocation override (e.g. dev/staging/prod aliases)
+      2. `server.url` in `~/.nrev-lite/config.toml` — persistent user preference
+      3. Production default baked into the constants module
     """
+    env_url = os.environ.get("NREV_API_URL")
+    if env_url:
+        return env_url.rstrip("/"), "env"
     url = get_config("server.url")
     if url and isinstance(url, str):
-        return url.rstrip("/")
-    return DEFAULT_API_BASE_URL
+        return url.rstrip("/"), "config"
+    return DEFAULT_API_BASE_URL, "default"
+
+
+def get_api_base_url() -> str:
+    """Get the server URL. See `get_api_base_url_with_source` for resolution order."""
+    return get_api_base_url_with_source()[0]
+
+
+def get_platform_base_url_with_source() -> tuple[str, str]:
+    """Return (url, source) where source ∈ {"env", "config", "default"}.
+
+    Resolution order (highest priority first):
+      1. `NREV_PLATFORM_URL` env var — explicit per-invocation override
+      2. `platform.url` in `~/.nrev-lite/config.toml`
+      3. Production default
+    """
+    env_url = os.environ.get("NREV_PLATFORM_URL")
+    if env_url:
+        return env_url.rstrip("/"), "env"
+    url = get_config("platform.url")
+    if url and isinstance(url, str):
+        return url.rstrip("/"), "config"
+    return DEFAULT_PLATFORM_BASE_URL, "default"
 
 
 def get_platform_base_url() -> str:
-    """Get the platform (nrev-ui-2) base URL.
-
-    Resolution order:
-      1. `platform.url` in `~/.nrev-lite/config.toml`
-      2. Constants (env var `NREV_PLATFORM_URL` → prod default)
-    """
-    url = get_config("platform.url")
-    if url and isinstance(url, str):
-        return url.rstrip("/")
-    return DEFAULT_PLATFORM_BASE_URL
+    """Get the platform (nrev-ui-2) base URL. See `get_platform_base_url_with_source`."""
+    return get_platform_base_url_with_source()[0]

@@ -350,9 +350,10 @@ TOOLS: list[dict[str, Any]] = [
             "Enrich a company by LinkedIn URL, domain, or name. Returns the canonical Company "
             "row (name, domain, linkedin_url, employee_count, industry, hq_location) plus "
             "`additional_data` with vendor extras (description, follower_count, specialties, "
-            "affiliated companies, etc.). For LinkedIn-native fields, pass `provider=\"fresh_linkedin\"` "
-            "with either `linkedin_url` or `domain` — domain lookup is fuzzy; inspect "
-            "`additional_data.confident_score` before trusting the match."
+            "affiliated companies, etc.). Providers: `apollo` (default) for broad firmographics, "
+            "`rocketreach` for RocketReach's Universal company dataset, or `fresh_linkedin` for "
+            "LinkedIn-native fields. For Fresh LinkedIn pass `linkedin_url` or `domain` — domain "
+            "lookup is fuzzy; inspect `additional_data.confident_score` before trusting the match."
         ),
         "inputSchema": {
             "type": "object",
@@ -375,9 +376,74 @@ TOOLS: list[dict[str, Any]] = [
                 "provider": {
                     "type": "string",
                     "description": (
-                        "Force a specific provider. Omit for auto-selection (default: apollo). "
-                        "Pass 'fresh_linkedin' for direct-from-LinkedIn firmographics."
+                        "Force a specific provider: 'apollo' (default, broad firmographics), "
+                        "'rocketreach' (Universal company dataset), or 'fresh_linkedin' "
+                        "(direct-from-LinkedIn). Omit for auto-selection."
                     ),
+                },
+            },
+        },
+    },
+    {
+        "name": "nrev_search_companies",
+        "description": (
+            "Search for companies using B2B databases (Apollo, RocketReach). "
+            "Returns matching companies with name, domain, industry, size, location. "
+            "Does NOT return contacts — chain nrev_search_people or nrev_enrich_company for that. "
+            "Defaults to Apollo; pass provider='rocketreach' for RocketReach Universal search. "
+            "IMPORTANT: Check tool-skills for provider-specific quirks BEFORE calling."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "names": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Company names to match on (free-text).",
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "Company domains (e.g. ['stripe.com', 'plaid.com']). "
+                        "Apollo quirk: sent as a NEWLINE-SEPARATED STRING; handled automatically."
+                    ),
+                },
+                "industries": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Industry filters (see the rocketreach-enrichment skill for the Industry enum).",
+                },
+                "locations": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Location filters (e.g. ['San Francisco', 'United States']).",
+                },
+                "employee_ranges": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "Employee count ranges. Format is provider-specific: "
+                        "Apollo uses comma-separated e.g. '51,200'; "
+                        "RocketReach uses dashed e.g. '51-200', '501-1000'."
+                    ),
+                },
+                "provider": {
+                    "type": "string",
+                    "description": (
+                        "Force a provider: 'apollo' (default) or 'rocketreach'. "
+                        "Omit for Apollo default."
+                    ),
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max results to return. Default: 25. Max: 100.",
+                    "default": 25,
+                },
+                "page": {
+                    "type": "integer",
+                    "description": "Page number (1-indexed). Default: 1.",
+                    "default": 1,
                 },
             },
         },
@@ -2248,6 +2314,60 @@ def _handle_nrev_search_people(args: dict[str, Any]) -> dict[str, Any]:
     return _api_request("POST", "/execute", json_body=body)
 
 
+def _handle_nrev_search_companies(args: dict[str, Any]) -> dict[str, Any]:
+    """Search for companies across Apollo or RocketReach.
+
+    Translates the generic tool inputs into flat per-provider param shapes:
+        - Apollo: q_organization_name, q_organization_domains (newline-joined),
+          organization_industry_tag_ids, organization_locations,
+          organization_num_employees_ranges, per_page, page.
+        - RocketReach: company_name, domain, industry, geo, employees,
+          page_size, start.
+
+    Flat (not nested under `query`) — this is what the server-side providers
+    actually read.
+    """
+    provider = args.get("provider") or "apollo"
+    params: dict[str, Any] = {}
+
+    if provider == "apollo":
+        if args.get("names"):
+            names = args["names"]
+            params["q_organization_name"] = names[0] if len(names) == 1 else names
+        if args.get("domains"):
+            params["q_organization_domains"] = "\n".join(args["domains"])
+        if args.get("industries"):
+            params["organization_industry_tag_ids"] = args["industries"]
+        if args.get("locations"):
+            params["organization_locations"] = args["locations"]
+        if args.get("employee_ranges"):
+            params["organization_num_employees_ranges"] = args["employee_ranges"]
+        params["per_page"] = min(args.get("limit", 25), 100)
+        params["page"] = max(args.get("page", 1), 1)
+
+    elif provider == "rocketreach":
+        if args.get("names"):
+            params["company_name"] = args["names"]
+        if args.get("domains"):
+            params["domain"] = args["domains"]
+        if args.get("industries"):
+            params["industry"] = args["industries"]
+        if args.get("locations"):
+            params["geo"] = args["locations"]
+        if args.get("employee_ranges"):
+            params["employees"] = args["employee_ranges"]
+        params["page_size"] = min(args.get("limit", 25), 100)
+        params["start"] = max(args.get("page", 1), 1)
+
+    body: dict[str, Any] = {
+        "operation": "search_companies",
+        "params": params,
+        "provider": provider,
+    }
+
+    return _api_request("POST", "/execute", json_body=body)
+
+
 def _handle_nrev_estimate_cost(arguments: dict) -> dict:
     """Estimate credit cost for one or many operations.
 
@@ -2285,11 +2405,13 @@ def _handle_nrev_estimate_cost(arguments: dict) -> dict:
     operation = arguments.get("operation", "")
     count = arguments.get("count", 1)
 
-    # Real per-operation credit costs (platform key pricing)
+    # Real per-operation credit costs (platform key pricing).
+    # Mirror of the server-side operation_costs DB table — keep in sync.
     OP_COSTS = {
-        "search_people": 2,       # Apollo/RocketReach people search
-        "enrich_person": 1,       # Person enrichment
-        "enrich_company": 1,      # Company enrichment
+        "search_people": 3,       # Apollo/RocketReach people search
+        "enrich_person": 3,       # Person enrichment
+        "enrich_company": 3,      # Company enrichment
+        "search_companies": 3,    # Apollo/RocketReach company search
         "search_web": 1,          # Google web search
         "google_search": 1,       # Google SERP search
         "scrape_page": 1,         # Web page extraction
@@ -2305,6 +2427,7 @@ def _handle_nrev_estimate_cost(arguments: dict) -> dict:
         "enrich_person": "apollo",
         "enrich_company": "apollo",
         "search_people": "apollo",
+        "search_companies": "apollo",
         "search_web": "rapidapi",
         "scrape_page": "parallel",
         "google_search": "rapidapi",
@@ -2445,6 +2568,15 @@ def _auto_generate_label(tool_name: str, args: dict) -> str:
         return f"Enrich: {ident}"[:50]
     if tool_name == "nrev_enrich_company":
         return f"Company: {args.get('domain') or args.get('name', 'company')}"[:50]
+    if tool_name == "nrev_search_companies":
+        hint = ""
+        if args.get("names"):
+            hint = str(args["names"][0]) if isinstance(args["names"], list) and args["names"] else ""
+        elif args.get("industries"):
+            hint = str(args["industries"][0]) if isinstance(args["industries"], list) and args["industries"] else ""
+        elif args.get("domains"):
+            hint = str(args["domains"][0]) if isinstance(args["domains"], list) and args["domains"] else ""
+        return f"Company Search: {hint}"[:50] if hint else "Company Search"
     if tool_name == "nrev_create_dataset":
         return f"Dataset: {args.get('name', 'data')}"[:50]
     if tool_name == "nrev_scrape_page":
@@ -2589,6 +2721,7 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrev_health": _handle_nrev_health,
     "nrev_new_workflow": _handle_nrev_new_workflow,
     "nrev_search_people": _handle_nrev_search_people,
+    "nrev_search_companies": _handle_nrev_search_companies,
     "nrev_estimate_cost": _handle_nrev_estimate_cost,
     "nrev_get_run_log": _handle_nrev_get_run_log,
     "nrev_deploy_site": _handle_nrev_deploy_site,
