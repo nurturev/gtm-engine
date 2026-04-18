@@ -2,60 +2,65 @@
 
 ## What Parallel Web Is
 
-Parallel Web is your **primary web research and extraction tool** — the best available for AI-native web access. Use it any time you need to:
-- Research a topic, company, person, or market from the open web
-- Extract structured data from any webpage (including pages behind sign-up walls)
-- Build unconventional prospect lists (businesses not in B2B databases)
-- Enrich records with web-sourced intelligence
-- Monitor the web for changes over time
-- Discover entities matching complex criteria at scale
+Parallel Web is the **anti-bot / structured-research / SERP-backup** layer for the consultant. Use it for:
+- Reading sites the agent's native web tool can't access (LinkedIn, Reddit, Twitter, anti-bot pages, paywalls)
+- Converting any URL to clean markdown for LLM consumption
+- Structured enrichment with citations and confidence scores
+- Lightweight web-grounded research where Task is overkill
+- Backup SERP when RapidAPI Google fails
 
-It is NOT limited to "non-standard" use cases. It replaces the traditional search → scrape → parse pipeline with AI-native APIs that return clean, structured, cited output.
+**4 APIs are in scope for the consultant:** Extract · Task · Chat · Search (backup).
+Other Parallel APIs (Task Group, FindAll, Monitor) are **Workflow Builder territory** — not used in the consultant's chat flow.
 
-## When to Use Which API
+---
 
-Parallel has **7 distinct APIs**. Picking the right one matters:
+## Decision Flow — When to Use What
 
-| I need to... | Use this API | Why |
+```
+Need web data?
+│
+├── 1. Can the agent's native web tool access the site?
+│   ├── YES (open web pages) → Agent's web tool (default)
+│   └── NO (LinkedIn, Reddit, Twitter, anti-bot, paywall) → Parallel Web ↓
+│
+├── 2. SERP / discovery query?
+│   ├── Default → RapidAPI Google (always first, all purposes)
+│   └── Backup (RapidAPI 429 / empty) → Parallel Search
+│
+└── 3. Content retrieval / research?
+    ├── Single page, just need visible data → Extract
+    │   (e.g., "extract all company names listed on this ProductHunt URL")
+    │
+    ├── Single page, need to follow links from it → Task
+    │   (e.g., "extract all companies on this ProductHunt URL with their websites")
+    │
+    ├── Multi-source synthesis, citations, structured enrichment → Task
+    │
+    ├── Lightweight / cost-sensitive research where Task is overkill → Chat
+    │   (Task-lite — skip citations/schema overhead when you don't need them)
+    │
+    └── Output is qualitative / SERP filters can't express it → Task
+        Heuristic: ≥5 keyword expansions needed, OR sentiment dimension,
+        OR entity-relationship dimension
+        (e.g., "find all criticisms of ABC company on LinkedIn")
+```
+
+---
+
+## Quick API Selector
+
+| I need to... | API | Why |
 |---|---|---|
-| Find relevant web content for a question | **Search** | Returns ranked URLs with LLM-optimized excerpts |
-| Get content from URLs I already have | **Extract** | Converts pages to clean markdown, cheapest API |
-| Enrich structured records (company/person data) | **Task** | AI + web search, returns structured JSON with citations |
-| Deep-dive research on a topic | **Task** (pro/ultra) | Multi-source synthesis with reasoning chain |
-| Find all entities matching criteria | **FindAll** | "All bakeries in San Jose on Instagram" |
-| Build a prospect list from scratch | **FindAll** → **Task** | FindAll discovers, Task enriches |
-| Track ongoing changes (news, pricing, hiring) | **Monitor** | Scheduled queries with webhook notifications |
-| Build a chat interface with web grounding | **Chat** | OpenAI-compatible, web-backed completions |
+| Get content from URLs I already have (clean markdown, anti-bot) | **Extract** | Cheapest, fastest path from URL to text |
+| Enrich structured records with cited, structured output | **Task** | AI + web search + Basis citations |
+| Do deep research synthesizing multiple sources | **Task** (pro/ultra tiers) | Multi-source reasoning chain |
+| Lightweight web-grounded answer where Task is too heavy | **Chat** | OpenAI-compatible, faster, cheaper |
+| Find URLs (default SERP) | **RapidAPI Google** | Default — Parallel Search is backup only |
+| Find URLs (when RapidAPI fails) | **Search** | Operational fallback |
 
-## API #1: Search
+---
 
-**When:** You need web content but don't have specific URLs yet.
-
-**Endpoint:** `POST /v1beta/search`
-
-**Key Parameters:**
-| Param | Type | Notes |
-|---|---|---|
-| `objective` | string | Natural language — what you're looking for. **Always provide this.** |
-| `search_queries` | string[] | Keyword queries. Best results when combined with objective. |
-| `mode` | string | `"fast"` (~1s), `"agentic"` (concise, for multi-step loops), `"one-shot"` (comprehensive, default) |
-| `max_results` | int | 1-40. Fewer = lower latency. |
-| `source_policies` | object | Domain include/exclude, date filtering |
-| `fetch_policy.max_age_seconds` | int | Freshness control (min 600s) |
-
-**Returns:** Ranked results with `url`, `title`, `publish_date`, `excerpts` (markdown).
-
-**Pricing:** `base` $4/1K requests (1-3s) | `pro` $9/1K (45-70s, deeper)
-
-**Rate limit:** 600 req/min
-
-**Best practices:**
-- Provide BOTH `objective` AND `search_queries` (2-3 variations) for best results
-- Use `"fast"` mode for real-time interactions, `"agentic"` for multi-step agent loops
-- Excerpts are already LLM-optimized — no need to re-process
-- NOT for discovery of known URLs — use Extract for that
-
-## API #2: Extract
+## API #1: Extract
 
 **When:** You already have URLs and need their content.
 
@@ -80,12 +85,15 @@ Parallel has **7 distinct APIs**. Picking the right one matters:
 - Scraping Instagram profiles, Yelp listings, Google Maps pages — any page with data
 - Getting specific info from known pages (set `objective` + `excerpts: true`)
 - Full-page content capture (`full_content: true`)
+- Single-page list extraction where you don't need to follow links (e.g., "all companies listed on this ProductHunt URL")
 
-**Critical quirk:** Extract does NOT search. It only processes URLs you give it. Use Search or Google to find URLs first, then Extract to get content.
+**Critical quirk:** Extract does NOT search. It only processes URLs you give it. Use RapidAPI Google (or Parallel Search as backup) to find URLs first, then Extract to get content.
 
-## API #3: Task (Deep Research & Enrichment)
+---
 
-**When:** You need AI-powered research or structured enrichment with citations.
+## API #2: Task (Deep Research & Enrichment)
+
+**When:** You need AI-powered research, structured enrichment with citations, or to follow links from a single page.
 
 **Endpoint:** `POST /v1/tasks/runs`
 
@@ -147,73 +155,31 @@ Parallel has **7 distinct APIs**. Picking the right one matters:
 }
 ```
 
-**When to use Task vs Search+Extract:**
-- Use **Task** when you need structured output, citations, and AI synthesis (enrichment, research reports)
-- Use **Search+Extract** when you need raw web content or specific page data
-- Task can access pages behind sign-up walls via authenticated page access
+**When to use Task vs Extract:**
+- **Single page, just visible data** → Extract (cheaper, faster)
+- **Single page but need URLs from it followed** → Task (e.g., ProductHunt list page where you also want each company's website)
+- **Multi-page synthesis, citations needed, structured enrichment** → Task
+- **Authenticated / paywall pages** → Task (supports it; Extract may not)
+
+**When to use Task vs LinkedIn Search Posts:**
+- **Concrete keyword + filter expression** (search_keywords, author_keyword, mentioning_company, date_posted) → LinkedIn Search Posts
+- **Qualitative output that filters can't express** (≥5 keyword expansions, sentiment, entity-relationship) → Task
+  - Example: "find all criticisms of ABC company on LinkedIn" → Task
 
 **Choosing a processor:**
-- `lite`/`base` — simple fact lookups (founding year, employee count, 1-5 fields)
+- `lite` / `base` — simple fact lookups (founding year, employee count, 1-5 fields)
 - `core` — standard GTM enrichment (company profile, tech stack, funding, ~10 fields)
-- `pro`/`pro-fast` — competitive analysis, market research reports
+- `pro` / `pro-fast` — competitive analysis, market research reports
 - `ultra+` — comprehensive due diligence, multi-source deep dives
 - Always prefer `-fast` variants for interactive use cases
 
-## API #4: Task Group (Batch Processing)
+---
 
-**When:** Running hundreds or thousands of Task operations.
+## API #3: Chat (Web-Grounded Conversations)
 
-**Endpoints:**
-- `POST /v1beta/tasks/groups` — create group
-- `POST /v1beta/tasks/groups/{id}/runs` — add runs to group
-- `GET /v1beta/tasks/groups/{id}/events` — stream results (SSE)
+**When:** Lightweight, cost-sensitive web-grounded research where Task's full structure (JSON schema, citations, async polling) is overkill.
 
-**Key capability:** Dynamic expansion — add new tasks to active groups mid-execution.
-
-**When to use:** Bulk CRM enrichment, batch due diligence, competitive intelligence at scale. Don't manually loop Task API — use Task Groups for 10+ records.
-
-## API #5: FindAll (Entity Discovery)
-
-**When:** "Find me all X that match Y" — web-scale entity discovery.
-
-**This is the key API for unconventional list building.** Examples:
-- "All D2C skincare brands selling on Instagram in California"
-- "All bakeries listed in San Jose on Instagram"
-- "All Shopify stores selling pet products with over 10K followers"
-- "All Series A fintech startups in NYC hiring engineers"
-
-**Four-step workflow:**
-
-**Step 1 — Ingest** (`POST /v1beta/findall/ingest`)
-- Input: `objective` (natural language)
-- Returns: `entity_type`, `match_conditions` (structured schema you can customize)
-
-**Step 2 — Create Run** (`POST /v1beta/findall/runs`)
-- `objective`, `entity_type`, `match_conditions` (from Step 1, customized)
-- `generator`: `"preview"` (~10 candidates) | `"base"` | `"core"` | `"pro"` (most thorough)
-- `match_limit`: max matched entities to return
-
-**Step 3 — Poll** (`GET /v1beta/findall/runs/{id}`)
-- Returns status and metrics (generated/matched counts)
-
-**Step 4 — Results** (`GET /v1beta/findall/runs/{id}/result`)
-- Candidates with: `name`, `url`, `description`, `match_status`, structured `output`, full `basis` with citations
-
-**Pricing:**
-| Generator | Fixed Cost | Per Match |
-|---|---|---|
-| `preview` | $0.10 | $0.00 |
-| `base` | $0.25 | $0.03 |
-| `core` | $2.00 | $0.15 |
-| `pro` | $10.00 | $1.00 |
-
-**Best practice:** Always start with `preview` to validate your schema (10 candidates, $0.10), then scale up with `core` or `pro`.
-
-**Critical for GTM workflows:** When building lists of businesses NOT in Apollo/RocketReach (local businesses, D2C brands, niche verticals), FindAll discovers them and Task enriches them. Do NOT route these through `nrev_enrich_company` — Apollo/RocketReach won't have them.
-
-## API #6: Chat (Web-Grounded Conversations)
-
-**When:** Building chat interfaces that need web-backed answers.
+Think of Chat as **Task-lite** — same web grounding, no structural overhead.
 
 **Endpoint:** `POST /v1beta/chat/completions` (OpenAI-compatible)
 
@@ -227,82 +193,65 @@ Parallel has **7 distinct APIs**. Picking the right one matters:
 
 **Rate limit:** 300 req/min
 
+**When to use Chat over Task:**
+- One-shot conversational lookups ("what's company X's pricing tier?")
+- Cost-sensitive lightweight research
+- Don't need structured JSON output or programmatic citations
+- Don't want to deal with async polling
+
+**When to switch to Task instead:**
+- Need structured output for downstream parsing
+- Need citation provenance per field
+- Doing batch enrichment (Task's structured input/output beats Chat for repeatable patterns)
+
 **Note:** `temperature`, `top_p`, `max_tokens` etc. are accepted but **ignored**.
 
-## API #7: Monitor (Continuous Web Tracking)
+---
 
-**When:** Ongoing monitoring — not one-time research.
+## API #4: Search (BACKUP for SERP)
 
-**Endpoint:** `POST /v1alpha/monitors` (Alpha)
+**When:** RapidAPI Google is your default for all SERP needs. Use Parallel Search ONLY when:
+- RapidAPI is rate-limited (429) or returning empty results
+- You explicitly need an objective-based agentic search loop (rare)
+
+**For all primary SERP work, use RapidAPI Google.** This API is here as a safety net.
+
+**Endpoint:** `POST /v1beta/search`
 
 **Key Parameters:**
 | Param | Type | Notes |
 |---|---|---|
-| `query` | string | Intent-driven natural language (NOT keywords) |
-| `frequency` | string | `"1h"`, `"1d"`, `"1w"`, up to `"30d"` |
-| `webhook` | object | `{url, event_types}` for push notifications |
-| `output_schema` | object | Flat JSON Schema, 3-5 string/enum properties max |
+| `objective` | string | Natural language — what you're looking for. **Always provide this.** |
+| `search_queries` | string[] | Keyword queries. Best results when combined with objective. |
+| `mode` | string | `"fast"` (~1s), `"agentic"` (concise, for multi-step loops), `"one-shot"` (comprehensive, default) |
+| `max_results` | int | 1-40. Fewer = lower latency. |
+| `source_policies` | object | Domain include/exclude, date filtering |
+| `fetch_policy.max_age_seconds` | int | Freshness control (min 600s) |
 
-**Pricing:** $0.003 per 1,000 executions
+**Returns:** Ranked results with `url`, `title`, `publish_date`, `excerpts` (markdown).
 
-**Use cases:** Competitor news, pricing changes, job posting signals, regulatory updates, deal watchlists.
+**Pricing:** `base` $4/1K requests (1-3s) | `pro` $9/1K (45-70s, deeper)
 
-**NOT for:** Historical research (use Task for that).
+**Rate limit:** 600 req/min
 
-## Parallel vs Firecrawl
+**Backup-mode best practices:**
+- Provide BOTH `objective` AND `search_queries` (2-3 variations) for best results
+- Use `"fast"` mode for real-time interactions, `"agentic"` for multi-step agent loops
+- Excerpts are already LLM-optimized — no need to re-process
 
-| Dimension | Parallel | Firecrawl |
-|---|---|---|
-| **Core strength** | AI web research & intelligence | Web scraping & crawling |
-| **Search** | Built-in Search API with custom index | No native search |
-| **Deep research** | Task API, 9 processor tiers, Basis citations | `/agent` endpoint, less depth |
-| **Entity discovery** | FindAll API | No equivalent |
-| **Monitoring** | Monitor API | No equivalent |
-| **Authenticated/paywall pages** | Task API supports it | Browser sandbox |
-| **Site-wide crawling** | No endpoint for this | Full crawl with sitemap discovery |
-| **Anti-bot bypass** | Uses own index + crawlers | Handles JS rendering, anti-bot |
-| **Self-hosted** | No | Open-source option |
-| **Structured output** | JSON Schema on Task/Chat/Monitor/FindAll | JSON Schema on scrape/extract |
-| **Citations** | Every output includes citations + confidence + reasoning | No citation framework |
-
-**Bottom line:** Parallel is better for research, enrichment, discovery, and monitoring. Firecrawl is better for raw site crawling and anti-bot scraping.
-
-## GTM Decision Tree — Which API for Which Workflow
-
-```
-Need to research a company/person/topic?
-├── Have specific URLs → Extract (cheapest, fastest)
-├── Need to find relevant content → Search
-├── Need structured enrichment with citations → Task (core)
-└── Need deep competitive/market analysis → Task (pro/ultra)
-
-Need to build a prospect list?
-├── Standard B2B companies → Apollo/RocketReach (via nrev_enrich)
-├── Non-standard businesses (local, D2C, niche) → FindAll → Task
-├── Alumni network → RocketReach previous_employer → Task for context
-└── Hiring signals → Search (job board queries) → Extract
-
-Need ongoing intelligence?
-├── One-time snapshot → Task
-└── Continuous tracking → Monitor
-
-Need to process many records?
-├── 1-9 records → Individual Task calls
-└── 10+ records → Task Group (batch)
-```
+---
 
 ## Quirks & Gotchas
 
-1. **Extract does NOT search** — it only processes URLs you provide. Search first, Extract second.
+1. **Extract does NOT search** — it only processes URLs you provide. RapidAPI Google (or Parallel Search as backup) finds URLs; Extract pulls content.
 2. **Task is async** — it returns immediately, you must poll or use webhooks/SSE for results.
-3. **FindAll has a 4-step workflow** — don't skip Ingest (Step 1), it generates your schema.
-4. **Monitor output_schema is limited** — flat structure only, 3-5 properties, string/enum types only.
-5. **Chat ignores most parameters** — `temperature`, `top_p`, `max_tokens` are accepted but have no effect.
-6. **Search `max_age_seconds` minimum is 600** — you can't force fully fresh results faster than 10 minutes.
-7. **Task `input` max is 15,000 chars** — for larger inputs, break into multiple runs.
-8. **FindAll `preview` is free per-match** — always validate your schema before scaling up.
-9. **`-fast` variants exist for pro and ultra** — same quality, 2-5x faster, same price. Always prefer these for interactive use.
-10. **20K free requests to start** — no credit card required.
+3. **Chat ignores most parameters** — `temperature`, `top_p`, `max_tokens` are accepted but have no effect.
+4. **Search `max_age_seconds` minimum is 600** — you can't force fully fresh results faster than 10 minutes.
+5. **Task `input` max is 15,000 chars** — for larger inputs, break into multiple runs.
+6. **`-fast` variants exist for pro and ultra Task tiers** — same quality, 2-5x faster, same price. Always prefer these for interactive use.
+7. **20K free requests to start** — no credit card required.
+
+---
 
 ## Rate Limits Summary
 
@@ -313,16 +262,11 @@ Need to process many records?
 | Extract | 600 req/min |
 | Chat | 300 req/min |
 
+---
+
 ## Authentication
 
 ```
 x-api-key: $PARALLEL_API_KEY
 ```
 Or: `Authorization: Bearer $PARALLEL_API_KEY`
-
-## nrev-lite Integration
-
-In nrev-lite, Parallel Web is accessed through:
-- `nrev_scrape_page` — wraps Extract API (provide URL + objective)
-- `nrev_search_web` — wraps Search API
-- For Task, FindAll, Monitor — use `nrev_app_execute` or direct API calls through the server proxy

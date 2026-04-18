@@ -1,8 +1,5 @@
 # Google Search Patterns — Site Operators & URL Structures
 
-## Always call nrev_search_patterns() first
-Before constructing any Google query, call `nrev_search_patterns()` to get the latest platform-specific URL patterns. The patterns below are reference — the server-side patterns are the source of truth and may be updated without a CLI release.
-
 ## Core Site: Operators by Platform
 
 ### LinkedIn
@@ -25,8 +22,8 @@ site:linkedin.com/posts [person OR company] [topic]
 # Do NOT quote the handles — unquoted gives better recall
 site:linkedin.com/posts (handle1 OR handle2 OR handle3) [topic]
 #
-# IMPORTANT: Use the queries[] param for parallel execution on the server.
-# The server runs queries concurrently via asyncio.gather (up to 10 at once).
+# Use the queries[] param for parallel execution on the server.
+# The server runs queries concurrently (up to 10 at once).
 # Do NOT call the API sequentially in a loop — pass all queries at once.
 #
 # CRITICAL: Google returns false positives. ALWAYS post-filter by extracting
@@ -188,7 +185,7 @@ site:linkedin.com/in "VP Sales" AND ("Series B" OR "Series C") fintech
 # Exclude results
 site:linkedin.com/in CTO -recruiter -consultant
 
-# Time-restricted (use tbs parameter in nrev_google_search)
+# Time-restricted (use tbs parameter in google_search)
 # tbs=qdr:d  → past 24 hours
 # tbs=qdr:w  → past week
 # tbs=qdr:m  → past month

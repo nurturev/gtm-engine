@@ -9,38 +9,38 @@
 
 ### 1. API access requires Hypergrowth plan ($97/mo) or above
 ```
-Growth plan ($37/mo)    → NO API access ❌
-Hypergrowth ($97/mo)    → API + webhooks ✅
-Light Speed ($358/mo)   → API + webhooks + SISR ✅
+Growth plan ($37/mo)    → NO API access
+Hypergrowth ($97/mo)    → API + webhooks
+Light Speed ($358/mo)   → API + webhooks + SISR
 ```
 The Growth plan explicitly excludes API and webhook access. Do not attempt API calls on a Growth subscription.
 
 ### 2. V1 API is deprecated — use V2 only
 ```
-// DEPRECATED ❌
+// DEPRECATED
 https://api.instantly.ai/api/v1/...
 
-// CORRECT ✅
+// CORRECT
 https://api.instantly.ai/api/v2/...
 ```
 V1 and V2 are NOT compatible. All new integrations must use V2. V1 will be fully removed.
 
 ### 3. Lead list endpoint is POST, not GET
 ```
-// WRONG — standard REST assumption ❌
+// WRONG — standard REST assumption
 GET /api/v2/leads?campaign_id=xxx
 
-// CORRECT — POST because of complex filter arguments ✅
+// CORRECT — POST because of complex filter arguments
 POST /api/v2/leads/list
 ```
 This is a deliberate deviation from REST. The list/search endpoint uses POST to support complex query bodies.
 
 ### 4. Campaign sequences array quirk — only first element is used
 ```json
-// WRONG — multiple sequence objects ❌
+// WRONG — multiple sequence objects
 "sequences": [{"steps": [...]}, {"steps": [...]}]
 
-// CORRECT — single sequence with multiple steps ✅
+// CORRECT — single sequence with multiple steps
 "sequences": [{"steps": [{"subject": "...", "body": "..."}, {"subject": "...", "body": "..."}]}]
 ```
 Even though `sequences` is an array, only the FIRST element is read. Put all your email steps inside that single sequence object.
@@ -50,10 +50,10 @@ New email accounts MUST warm up for at least 30 days before cold outreach. Ramp 
 
 ### 6. Lead custom variable values must be primitives
 ```json
-// WRONG — objects/arrays in custom fields ❌
+// WRONG — objects/arrays in custom fields
 {"company_info": {"name": "Acme", "size": 50}}
 
-// CORRECT — string, number, boolean, or null only ✅
+// CORRECT — string, number, boolean, or null only
 {"company_name": "Acme", "company_size": 50, "is_enterprise": false}
 ```
 

@@ -1,6 +1,6 @@
 ---
 name: provider-selection
-description: Decision matrix for picking the optimal data provider (Apollo, RocketReach, Hunter, Parallel, Perplexity, ZeroBounce, BetterContact, PredictLeads, etc.) for any GTM task — enrichment, search, scraping, verification, or AI research. Use BEFORE making any provider API call to choose the right one and avoid wasted credits.
+description: Decision engine for choosing the right enrichment/search provider for any GTM task
 ---
 
 # Provider Selection Guide
@@ -13,12 +13,20 @@ Use this guide BEFORE making any API call to pick the optimal provider.
 | I need to... | Provider | Operation | Why |
 |---|---|---|---|
 | Find people by email/name | **Apollo** | enrich_person | Best email match rate, includes company context |
-| Find people by school/university | **RocketReach** | search_people | Only provider with working `school` filter |
-| Find alumni of a company (past employees) | **RocketReach** | search_people | `previous_employer` filter actually works |
+| Find people by school/university | **RocketReach** | search_people | Only provider with working `school` filter. 3 credits/call |
+| Find alumni of a company (past employees) | **RocketReach** | search_people | `previous_employer` filter actually works. 3 credits/call |
 | Search people by title + company | **Apollo** | search_people | Largest B2B database, best filters |
 | Search people by department | **Apollo** | search_people | `person_department_or_subdepartments` filter |
-| Get someone's phone number | **RocketReach** | enrich_person | Higher phone data coverage |
+| Get someone's phone number | **RocketReach** | enrich_person | Higher phone data coverage. 18 credits/call when phone is requested |
+| Get LIVE person profile (current title, headline, follower count) | **LinkedIn Scraping** | get_profile_details | Live scrape — most recent source of truth |
+| Get a person's skills, education, employment history | **LinkedIn Scraping** | get_profile_details | Fields not exposed by Apollo/RocketReach |
+| Discover what a person engages with on LinkedIn (comments/reactions elsewhere) | **LinkedIn Scraping** | get_profile_posts (`type=comments` or `reactions`) | Interest mapping for personalisation |
+| Find people who reacted/commented on a specific post | **LinkedIn Scraping** | get_post_reactions / get_post_comments | Warm engagement signal for outreach |
+| Search posts by keyword/boolean (with company-mention filter) | **LinkedIn Scraping** | search_posts | Native LinkedIn search; needs integer company_id for mention filter |
 | Enrich a company by domain | **Apollo** | enrich_company | Richest company profiles (tech, funding, size) |
+| Get LIVE company data (follower count, current employee count) | **LinkedIn Scraping** | get_company_by_domain or get_company_by_url | Live LinkedIn data; only source of follower count |
+| Resolve a company to its integer LinkedIn company_id | **LinkedIn Scraping** | get_company_by_domain or get_company_by_url | Required for `mentioning_company` array in Search Posts |
+| Get posts authored by a company page | **LinkedIn Scraping** | get_company_posts | Competitor content monitoring, engagement mining |
 | Find a company's job openings | **PredictLeads** | company_jobs | Dedicated jobs API, better than scraping |
 | Find a company's tech stack | **PredictLeads** | company_technologies | Detects actual usage, not just marketing |
 | Get company news/signals | **PredictLeads** | company_news | Categorized business events |
@@ -26,11 +34,11 @@ Use this guide BEFORE making any API call to pick the optimal provider.
 | Find similar companies | **PredictLeads** | similar_companies | ML-based similarity scoring |
 | Google search for company intel | **RapidAPI Google** | search_web | Fast Google SERP, up to 300 results |
 | Find recent news about a company | **RapidAPI Google** | search_web | Use tbs=qdr:w for time filter |
-| Scrape a webpage for content | **Parallel Web** | scrape_page | AI-native markdown, handles JS/PDFs |
-| Scrape multiple URLs at scale | **Parallel Web** | scrape_page | Auto-batches in groups of 10, concurrent |
-| AI-powered web research | **Parallel Web** | search_web | Natural language objectives, agentic mode |
-| Extract structured data from pages | **Parallel Web** | extract_structured | Task API with LLM + citations |
-| Bulk web extraction (100+ URLs) | **Parallel Web** | batch_extract | Task Groups, up to 2K req/min |
+| Scrape a webpage for content | **Parallel Web** | extract | AI-native markdown, handles JS/PDFs/anti-bot |
+| Scrape multiple URLs at scale | **Parallel Web** | extract | Pass URL array; cheap and fast |
+| Lightweight web-grounded research (Task is overkill) | **Parallel Web** | chat | Task-lite — OpenAI-compatible, no schema/polling overhead |
+| Structured enrichment with citations | **Parallel Web** | task | Multi-source AI synthesis with Basis citations + confidence |
+| Backup SERP (when RapidAPI Google fails) | **Parallel Web** | search | Operational fallback only — RapidAPI is default for all SERP |
 | Waterfall enrich emails (max coverage) | **BetterContact** | enrich_person | Tries 20+ providers, only charges for found data |
 | Waterfall enrich phone numbers | **BetterContact** | enrich_person | 10 credits/phone but 70-85% coverage |
 | Find emails at a domain | **Hunter** | domain_search | Returns all known emails + confidence scores |
@@ -55,21 +63,25 @@ Use this guide BEFORE making any API call to pick the optimal provider.
 **Weaknesses:**
 - School/education filter (`person_education_school_names`) is UNRELIABLE — returns generic results
 - `q_keywords` free-text search is too broad for specific filtering
+- `q_organization_name` is unreliable for search — always resolve to domain via Org Enrich first, then use `q_organization_domains`
 - `organization_past_domains` (past company search) returns poor results
 - People search returns obfuscated data — needs separate enrichment for emails
 
 ### RocketReach (provider: `rocketreach`)
 **Best for:** Alumni searches, phone numbers, school-based filtering
+**Cost:** 3 credits ($0.03) per call. **18 credits** per call when phone numbers are requested.
 **Strengths:**
 - `school` filter WORKS RELIABLY for university/education searches
 - `previous_employer` filter WORKS for finding company alumni
 - Higher phone number coverage than Apollo
 - Email grading (A/A- grades are verified)
+- LinkedIn URL lookups ~99% match rate
 **Weaknesses:**
 - Smaller overall database than Apollo
 - No bulk enrichment in one call
 - Company enrichment is less detailed than Apollo
 - Async lookups: some requests return `status: "in_progress"` and need polling
+- Phone requests are 6× more expensive (18 credits vs 3 for email-only)
 
 **IMPORTANT for school searches:**
 - Always pass BOTH variants of the school name:
@@ -78,6 +90,41 @@ Use this guide BEFORE making any API call to pick the optimal provider.
   ```
 - Same for any school: `["MIT", "Massachusetts Institute of Technology"]`
 - RocketReach matches on the school name as stored in LinkedIn profiles
+
+### LinkedIn Scraping (provider: `linkedin_scraping` — Fresh LinkedIn Profile Data via RapidAPI)
+**Best for:** Live profile/company data, follower/connection counts, skills/education, engagement mining, post discovery
+**Strengths:**
+- **Recency** — live LinkedIn scrape, beats cached B2B databases on freshness (current title, headline, current company)
+- **Unique fields** — follower count, connection count, skills, education, specialties, **integer `company_id`** (required for post-mention filter)
+- **Engagement axis** — only provider that gives access to commenters/reactors per post (warm intent signal)
+- **Post search** — native LinkedIn post search by keyword/boolean, optional company-mention or author-title filter
+- **No-email-needed flows** — if outreach is via LinkedIn DM/connect, no enrichment provider is required at all
+- **Polymorphic profile activity endpoint** — one endpoint (`Get Profile's Posts`) covers what a person posts, comments on, and reacts to via a `type` enum
+**Weaknesses:**
+- **No emails or phone numbers** — must pair with Apollo/RocketReach/Waterfall if contact data is needed
+- **Engagement explosion risk** — N posts × M engagers can balloon credits; recency filter and repost exclusion are mandatory
+- **Rate-limited** — live scraping; 429s on overage, expect throttling on large batches
+- **`mentioning_company` requires an ARRAY of INTEGER company IDs** — URLs and domains do NOT work; must resolve via Get Company first
+- **`search_keywords` rejects comma-separated keywords** — split into separate queries upstream
+- **Domain → company lookup can return empty** for niche/SMB/non-canonical domains (use Apollo→Parallel Web fallback)
+
+**Decision: People Enrichment — LinkedIn vs Apollo vs RocketReach**
+
+| Use LinkedIn Scraping when… | Use Apollo when… | Use RocketReach when… |
+|---|---|---|
+| Need the most recent profile (job changes within last few months) | Need email + cached firmographics in one call | Need school/alumni filter (`school`, `previous_employer`) |
+| Need follower count, skills, education, headline | Bulk people search by title/company/location | Need phone numbers (better coverage than Apollo) |
+| Outreach is LinkedIn DM/connect (no email needed) | Need employment history with `include_similar_titles` | Need years_of_experience, funding stage, dept growth filters |
+| Mining post engagers as warm leads | Largest database, lowest cost per row | Async lookups acceptable |
+
+**Decision: Company Enrichment — LinkedIn vs Apollo**
+
+| Use LinkedIn Scraping when… | Use Apollo when… |
+|---|---|
+| Need live employee/follower count | Need cached firmographics, tech stack, funding |
+| Need integer **company_id** (for post-mention filter in Search Posts) | Need company keywords/industry classifications used by Apollo's filter system |
+| Need specialties, headline, current LinkedIn description | Bulk company enrichment by domain |
+| Domain may have changed/rebranded — want current LinkedIn presence | Cost efficiency on large company lists |
 
 ### PredictLeads (provider: `predictleads`)
 **Best for:** Company signals — jobs, tech, news, financing, similar companies
@@ -177,23 +224,45 @@ Use this guide BEFORE making any API call to pick the optimal provider.
 - Hard caps on monthly emails (no overage billing, just pauses sending)
 
 ### Parallel Web (provider: `parallel_web`)
-**Best for:** Web scraping, content extraction, AI-powered web research at scale
+**Best for:** Anti-bot scraping, structured enrichment with citations, lightweight web-grounded research, backup SERP
+**APIs in scope (4):** Extract · Task · Chat · Search (backup)
 **Strengths:**
 - AI-native API by Parallel (parallel.ai) — purpose-built for agents
-- Search API with natural language objectives + keyword queries
-- Extract API: clean markdown from any URL (JS, anti-bot, PDFs)
-- Task API: async structured extraction with LLM (citations + confidence)
-- Task Groups: batch processing up to 2,000 req/min
-- Auto-batches >10 URLs with concurrent execution
+- Extract: clean markdown from any URL — handles JS, anti-bot, PDFs, paywalls
+- Task: async structured extraction with LLM citations + confidence (Basis framework)
+- Chat: Task-lite for cost-sensitive lightweight research (no JSON schema / polling overhead)
+- Search: backup SERP when RapidAPI Google fails
 - SOC-2 Type II certified
 **Weaknesses:**
 - Extract capped at 10 URLs per API call (auto-batched by our provider)
 - fetch_policy.max_age_seconds minimum is 600 (10 min cache)
-- max_results not guaranteed on search
+- Task is async — requires polling/webhooks
 - Text-only output (no images)
+- Chat ignores `temperature`, `top_p`, `max_tokens` parameters
 
-**Rate limits:** Search/Extract 600/min, Tasks 2,000/min. GET polling is FREE.
+**Out of scope for the consultant:** Task Group, FindAll, Monitor — Workflow Builder territory.
+
+**Decision flow:** see `tool-skills/parallel-web-quirks.md` for the full when-to-use tree.
+
+**Rate limits:** Extract 600/min, Search 600/min, Task 2,000/min, Chat 300/min. GET polling is FREE.
 **20,000 free requests** before paid pricing.
+
+## Waterfall Enrichment Principle (Don't Roll Your Own)
+
+**Do NOT chain providers manually to fill enrichment gaps.** BetterContact already does this — it cascades through 20+ providers (Apollo, RocketReach, Hunter, etc.), only charges for verified data, and handles dedup + quality scoring.
+
+**Instead:**
+1. Use this guide to pick the **single best provider** for each data type
+2. Send the enrichment request to that one provider
+3. If coverage is insufficient, recommend BetterContact as the waterfall layer — don't simulate it manually
+
+**Why not waterfall manually:**
+- Wastes credits on redundant provider calls
+- Each provider's rate limits compound the latency
+- Dedup logic is non-trivial (same person, different email formats)
+- BetterContact's verification pass (Bouncer) is more thorough than what you'd build inline
+
+**The exception:** the LinkedIn → Apollo → Parallel Web fallback for resolving an empty `Get Company by Domain` result is a *resolution* chain (finding the right LinkedIn URL), not a waterfall *enrichment* chain. Resolution chains are fine; enrichment cascades belong to BetterContact.
 
 ## Common GTM Workflows (Multi-Provider)
 
@@ -262,18 +331,41 @@ PredictLeads company_news (detect funding, expansion, product launch)
 
 ## Auto-Selection Rules
 
-The CLI and execution engine follow these rules:
-
-1. **If `--school` or `--past-company` flag is used** → auto-select RocketReach
+1. **If school or past-company is specified** → auto-select RocketReach
 2. **If operation starts with `company_`** → auto-select PredictLeads
-3. **If operation is `search_web`** → auto-select RapidAPI Google
-4. **If operation is `scrape_page`, `crawl_site`, `extract_structured`, `batch_extract`** → auto-select Parallel Web
+3. **If operation is `search_web`** → auto-select RapidAPI Google. Fall back to Parallel Web `search` ONLY if RapidAPI is rate-limited or returns empty.
+4. **If operation is `extract` (page-to-markdown), `task` (structured enrichment with citations), or `chat` (lightweight web-grounded research)** → auto-select Parallel Web. See `tool-skills/parallel-web-quirks.md` for the Extract vs Task vs Chat decision flow.
 5. **If operation is `validate_email` or `batch_validate`** → auto-select ZeroBounce
 6. **If operation is `domain_search` or `email_finder`** → auto-select Hunter
 7. **If operation is `create_campaign`, `manage_leads`, or `campaign_analytics`** → auto-select Instantly
-8. **If `--waterfall` flag is used or max coverage is requested** → auto-select BetterContact for enrichment
-9. **Everything else (enrich, search people/companies)** → default to Apollo
-10. **User can always override** with `--provider` flag
+8. **If waterfall or max coverage is requested** → auto-select BetterContact for enrichment
+9. **If user wants LIVE / RECENT profile or company data** (current title, follower count, skills, education) → auto-select LinkedIn Scraping
+10. **If task involves LinkedIn engagement** (commenters, reactors, what someone reacted to) → auto-select LinkedIn Scraping
+11. **If task involves post-mention filtering** → resolve `company_id` via LinkedIn Scraping (`get_company_by_*`) BEFORE calling Search Posts
+12. **If LinkedIn `Get Company by Domain` returns empty** → fallback to Apollo `enrich_company` (returns linkedin_url) → retry LinkedIn `Get Company by URL`. If still empty, use RapidAPI Google `search_web` for `"{name} site:linkedin.com/company"` (Parallel Search as backup if RapidAPI fails)
+13. **Everything else (enrich, search people/companies)** → default to Apollo
 
-Note: Parallel Web also supports `search_web` (AI-powered objective search).
-Use `--provider parallel_web` to get Parallel's agentic search instead of Google.
+## LinkedIn-Specific Multi-Provider Workflow
+
+### 9. LinkedIn Engagement Mining (Warm Leads from a Target's Content)
+```
+person/company URL
+  → LinkedIn Scraping get_posts (recency filter mandatory, exclude reposts)
+  → LinkedIn Scraping get_post_comments + get_post_reactions [parallel]
+  → normalize column prefixes (commenter_/reactor_ → engager_)
+  → merge → unified engager list
+  → (if email needed) Apollo enrich_person OR BetterContact waterfall
+```
+**Guardrails:** ask user about recency window + repost exclusion BEFORE fan-out. Pilot one post first, show row count, confirm.
+
+### 10. Competitor Mention Monitoring
+```
+competitor domain
+  → LinkedIn Scraping get_company_by_domain → integer company_id
+  → LinkedIn Scraping search_posts (mentioning_company=[company_id], date_posted="Past week")
+  → LinkedIn Scraping get_post_comments / get_post_reactions
+  → Apollo enrich (if email needed)
+```
+**Why LinkedIn (not Google search) here:** competitor mention filter requires the integer company_id; Google can't replicate it.
+
+Note: Parallel Web's `search` is a **backup-only** SERP option. RapidAPI Google is the default for all SERP work; switch to Parallel Search only when RapidAPI is rate-limited or returning empty results.
