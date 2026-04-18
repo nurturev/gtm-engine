@@ -126,7 +126,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title="nrev-lite API",
-    version="0.1.0",
+    version="2.0.0",
     description="Agent-native GTM execution platform",
     lifespan=lifespan,
 )

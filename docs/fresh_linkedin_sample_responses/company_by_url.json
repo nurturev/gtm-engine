@@ -1,0 +1,549 @@
+{
+  "__probe_meta__": {
+    "slug": "company_by_url",
+    "method": "GET",
+    "path": "/get-company-by-linkedinurl",
+    "status_code": 200,
+    "params": {
+      "linkedin_url": "https://www.linkedin.com/company/google/"
+    }
+  },
+  "response": {
+    "data": {
+      "affiliated_companies": [
+        {
+          "company_id": "16140",
+          "linkedin_url": "https://www.linkedin.com/company/youtube/",
+          "name": "YouTube"
+        },
+        {
+          "company_id": "17876832",
+          "linkedin_url": "https://www.linkedin.com/company/capitalg/",
+          "name": "CapitalG"
+        },
+        {
+          "company_id": "791962",
+          "linkedin_url": "https://www.linkedin.com/company/adometry/",
+          "name": "Adometry (acquired by Google)"
+        }
+      ],
+      "company_id": "1441",
+      "company_name": "Google",
+      "description": "A problem isn't truly solved until it's solved for all. Googlers build products that help create opportunities for everyone, whether down the street or across the globe. Bring your insight, imagination and a healthy disregard for the impossible. Bring everything that makes you unique. Together, we can build for everyone.\n\nCheck out our career opportunities at goo.gle/3DLEokh",
+      "domain": "goo.gle",
+      "email": "",
+      "employee_count": 340928,
+      "employee_range": "10001+",
+      "follower_count": 41424645,
+      "funding_info": {
+        "crunchbase_url": "",
+        "last_funding_round_amount": null,
+        "last_funding_round_currency": null,
+        "last_funding_round_month": null,
+        "last_funding_round_type": null,
+        "last_funding_round_year": null,
+        "num_funding_rounds": null
+      },
+      "hq_address_line1": "1600 Amphitheatre Parkway",
+      "hq_address_line2": "",
+      "hq_city": "Mountain View",
+      "hq_country": "US",
+      "hq_full_address": "1600 Amphitheatre Parkway, Mountain View, CA 94043, US",
+      "hq_postalcode": "94043",
+      "hq_region": "CA",
+      "industries": [
+        "Software Development"
+      ],
+      "linkedin_url": "https://www.linkedin.com/company/google/",
+      "locations": [
+        {
+          "city": "London",
+          "country": "GB",
+          "full_address": "St Giles High Street, London, England WC2H 8AG, GB",
+          "is_headquarter": false,
+          "line1": "St Giles High Street",
+          "line2": "",
+          "region": "England",
+          "zipcode": "WC2H 8AG"
+        },
+        {
+          "city": "Dublin",
+          "country": "IE",
+          "full_address": "Barrow Street, Dublin, County Dublin, IE",
+          "is_headquarter": false,
+          "line1": "Barrow Street",
+          "line2": "",
+          "region": "County Dublin",
+          "zipcode": ""
+        },
+        {
+          "city": "Bogota",
+          "country": "CO",
+          "full_address": "Carrera 11A 94-45, Bogota, Bogota, D.C. 110221, CO",
+          "is_headquarter": false,
+          "line1": "Carrera 11A 94-45",
+          "line2": "",
+          "region": "Bogota, D.C.",
+          "zipcode": "110221"
+        },
+        {
+          "city": "Singapore",
+          "country": "SG",
+          "full_address": "3 Pasir Panjang Rd, Singapore, Singapore 118484, SG",
+          "is_headquarter": false,
+          "line1": "3 Pasir Panjang Rd",
+          "line2": "",
+          "region": "Singapore",
+          "zipcode": "118484"
+        },
+        {
+          "city": "Miguel Hidalgo",
+          "country": "MX",
+          "full_address": "Montes Urales, Miguel Hidalgo, CDMX 11000, MX",
+          "is_headquarter": false,
+          "line1": "Montes Urales",
+          "line2": "",
+          "region": "CDMX",
+          "zipcode": "11000"
+        },
+        {
+          "city": "Tel Aviv-Yafo",
+          "country": "IL",
+          "full_address": "Yigal Allon 98, Tel Aviv-Yafo, Tel Aviv 67891, IL",
+          "is_headquarter": false,
+          "line1": "Yigal Allon 98",
+          "line2": "",
+          "region": "Tel Aviv",
+          "zipcode": "67891"
+        },
+        {
+          "city": "Toronto",
+          "country": "CA",
+          "full_address": "111 Richmond St W, Toronto, ON M5H 2G4, CA",
+          "is_headquarter": false,
+          "line1": "111 Richmond St W",
+          "line2": "",
+          "region": "ON",
+          "zipcode": "M5H 2G4"
+        },
+        {
+          "city": "Kitchener",
+          "country": "CA",
+          "full_address": "51 Breithaupt St, Kitchener, ON N2H 5G5, CA",
+          "is_headquarter": false,
+          "line1": "51 Breithaupt St",
+          "line2": "",
+          "region": "ON",
+          "zipcode": "N2H 5G5"
+        },
+        {
+          "city": "Las Condes",
+          "country": "CL",
+          "full_address": "Avenida Costanera Sur, Las Condes, Santiago Metropolitan 7550000, CL",
+          "is_headquarter": false,
+          "line1": "Avenida Costanera Sur",
+          "line2": "",
+          "region": "Santiago Metropolitan",
+          "zipcode": "7550000"
+        },
+        {
+          "city": "Milan",
+          "country": "IT",
+          "full_address": "Via Federico Confalonieri, 4, Milan, Lomb. 20124, IT",
+          "is_headquarter": false,
+          "line1": "Via Federico Confalonieri, 4",
+          "line2": "",
+          "region": "Lomb.",
+          "zipcode": "20124"
+        },
+        {
+          "city": "Taguig City",
+          "country": "PH",
+          "full_address": "5th Ave, Taguig City, National Capital Region, PH",
+          "is_headquarter": false,
+          "line1": "5th Ave",
+          "line2": "",
+          "region": "National Capital Region",
+          "zipcode": ""
+        },
+        {
+          "city": "Sydney",
+          "country": "AU",
+          "full_address": "48 Pirrama Rd, Sydney, NSW 2009, AU",
+          "is_headquarter": false,
+          "line1": "48 Pirrama Rd",
+          "line2": "",
+          "region": "NSW",
+          "zipcode": "2009"
+        },
+        {
+          "city": "Melbourne",
+          "country": "AU",
+          "full_address": "90 Collins St, Melbourne, VIC 3000, AU",
+          "is_headquarter": false,
+          "line1": "90 Collins St",
+          "line2": "",
+          "region": "VIC",
+          "zipcode": "3000"
+        },
+        {
+          "city": "Zurich",
+          "country": "CH",
+          "full_address": "Brandschenkestrasse 110, Zurich, ZH 8002, CH",
+          "is_headquarter": false,
+          "line1": "Brandschenkestrasse 110",
+          "line2": "",
+          "region": "ZH",
+          "zipcode": "8002"
+        },
+        {
+          "city": "Paris",
+          "country": "FR",
+          "full_address": "8 Rue de Londres, Paris, IdF 75009, FR",
+          "is_headquarter": false,
+          "line1": "8 Rue de Londres",
+          "line2": "",
+          "region": "IdF",
+          "zipcode": "75009"
+        },
+        {
+          "city": "Buenos Aires City",
+          "country": "AR",
+          "full_address": "Avenida Alicia Moreau de Justo 350, Buenos Aires City, Buenos Aires Autonomous City 1107, AR",
+          "is_headquarter": false,
+          "line1": "Avenida Alicia Moreau de Justo 350",
+          "line2": "",
+          "region": "Buenos Aires Autonomous City",
+          "zipcode": "1107"
+        },
+        {
+          "city": "Hamburg",
+          "country": "DE",
+          "full_address": "ABC-Strasse 19, Hamburg, HH 20354, DE",
+          "is_headquarter": false,
+          "line1": "ABC-Strasse 19",
+          "line2": "",
+          "region": "HH",
+          "zipcode": "20354"
+        },
+        {
+          "city": "Berlin",
+          "country": "DE",
+          "full_address": "Unter den Linden 14, Berlin, BE 10117, DE",
+          "is_headquarter": false,
+          "line1": "Unter den Linden 14",
+          "line2": "",
+          "region": "BE",
+          "zipcode": "10117"
+        },
+        {
+          "city": "Munich",
+          "country": "DE",
+          "full_address": "Erika-Mann-Strasse 33, Munich, BY 80636, DE",
+          "is_headquarter": false,
+          "line1": "Erika-Mann-Strasse 33",
+          "line2": "",
+          "region": "BY",
+          "zipcode": "80636"
+        },
+        {
+          "city": "Warsaw",
+          "country": "PL",
+          "full_address": "ulica Emilii Plater 53, Warsaw, MA 00-125, PL",
+          "is_headquarter": false,
+          "line1": "ulica Emilii Plater 53",
+          "line2": "",
+          "region": "MA",
+          "zipcode": "00-125"
+        },
+        {
+          "city": "Amsterdam",
+          "country": "NL",
+          "full_address": "Claude Debussylaan 34, Amsterdam, North Holland 1082 MD, NL",
+          "is_headquarter": false,
+          "line1": "Claude Debussylaan 34",
+          "line2": "",
+          "region": "North Holland",
+          "zipcode": "1082 MD"
+        },
+        {
+          "city": "Madrid",
+          "country": "ES",
+          "full_address": "Plaza Pablo Ruiz Picasso, Madrid, Community of Madrid 28046, ES",
+          "is_headquarter": false,
+          "line1": "Plaza Pablo Ruiz Picasso",
+          "line2": "",
+          "region": "Community of Madrid",
+          "zipcode": "28046"
+        },
+        {
+          "city": "Madrid",
+          "country": "ES",
+          "full_address": "Plaza Pablo Ruiz Picasso, Madrid, Community of Madrid 28020, ES",
+          "is_headquarter": false,
+          "line1": "Plaza Pablo Ruiz Picasso",
+          "line2": "",
+          "region": "Community of Madrid",
+          "zipcode": "28020"
+        },
+        {
+          "city": "Atlanta",
+          "country": "US",
+          "full_address": "10 10th St NE, Atlanta, GA 30309, US",
+          "is_headquarter": false,
+          "line1": "10 10th St NE",
+          "line2": "",
+          "region": "GA",
+          "zipcode": "30309"
+        },
+        {
+          "city": "Cambridge",
+          "country": "US",
+          "full_address": "355 Main St, Cambridge, MA 02142, US",
+          "is_headquarter": false,
+          "line1": "355 Main St",
+          "line2": "",
+          "region": "MA",
+          "zipcode": "02142"
+        },
+        {
+          "city": "Mountain View",
+          "country": "US",
+          "full_address": "1600 Amphitheatre Parkway, Mountain View, CA 94043, US",
+          "is_headquarter": true,
+          "line1": "1600 Amphitheatre Parkway",
+          "line2": "",
+          "region": "CA",
+          "zipcode": "94043"
+        },
+        {
+          "city": "San Bruno",
+          "country": "US",
+          "full_address": "901 Cherry Ave, San Bruno, CA 94066, US",
+          "is_headquarter": false,
+          "line1": "901 Cherry Ave",
+          "line2": "",
+          "region": "CA",
+          "zipcode": "94066"
+        },
+        {
+          "city": "San Francisco",
+          "country": "US",
+          "full_address": "345 Spear St, San Francisco, CA 94105, US",
+          "is_headquarter": false,
+          "line1": "345 Spear St",
+          "line2": "",
+          "region": "CA",
+          "zipcode": "94105"
+        },
+        {
+          "city": "Austin",
+          "country": "US",
+          "full_address": "9606 N Mopac Expy, Austin, TX 78759, US",
+          "is_headquarter": false,
+          "line1": "9606 N Mopac Expy",
+          "line2": "",
+          "region": "TX",
+          "zipcode": "78759"
+        },
+        {
+          "city": "Irvine",
+          "country": "US",
+          "full_address": "19510 Jamboree Rd, Irvine, CA 92612, US",
+          "is_headquarter": false,
+          "line1": "19510 Jamboree Rd",
+          "line2": "",
+          "region": "CA",
+          "zipcode": "92612"
+        },
+        {
+          "city": "Los Angeles",
+          "country": "US",
+          "full_address": "340 Main St, Los Angeles, CA 90291, US",
+          "is_headquarter": false,
+          "line1": "340 Main St",
+          "line2": "",
+          "region": "CA",
+          "zipcode": "90291"
+        },
+        {
+          "city": "Chicago",
+          "country": "US",
+          "full_address": "320 N Morgan St, Chicago, IL 60607, US",
+          "is_headquarter": false,
+          "line1": "320 N Morgan St",
+          "line2": "",
+          "region": "IL",
+          "zipcode": "60607"
+        },
+        {
+          "city": "Boulder",
+          "country": "US",
+          "full_address": "2590 Pearl St, Boulder, CO 80302, US",
+          "is_headquarter": false,
+          "line1": "2590 Pearl St",
+          "line2": "",
+          "region": "CO",
+          "zipcode": "80302"
+        },
+        {
+          "city": "Frisco",
+          "country": "US",
+          "full_address": "6175 Main St, Frisco, TX 75034, US",
+          "is_headquarter": false,
+          "line1": "6175 Main St",
+          "line2": "",
+          "region": "TX",
+          "zipcode": "75034"
+        },
+        {
+          "city": "Ann Arbor",
+          "country": "US",
+          "full_address": "2300 Traverwood Dr, Ann Arbor, MI 48105, US",
+          "is_headquarter": false,
+          "line1": "2300 Traverwood Dr",
+          "line2": "",
+          "region": "MI",
+          "zipcode": "48105"
+        },
+        {
+          "city": "Washington",
+          "country": "US",
+          "full_address": "25 Massachusetts Ave NW, Washington, DC 20001, US",
+          "is_headquarter": false,
+          "line1": "25 Massachusetts Ave NW",
+          "line2": "",
+          "region": "DC",
+          "zipcode": "20001"
+        },
+        {
+          "city": "Reston",
+          "country": "US",
+          "full_address": "1875 Explorer St, Reston, VA 20190, US",
+          "is_headquarter": false,
+          "line1": "1875 Explorer St",
+          "line2": "",
+          "region": "VA",
+          "zipcode": "20190"
+        },
+        {
+          "city": "Kirkland",
+          "country": "US",
+          "full_address": "777 6th St S, Kirkland, WA 98033, US",
+          "is_headquarter": false,
+          "line1": "777 6th St S",
+          "line2": "",
+          "region": "WA",
+          "zipcode": "98033"
+        },
+        {
+          "city": "Seattle",
+          "country": "US",
+          "full_address": "601 N 34th St, Seattle, WA 98103, US",
+          "is_headquarter": false,
+          "line1": "601 N 34th St",
+          "line2": "",
+          "region": "WA",
+          "zipcode": "98103"
+        },
+        {
+          "city": "New York",
+          "country": "US",
+          "full_address": "111 8th Ave, New York, NY 10011, US",
+          "is_headquarter": false,
+          "line1": "111 8th Ave",
+          "line2": "",
+          "region": "NY",
+          "zipcode": "10011"
+        },
+        {
+          "city": "Stockholm",
+          "country": "SE",
+          "full_address": "Kungsbron 2, Stockholm, Stockholm County 111 22, SE",
+          "is_headquarter": false,
+          "line1": "Kungsbron 2",
+          "line2": "",
+          "region": "Stockholm County",
+          "zipcode": "111 22"
+        },
+        {
+          "city": "Sao Paulo",
+          "country": "BR",
+          "full_address": "Avenida Brigadeiro Faria Lima, 3477, Sao Paulo, SP 04538-133, BR",
+          "is_headquarter": false,
+          "line1": "Avenida Brigadeiro Faria Lima, 3477",
+          "line2": "",
+          "region": "SP",
+          "zipcode": "04538-133"
+        },
+        {
+          "city": "Wan Chai",
+          "country": "HK",
+          "full_address": "2 Matheson St, Wan Chai, Hong Kong, HK",
+          "is_headquarter": false,
+          "line1": "2 Matheson St",
+          "line2": "",
+          "region": "Hong Kong",
+          "zipcode": ""
+        },
+        {
+          "city": "Hyderabad",
+          "country": "IN",
+          "full_address": "13, Hyderabad, TS 500084, IN",
+          "is_headquarter": false,
+          "line1": "13",
+          "line2": "",
+          "region": "TS",
+          "zipcode": "500084"
+        },
+        {
+          "city": "Mumbai",
+          "country": "IN",
+          "full_address": "3 Bandra Kurla Complex Road, Mumbai, Maharashtra 400051, IN",
+          "is_headquarter": false,
+          "line1": "3 Bandra Kurla Complex Road",
+          "line2": "",
+          "region": "Maharashtra",
+          "zipcode": "400051"
+        },
+        {
+          "city": "Bengaluru",
+          "country": "IN",
+          "full_address": "Old Madras Road, Bengaluru, Karnataka 560016, IN",
+          "is_headquarter": false,
+          "line1": "Old Madras Road",
+          "line2": "",
+          "region": "Karnataka",
+          "zipcode": "560016"
+        },
+        {
+          "city": "Bengaluru",
+          "country": "IN",
+          "full_address": "3 Swamy Vivekananda Road, Bengaluru, Karnataka 560016, IN",
+          "is_headquarter": false,
+          "line1": "3 Swamy Vivekananda Road",
+          "line2": "",
+          "region": "Karnataka",
+          "zipcode": "560016"
+        },
+        {
+          "city": "Gurugram",
+          "country": "IN",
+          "full_address": "15, Gurugram, HR 122001, IN",
+          "is_headquarter": false,
+          "line1": "15",
+          "line2": "",
+          "region": "HR",
+          "zipcode": "122001"
+        }
+      ],
+      "logo_url": "https://media.licdn.com/dms/image/v2/D4E0BAQGv3cqOuUMY7g/company-logo_200_200/B4EZmhegXHGcAM-/0/1759350753990/google_logo?e=1778112000&v=beta&t=-_wdXQF9WefwRWvTLSS1YUNG0hH8B2-Ecqz7Q_v9dEE",
+      "phone": "",
+      "specialties": "search, ads, mobile, android, online video, apps, machine learning, virtual reality, cloud, hardware, artificial intelligence, youtube, software",
+      "tagline": "",
+      "website": "https://goo.gle/3DLEokh",
+      "year_founded": ""
+    },
+    "message": "ok"
+  }
+}

@@ -30,6 +30,33 @@ VENDOR_CATALOG: dict[str, dict] = {
         "platform_key": True,
         "byok": True,
     },
+    "fresh_linkedin": {
+        "category": "enrichment",
+        "name": "Fresh LinkedIn",
+        "description": "LinkedIn profile + company + post enrichment — fresher data direct from LinkedIn",
+        "operations": [
+            "enrich_person",
+            "enrich_company",
+            "fetch_profile_posts",
+            "fetch_company_posts",
+            "fetch_post_details",
+            "fetch_post_reactions",
+            "fetch_post_comments",
+            "search_posts",
+        ],
+        "credit_costs": {
+            "enrich_person": 3,
+            "enrich_company": 3,
+            "fetch_profile_posts": 3,
+            "fetch_company_posts": 3,
+            "fetch_post_details": 3,
+            "fetch_post_reactions": 3,
+            "fetch_post_comments": 3,
+            "search_posts": 3,
+        },
+        "platform_key": True,
+        "byok": True,
+    },
     "bettercontact": {
         "category": "enrichment",
         "name": "BetterContact",
@@ -156,7 +183,7 @@ VENDOR_CATEGORIES = {
 
 
 # Vendors with actual server-side execution handlers
-INTEGRATED_PROVIDERS = {"apollo", "rocketreach", "predictleads", "parallel", "rapidapi"}
+INTEGRATED_PROVIDERS = {"apollo", "rocketreach", "predictleads", "parallel", "rapidapi", "fresh_linkedin"}
 
 # All others are BYOK-only with skill files but no server-side handler yet
 # They appear in the catalog as "Coming Soon" in the dashboard
