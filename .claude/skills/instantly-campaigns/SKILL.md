@@ -1,3 +1,8 @@
+---
+name: instantly-campaigns
+description: Instantly.ai API reference for managing cold email campaigns, leads, and inboxes through the gtm_enrich proxy. Use when the user wants to push leads into Instantly, list or update campaigns, check campaign status, or manage cold email outreach via Instantly.
+---
+
 # Instantly Email Campaigns
 
 Base URL: https://api.instantly.ai/api/v1 (via proxy)

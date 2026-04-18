@@ -1,3 +1,8 @@
+---
+name: gtm-workflows
+description: Catalog of pre-defined multi-step GTM workflow templates (prospect research, list building, signal monitoring, enrichment) and the dataset-first persistence rule that ensures results survive external export failures. Use when the user wants a ready-made workflow template, asks "what kind of workflows can I run?", or is about to produce structured output that should be persisted.
+---
+
 # Common GTM Workflows
 
 ## Dataset-First Principle

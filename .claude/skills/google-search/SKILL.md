@@ -1,3 +1,8 @@
+---
+name: google-search
+description: Guidance for using nrev_google_search to mine GTM intelligence — LinkedIn profiles by title/company, hiring signals from job listings, competitive intel from G2/Reddit, and time-filtered news. Covers tbs filters, site restrictions, and bulk queries. Use when the user wants to search Google, find LinkedIn profiles or posts, gather competitive or hiring intel, or asks for help with search operators.
+---
+
 # Google Search — When & How to Use It
 
 ## When to Use Google Search

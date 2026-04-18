@@ -1,3 +1,8 @@
+---
+name: apollo-enrichment
+description: Apollo.io API reference for people search, person/organization enrichment, and email finding through the gtm_enrich proxy. Use when the user wants to enrich a person or company, find a work email, search Apollo for prospects, or specifically mentions Apollo.io.
+---
+
 # Apollo.io Enrichment via GTM Engine
 
 ## Overview
