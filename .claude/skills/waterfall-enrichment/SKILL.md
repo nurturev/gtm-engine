@@ -1,3 +1,8 @@
+---
+name: waterfall-enrichment
+description: Explains why nrev-lite delegates waterfall enrichment to BetterContact instead of implementing custom multi-provider fallback logic, and how to pick a single best provider per data type. Use when the user asks about waterfall enrichment, multi-provider fallback, why one provider was chosen, or how to handle missing data after enrichment.
+---
+
 # Enrichment Strategy (No Waterfall Needed)
 
 BetterContact handles waterfall enrichment (trying multiple providers in sequence) automatically. Do NOT implement provider waterfall logic in nrev-lite workflows.
