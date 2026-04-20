@@ -1,0 +1,446 @@
+{
+  "__probe_meta__": {
+    "slug": "universal_person_search",
+    "method": "POST",
+    "url": "https://api.rocketreach.co/api/v2/universal/person/search",
+    "path": "/api/v2/universal/person/search",
+    "status_code": 201,
+    "request_body": {
+      "query": {
+        "current_employer": [
+          "Microsoft"
+        ]
+      },
+      "page_size": 10,
+      "start": 1
+    },
+    "response_headers": {}
+  },
+  "response": {
+    "pagination": {
+      "start": 1,
+      "next": 11,
+      "total": 417807
+    },
+    "profiles": [
+      {
+        "id": 123345169,
+        "name": "Chris Mitchell",
+        "profile_pic": null,
+        "linkedin_url": "https://www.linkedin.com/in/chmitch",
+        "connections": 724,
+        "location": "Little Rock, AR, US",
+        "city": "Little Rock",
+        "region": "AR ",
+        "country": "United States",
+        "country_code": "US",
+        "current_title": "Partner Solutions Architect",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "microsoft.com"
+          ],
+          "phones": [
+            {
+              "number": "501868XXXX",
+              "is_premium": false
+            }
+          ],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [],
+          "professional_emails": [
+            "microsoft.com"
+          ]
+        },
+        "birth_year": 1974,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 34.7464809,
+        "region_longitude": -92.2895948,
+        "suppressed": false,
+        "update_time": "2026-04-11T06:43:48.663783"
+      },
+      {
+        "id": 123257403,
+        "name": "Vishal Thiyya",
+        "profile_pic": "https://d2gjqh9j26unp0.cloudfront.net/profilepic/159b5be920628350e95734a1c5cefdd8",
+        "linkedin_url": "https://www.linkedin.com/in/vishal-thiyya-035baa14",
+        "connections": 500,
+        "location": "Bengaluru, KA, IN",
+        "city": "Bengaluru",
+        "region": "KA ",
+        "country": "India",
+        "country_code": "IN",
+        "current_title": "Senior Engineering Architect",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "microsoft.com",
+            "gmail.com",
+            "dbmarketingarg.onmicrosoft.com",
+            "fluidra.onmicrosoft.com"
+          ],
+          "phones": [
+            {
+              "number": "91920720XXXX",
+              "is_premium": false
+            }
+          ],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [
+            "gmail.com"
+          ],
+          "professional_emails": [
+            "microsoft.com",
+            "dbmarketingarg.onmicrosoft.com",
+            "fluidra.onmicrosoft.com"
+          ]
+        },
+        "birth_year": 1985,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 12.9715987,
+        "region_longitude": 77.5945627,
+        "suppressed": false,
+        "update_time": "2026-04-11T06:41:18.946493"
+      },
+      {
+        "id": 122442313,
+        "name": "Sauresh Bhowmick",
+        "profile_pic": "https://d2gjqh9j26unp0.cloudfront.net/profilepic/974414f02e1c44398a333294cf975c06",
+        "linkedin_url": "https://www.linkedin.com/in/saureshbhowmick",
+        "connections": 2081,
+        "location": "Bengaluru, KA, IN",
+        "city": "Bengaluru",
+        "region": "KA ",
+        "country": "India",
+        "country_code": "IN",
+        "current_title": "SDE 2",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "microsoft.com",
+            "gmail.com",
+            "dbmarketingarg.onmicrosoft.com"
+          ],
+          "phones": [
+            {
+              "number": "91801744XXXX",
+              "is_premium": false
+            }
+          ],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [
+            "gmail.com"
+          ],
+          "professional_emails": [
+            "microsoft.com",
+            "dbmarketingarg.onmicrosoft.com"
+          ]
+        },
+        "birth_year": 1979,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 12.9715987,
+        "region_longitude": 77.5945627,
+        "suppressed": false,
+        "update_time": "2026-04-11T06:06:51.555018"
+      },
+      {
+        "id": 122314563,
+        "name": "Franck Luzu",
+        "profile_pic": null,
+        "linkedin_url": "https://www.linkedin.com/in/franck-luzu-1aaa5916",
+        "connections": 440,
+        "location": "\u00cele-de-France, France",
+        "city": null,
+        "region": null,
+        "country": "France",
+        "country_code": "FR",
+        "current_title": "Principal Customer Success Account Manager",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "hotmail.com",
+            "fluidra.onmicrosoft.com",
+            "dbmarketingarg.onmicrosoft.com",
+            "microsoft.com"
+          ],
+          "phones": [
+            {
+              "number": "3366440XXXX",
+              "is_premium": false
+            },
+            {
+              "number": "254501XXXX",
+              "is_premium": false
+            }
+          ],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [
+            "hotmail.com"
+          ],
+          "professional_emails": [
+            "fluidra.onmicrosoft.com",
+            "dbmarketingarg.onmicrosoft.com",
+            "microsoft.com"
+          ]
+        },
+        "birth_year": 1965,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 48.8499198,
+        "region_longitude": 2.6370411,
+        "suppressed": false,
+        "update_time": "2026-04-11T06:06:18.461460"
+      },
+      {
+        "id": 880805313,
+        "name": "Jos\u00e9 Darien Alba",
+        "profile_pic": "https://d2gjqh9j26unp0.cloudfront.net/profilepic/e153568108aa9f239a982f800846a476",
+        "linkedin_url": "https://www.linkedin.com/in/jose-alba-181099199",
+        "connections": 34,
+        "location": "Bogot\u00e1, Bogota, CO",
+        "city": "Bogot\u00e1",
+        "region": null,
+        "country": "Colombia",
+        "country_code": "CO",
+        "current_title": "Specialist, Sales Development \u2013 Bilingual | Microsoft Unified - Line at Concentrix Br",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [],
+          "phones": [],
+          "preview": [
+            "microsoft.com",
+            "gmail.com"
+          ],
+          "is_premium_phone_available": false,
+          "personal_emails": [],
+          "professional_emails": []
+        },
+        "birth_year": null,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 4.710988599999999,
+        "region_longitude": -74.072092,
+        "suppressed": false,
+        "update_time": "2026-04-11T04:14:09.586378"
+      },
+      {
+        "id": 120379638,
+        "name": "Makda Habtom",
+        "profile_pic": "https://d2gjqh9j26unp0.cloudfront.net/profilepic/068775cd1d280474ff0fc46f10b588c1",
+        "linkedin_url": "https://www.linkedin.com/in/makda-habtom-3b7647171",
+        "connections": 518,
+        "location": "California, United States",
+        "city": null,
+        "region": "CA ",
+        "country": "United States",
+        "country_code": "US",
+        "current_title": "Senior Financial Controller",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "microsoft.com"
+          ],
+          "phones": [
+            {
+              "number": "704737XXXX",
+              "is_premium": false
+            }
+          ],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [],
+          "professional_emails": [
+            "microsoft.com"
+          ]
+        },
+        "birth_year": 1995,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 33.7174708,
+        "region_longitude": -117.8311428,
+        "suppressed": false,
+        "update_time": "2026-04-11T04:10:31.976347"
+      },
+      {
+        "id": 122346475,
+        "name": "Omer Braha",
+        "profile_pic": "https://d2gjqh9j26unp0.cloudfront.net/profilepic/5eec9080d2c396c58d4dc402c0571c32",
+        "linkedin_url": "https://www.linkedin.com/in/omer-braha-5148a6182",
+        "connections": 500,
+        "location": "Tel Aviv District, Israel",
+        "city": null,
+        "region": null,
+        "country": "Israel",
+        "country_code": "IL",
+        "current_title": "Software Engineer",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "microsoft.com",
+            "fluidra.onmicrosoft.com"
+          ],
+          "phones": [],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [],
+          "professional_emails": [
+            "microsoft.com",
+            "fluidra.onmicrosoft.com"
+          ]
+        },
+        "birth_year": 1990,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 32.0929075,
+        "region_longitude": 34.8072165,
+        "suppressed": false,
+        "update_time": "2026-04-11T06:06:18.461460"
+      },
+      {
+        "id": 8250743,
+        "name": "Jay Watts",
+        "profile_pic": "https://s3.amazonaws.com/media.mixrank.com/profilepic/397878e0c8647e10fe0c7b54146ffe9b",
+        "linkedin_url": "https://www.linkedin.com/in/jay-watts-6131917",
+        "connections": 1327,
+        "location": "Los Gatos, CA, US",
+        "city": "Los Gatos",
+        "region": "CA ",
+        "country": "United States",
+        "country_code": "US",
+        "current_title": "Director of HW Engineering Program Management",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "yahoo.com"
+          ],
+          "phones": [
+            {
+              "number": "425-802-XXXX",
+              "is_premium": true
+            },
+            {
+              "number": "617-252-XXXX",
+              "is_premium": true
+            },
+            {
+              "number": "425-707-XXXX",
+              "is_premium": true
+            },
+            {
+              "number": "425-485-XXXX",
+              "is_premium": true
+            }
+          ],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [
+            "yahoo.com"
+          ],
+          "professional_emails": []
+        },
+        "birth_year": 1965,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 37.2358078,
+        "region_longitude": -121.9623751,
+        "suppressed": false,
+        "update_time": "2026-04-10T16:23:45.189912"
+      },
+      {
+        "id": 108209712,
+        "name": "Gennaro Coppola",
+        "profile_pic": null,
+        "linkedin_url": "https://www.linkedin.com/in/gennaro-coppola",
+        "connections": 862,
+        "location": "Prague, Czechia",
+        "city": null,
+        "region": null,
+        "country": "Czech Republic",
+        "country_code": "CZ",
+        "current_title": "Software Engineer",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "microsoft.com",
+            "microsoft.fr"
+          ],
+          "phones": [],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [],
+          "professional_emails": [
+            "microsoft.com",
+            "microsoft.fr"
+          ]
+        },
+        "birth_year": 1958,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 50.0780204,
+        "region_longitude": 14.4363244,
+        "suppressed": false,
+        "update_time": "2026-04-10T17:25:58.186704"
+      },
+      {
+        "id": 108287786,
+        "name": "Radhika Jeyaramachandran",
+        "profile_pic": null,
+        "linkedin_url": "https://www.linkedin.com/in/radhika-jeyaramachandran-49599baa",
+        "connections": 127,
+        "location": "Singapore",
+        "city": null,
+        "region": null,
+        "country": "Singapore",
+        "country_code": "SG",
+        "current_title": "Service Engineer",
+        "current_employer": "Microsoft",
+        "current_employer_domain": "microsoft.com",
+        "current_employer_website": "https://www.microsoft.com",
+        "teaser": {
+          "emails": [
+            "microsoft.com"
+          ],
+          "phones": [],
+          "preview": [],
+          "is_premium_phone_available": false,
+          "personal_emails": [],
+          "professional_emails": [
+            "microsoft.com"
+          ]
+        },
+        "birth_year": 1984,
+        "current_employer_id": 1035,
+        "current_employer_linkedin_url": "https://www.linkedin.com/company/microsoft",
+        "region_latitude": 1.352083,
+        "region_longitude": 103.819836,
+        "suppressed": false,
+        "update_time": "2026-04-10T17:25:58.186704"
+      }
+    ]
+  }
+}

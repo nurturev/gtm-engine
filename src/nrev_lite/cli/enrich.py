@@ -61,7 +61,15 @@ def enrich() -> None:
 @click.option("--linkedin", default=None, help="LinkedIn profile URL.")
 @click.option("--reveal-emails", is_flag=True, help="Include personal emails (Apollo credits).")
 @click.option("--reveal-phone", is_flag=True, help="Include phone numbers (Apollo credits).")
-@click.option("--provider", default=None, help="Force a specific provider (default: apollo).")
+@click.option(
+    "--provider",
+    default=None,
+    help=(
+        "Force a specific provider. Options: 'apollo' (default, general B2B), "
+        "'rocketreach' (phones, alumni), 'fresh_linkedin' (direct-from-LinkedIn, "
+        "preferred when --linkedin is passed)."
+    ),
+)
 @click.option("--dry-run", is_flag=True, help="Show what would run without executing.")
 def person(
     email: str | None,
@@ -133,37 +141,52 @@ def person(
 
 
 @enrich.command()
-@click.option("--domain", required=True, help="Company domain (e.g. google.com, https://www.google.com).")
-@click.option("--provider", default=None, help="Force a specific provider.")
+@click.option("--domain", default=None, help="Company domain (e.g. google.com, https://www.google.com).")
+@click.option("--linkedin", default=None, help="LinkedIn company URL (e.g. linkedin.com/company/google).")
+@click.option("--provider", default=None, help="Force a specific provider. Use 'fresh_linkedin' for direct-from-LinkedIn firmographics.")
 @click.option("--dry-run", is_flag=True, help="Show what would run without executing.")
-def company(domain: str, provider: str | None, dry_run: bool) -> None:
-    """Enrich a company by domain.
+def company(domain: str | None, linkedin: str | None, provider: str | None, dry_run: bool) -> None:
+    """Enrich a company by LinkedIn URL or domain.
 
     \b
-    The domain is automatically cleaned:
-        https://www.google.com  ->  google.com
-        www.acme.io/about       ->  acme.io
+    One of --linkedin or --domain is required.
+
+    \b
+    `--provider fresh_linkedin` pulls direct-from-LinkedIn fields:
+    follower_count, specialties, description, affiliated_companies, etc.
+    Pairs best with --linkedin (precise). --domain lookup is fuzzy (may
+    return a regional variant — inspect `additional_data.confident_score`).
 
     \b
     Examples:
         nrev-lite enrich company --domain google.com
-        nrev-lite enrich company --domain https://www.acme.io
+        nrev-lite enrich company --linkedin https://www.linkedin.com/company/google/ --provider fresh_linkedin
     """
     _require_auth()
 
-    clean = _clean_domain(domain)
-    if clean != domain.strip().lower():
-        click.echo(f"  Domain cleaned: {domain} -> {clean}")
+    if not domain and not linkedin:
+        print_error("One of --linkedin or --domain is required.")
+        sys.exit(2)
 
-    params: dict[str, Any] = {"domain": clean}
+    params: dict[str, Any] = {}
+    target_label: str
+    if linkedin:
+        params["linkedin_url"] = linkedin.strip()
+        target_label = params["linkedin_url"]
+    else:
+        clean = _clean_domain(domain)
+        if clean != (domain or "").strip().lower():
+            click.echo(f"  Domain cleaned: {domain} -> {clean}")
+        params["domain"] = clean
+        target_label = clean
 
     if dry_run:
-        print_warning(f"Dry run — would enrich company: {clean}")
+        print_warning(f"Dry run — would enrich company: {target_label}")
         return
 
     client = NrvClient()
     try:
-        with spinner(f"Enriching {clean}..."):
+        with spinner(f"Enriching {target_label}..."):
             result = client.execute("enrich_company", params, providers=[provider] if provider else None)
     except NrvApiError as exc:
         print_error(f"Enrichment failed: {exc.message}")

@@ -38,6 +38,7 @@ from nrev_lite.cli.schedules import schedules  # noqa: E402
 from nrev_lite.cli.scripts import scripts  # noqa: E402
 from nrev_lite.cli.feedback import feedback  # noqa: E402
 from nrev_lite.cli.apps import apps  # noqa: E402
+from nrev_lite.cli.posts import posts  # noqa: E402
 
 cli.add_command(init)  # nrev-lite init — primary onboarding entry point
 cli.add_command(auth)
@@ -58,3 +59,4 @@ cli.add_command(datasets)
 cli.add_command(schedules)
 cli.add_command(scripts)
 cli.add_command(feedback)
+cli.add_command(posts)

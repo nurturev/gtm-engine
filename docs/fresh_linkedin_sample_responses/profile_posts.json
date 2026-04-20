@@ -1,0 +1,2096 @@
+{
+  "__probe_meta__": {
+    "slug": "profile_posts",
+    "method": "GET",
+    "path": "/get-profile-posts",
+    "status_code": 200,
+    "params": {
+      "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani/"
+    }
+  },
+  "response": {
+    "data": [
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 0,
+        "num_likes": 1,
+        "num_reactions": 1,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7451139979067449344/",
+        "posted": "2026-04-18 05:30:06",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "GTM Ops becomes easier to understand when you look at what it helps the business do.\n\nIt sits across teams and supports how the revenue system actually runs.\n\nThat can include:\n\u2022 making sure leads go to the right place\n\u2022 keeping pipeline data usable\n\u2022 aligning definitions across functions\n\u2022 improving handoffs\n\u2022 reducing friction in the workflow\n\nA lot of this work happens in the background. When it is done well, you can feel the difference. Teams move faster. Ownership feels clearer. Reporting becomes more useful. Problems become easier to diagnose.\n\nIt sits close to the operating layer of the business and that is part of what makes the role so interesting.\u00a0\n#saas #GTM",
+        "time": "4 hours ago",
+        "urn": "7451139979067449344"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 1,
+        "num_likes": 11,
+        "num_reactions": 11,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7450415215956987904/",
+        "posted": "2026-04-16 05:30:09",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Status as of today: AI shows up across GTM teams in useful and practical ways.\n\nNot as a dramatic replacement for work. More as support inside the workflow.\n\nYou will see it helping with things like:\n\u2022 summarizing notes\n\u2022 enriching lead context\n\u2022 drafting first-pass communication\n\u2022 reducing repetitive admin work\n\u2022 organizing information faster\n\nWhat makes these use cases valuable is that they save time inside real operating systems.\n\nThat matters, especially in teams where small efficiency gains can improve handoffs, speed and focus.\n\nThe real value tends to show up when AI is layered into a process that already has some structure behind it. It works best inside a clear system because AI improves the execution, it does not replace structure (yet :)).\u00a0\n#Saas #GTM",
+        "time": "2 days ago",
+        "urn": "7450415215956987904"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 2,
+        "num_likes": 10,
+        "num_reactions": 10,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7449690566713405441/",
+        "posted": "2026-04-14 05:30:39",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "What deserves attention?\nWhat needs context?\u00a0\nWhat is \"actually\" urgent?\u00a0\nWhat matters commercially?\u00a0\nWhat a signal means beyond the numbers?\n\nThese are the things which a human needs to decide. \nA system can surface data, \nAI can organize information, \nand AI agents can reduce repetitive tasks. \nBut the answers to the above questions in Saas GTM still depend heavily on judgment.\n\nAnd that judgement/decision layer is difficult to automate well because good decisions usually depend on tradeoffs. \nThey depend on timing, \nexperience, \nbusiness context \nand a feel for what matters in that moment!\n#GTM #saas",
+        "time": "4 days ago",
+        "urn": "7449690566713405441"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 1,
+        "num_interests": 1,
+        "num_likes": 3,
+        "num_reactions": 4,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7448965630369849344/",
+        "posted": "2026-04-12 05:30:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "SaaS roles start to make a lot more sense once you see how teams actually work together.\n\nIf you are fresh out of college or making a transition from another industry, everything looks clean from outside. Marketing generates leads. Sales closes deals. Ops supports the process.\n\nInside a real company, it\u2019s far more connected.\n\nMarketing influences lead quality.\nLead quality shapes sales conversations.\nSales feedback informs future campaigns.\nOps makes the systems usable and measurable.\n\nA lot of the real work happens in the connections:\n\n\u2022 aligning teams\n\u2022 handling imperfect data\n\u2022 managing handoffs\n\u2022 making decisions with partial information\n\nUnderstanding a role in isolation only gets you so far.\n\nIt starts to make more sense when you see the end to end system it operates within.\n#saas #GTM",
+        "time": "6 days ago",
+        "urn": "7448965630369849344"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 0,
+        "num_empathy": 1,
+        "num_likes": 11,
+        "num_reactions": 12,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7448240942072942592/",
+        "posted": "2026-04-10 05:30:22",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "AI is revealing which parts of GTM work actually create value.\n\nThat is one of the most interesting shifts happening right now. Some work is getting faster. Some work is getting easier. And some work is being exposed as low-value repetition.\n\nThat creates a useful kind of pressure. It pushes teams to think more clearly about what really matters in the workflow.\n\nThe real edge is starting to come from knowing where judgment matters, where context matters and where process design matters.\n\nThat is why the conversation around AI gets more useful when it moves beyond tools.\n#saas #GTM",
+        "time": "1 week ago",
+        "urn": "7448240942072942592"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 0,
+        "num_likes": 5,
+        "num_reactions": 5,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7447516116131778560/",
+        "posted": "2026-04-08 05:30:10",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "A demo booking looks like progress on a dashboard.\n\nIn reality, it\u2019s the start of a much more fragile process.\n\nOnce the form is filled, things begin to move quietly.\n\nThe lead gets routed.\nSomeone decides if it\u2019s worth pursuing.\nA rep reaches out.\nBits of context are pieced together.\nAn opportunity may take shape or fade out early.\n\nNothing here feels dramatic.\n\nBut small differences start to matter.\n\nA quicker response builds rhythm.\nA delayed one breaks it.\nClear context sharpens the conversation.\nGaps in it create friction.\n\nIndividually, these moments are easy to overlook.\nAcross a big pipeline, they define outcomes.\n\nThat\u2019s why looking only at lead volume rarely explains growth.\n\nThe more telling signal is how the system handles what comes in.\n\nBecause once a lead enters the system, the experience is no longer accidental. It\u2019s designed, whether intentionally or not.\n\nAnd that design shows up in results!\n\nHow that flow works is usually where the real story is.\n#saas #GTM",
+        "time": "1 week ago",
+        "urn": "7447516116131778560"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 4,
+        "num_reactions": 5,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7446791343303024640/",
+        "posted": "2026-04-06 05:30:10",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "There\u2019s a layer behind B2B SaaS growth that rarely gets talked about.\n\nIt sits between marketing and sales, and quietly shapes how revenue actually moves.\n\nOn the surface, growth can look simple.\nMarketing brings in leads. Sales works the pipeline. Revenue follows.\n\nBut underneath that, there is a system handling everything in between:\n\n- how leads get routed\n- how they get qualified\n- how quickly someone follows up\n- how clean the data is\n- how information moves from one team to another\n\nWhen this layer is not clear, everything feels harder than it should.\n\nThe issue is not always effort. More often, growth problems are system architecture and process problems.\n\nThat\u2019s why understanding the operating layer matters so much in SaaS.\n\nOnce you see the system, the outcomes stop feeling random.\n#saas #GTM",
+        "time": "1 week ago",
+        "urn": "7446791343303024640"
+      },
+      {
+        "attributes": [
+          {
+            "first": "Sangeeta",
+            "headline": "Education Management Professional",
+            "last": "Rautji",
+            "public_id": "sangeeta-rautji-271b793a",
+            "type": "profile",
+            "urn": "ACoAAAhcGTUBs5L0wtJxM0b9nOnbbwmiVAnkv30"
+          }
+        ],
+        "images": [],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 9,
+        "num_reactions": 10,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7446498185503600640/",
+        "posted": "2026-04-05 10:05:16",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Heard a simple but powerful story recently. Full credit and thanks to Sangeeta Rautji ma'am.\n\nA carrot, an egg and coffee beans are placed into three pots of boiling water.\n\nAfter some time,\nThe carrot, which began firm, becomes soft.\nThe egg, once fragile, becomes hard inside.\nThe coffee beans, however, do something entirely different. They transform the water itself into coffee and notably spread their aroma.\n\nSame situation but different responses.\n\nIt\u2019s a useful way to think about how we show up under pressure. A good reminder that how we respond tends to matter as much as (if not more than) the situation itself.",
+        "time": "1 week ago",
+        "urn": "7446498185503600640"
+      },
+      {
+        "attributes": [
+          {
+            "company_id": "89709678",
+            "name": "nRev",
+            "public_id": "nrevai",
+            "type": "company"
+          }
+        ],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQGYcuNRIrK4HQ/feedshare-shrink_2048_1536/B4DZ1NHd4FGgAg-/0/1775115297487?e=1778112000&v=beta&t=ZBtVkFr-SBok1CbsW2S_YPwo6tkfUw7O5TjPaOMKRuI"
+          }
+        ],
+        "num_appreciations": 2,
+        "num_comments": 43,
+        "num_empathy": 3,
+        "num_interests": 2,
+        "num_likes": 53,
+        "num_reactions": 60,
+        "num_reposts": 3,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7445373195962064897/",
+        "posted": "2026-04-02 07:34:58",
+        "poster": {
+          "first": "Sayanta",
+          "headline": "CEO @nRev | Making AI Automation building effortless for GTM teams | IIT Kharagpur",
+          "image_url": "https://media.licdn.com/dms/image/v2/C4D03AQEG3uvxe8Cw9w/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1659376329209?e=1778112000&v=beta&t=zh6tuvHultevEWuiN95I3qvaTGRhF2svRc0Iz1dIBiU",
+          "last": "Ghosh",
+          "linkedin_url": "https://www.linkedin.com/in/sayantaghosh",
+          "public_id": "sayantaghosh",
+          "urn": "ACoAAAmRoqEB5YFWmcsLqFOs_Fo_EGpEdftqNSQ"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/sayantaghosh",
+        "repost_stats": {
+          "num_appreciations": 2,
+          "num_comments": 43,
+          "num_empathy": 3,
+          "num_interests": 2,
+          "num_likes": 53,
+          "num_maybe": 0,
+          "num_praises": 0,
+          "num_reactions": 60,
+          "num_reposts": 3
+        },
+        "repost_urn": "7445473093063671809",
+        "reposted": "2026-04-02 14:11:55",
+        "reshared": true,
+        "text": "I turned 3,000 LinkedIn engagements into pipeline.\n(without sending a single cold message)\n\nFor 90 days, I tracked every piece of LinkedIn engagement at nRev.\n\n3,000+ people engaged with our content. Profile views, likes, comments, shares.\n\nLess than 4% ever became a conversation.\n\nNot because the content was bad.\nBecause we had zero system for what happens after someone engages.\n\nThat 96% that slipped through? That was $1.8M+ in warm pipeline walking away.\n\nSo I built the system.\n\nI spent 90 days:\n\u2192 Mapping every warm signal LinkedIn gives you for free\n\u2192 Testing 3 automation workflows across real ICP accounts\n\u2192 Failing at manual follow-ups and documenting what scaled\n\u2192 Studying how top revenue teams turn engagement into pipeline\n\nThen I ran it on our own GTM motion and with B2B SaaS customers.\n\nNow I'm giving away the entire playbook.\n\nHere's the truth: The LinkedIn algorithm is already doing its job. It's showing your posts to your buyers. They're liking. They're viewing your profile. They're tagging your company.\n\nYou're just not capturing the signal.\n\nThe warm intent window is 48 hours. After that, your prospect moved on. Your competitor's system already reached out.\n\nThis free playbook includes:\n\u2705 The 3 warm signals most GTM leaders completely ignore\n\u2705 3 copy-paste automation workflows (2-4 steps each)\n\u2705 Outreach templates for each signal type that actually convert\n\u2705 The 20-reaction threshold filter that separates prospects from noise\n\u2705 Speed-to-lead math showing why Hour 1 response = 391% higher conversion\n\u2705 A 3-week implementation checklist you can start today\n\u2705 Common mistakes that kill warm outreach before it starts\n\nWarm networks convert 3-5x better than cold outreach. Every single time.\n\nNo fluff. No $5k course. Just the system I wish I had 12 months ago.\n\nWant it?\n\n\ud83d\udc49 Comment \"SIGNAL\" below, connect with me and I'll send it over\n\n\ud83d\udd04 Repost for early access",
+        "time": "2 weeks ago",
+        "urn": "7445373195962064897"
+      },
+      {
+        "attributes": [
+          {
+            "first": "Andreas",
+            "headline": "Revenue Operations Leader | 5x ARR Growth | GTM Architecture for $100M+ Scale",
+            "last": "Drakos",
+            "public_id": "andreasdrakos",
+            "type": "profile",
+            "urn": "ACoAAAbWBysBSwbwMX37l5YeKqtW1bGPIp-U5Ew"
+          },
+          {
+            "first": "Ali",
+            "headline": "VP, Revenue Operations | Dataminr & PandaDoc",
+            "last": "Spinelli",
+            "public_id": "ali-spinelli",
+            "type": "profile",
+            "urn": "ACoAAFlcrEEBaQrYM7tAiyYANWKgHMcmrEFqCFs"
+          },
+          {
+            "first": "Debby",
+            "headline": "Transformational Operations Leader & Strategic Advisor | Scalable Growth | Nonprofit Leader & Volunteer Partner | People-First Executive. Advocate. Empathy. Service. Passion.",
+            "last": "Leisner",
+            "public_id": "debbyleisner",
+            "type": "profile",
+            "urn": "ACoAAAFAeYsBVenarspkhYeOrwUxtd_69TYs33Q"
+          },
+          {
+            "first": "Dan",
+            "headline": "AI-First Revenue Operations Leader | VP, HUMAN Security | Driving Scalable Growth Through Intelligent Systems & GTM Automation",
+            "last": "Page",
+            "public_id": "danielpage01",
+            "type": "profile",
+            "urn": "ACoAAAAwJ9oBK-5I18dXUCI4fnb1snhfbbGza3I"
+          },
+          {
+            "first": "Caitlin",
+            "headline": "Director, Revenue Operations at OpenEye",
+            "last": "Clawson",
+            "public_id": "caitlin-clawson-20a522117",
+            "type": "profile",
+            "urn": "ACoAAB0WXKoBKHwXjMYicucBceXttxM3VfPfJdg"
+          },
+          {
+            "first": "Brandon",
+            "headline": "Strategy and Operations Executive | GTM Advisor",
+            "last": "Bussey",
+            "public_id": "brandonbussey",
+            "type": "profile",
+            "urn": "ACoAAACwbEQB9mDlefIyy4MVc83mp_I7atg1z2o"
+          },
+          {
+            "first": "David D.",
+            "headline": "Revenue Operations @ Harvey",
+            "last": "Lee",
+            "public_id": "daviddjlee",
+            "type": "profile",
+            "urn": "ACoAAASjbQQBLNF968RQDJOMPf7sWJMOYb7VdMo"
+          },
+          {
+            "first": "David",
+            "headline": "Senior Director of Global OTC Operations @ Navan | ACA",
+            "last": "Matty",
+            "public_id": "david-matty-623457b",
+            "type": "profile",
+            "urn": "ACoAAAIGJ7sBoUt7R-SbOE8UI7M2yPPk1UDlq1g"
+          },
+          {
+            "first": "Cayce",
+            "headline": "Customer advocate. Data enthusiast. Efficiency practitioner. Cultural Intelligence champion.",
+            "last": "Merrill",
+            "public_id": "cayce-merrill-657b1a2a",
+            "type": "profile",
+            "urn": "ACoAAAY3fCMBK6SNxS2OupMCfU7hOW0lV7Qih-E"
+          },
+          {
+            "first": "Rod ",
+            "headline": "Hyper-Growth Business Operations & Revenue Operations Leadership",
+            "last": "Kav",
+            "public_id": "rodkav",
+            "type": "profile",
+            "urn": "ACoAAAIHWA4BE1ifrcoDP9iR7f7kTRP-5FfLe10"
+          },
+          {
+            "first": "Sheila O.",
+            "headline": "Area Sales Vice President, Enterprise Sales at Paycor",
+            "last": "Redding",
+            "public_id": "sheilaoredding",
+            "type": "profile",
+            "urn": "ACoAAAFKyOMBnPPmk-VjIyxOLMjMMHQ9TLs304U"
+          },
+          {
+            "first": "Cameron",
+            "headline": "VP, Revenue Operations & Strategy",
+            "last": "Macrae",
+            "public_id": "cameron--macrae",
+            "type": "profile",
+            "urn": "ACoAAAMRjgUBb7T86QcBx3RX8TDj7JMi45-B2uk"
+          },
+          {
+            "first": "Brian",
+            "headline": "SVP, Revenue Operations and Strategy @ Exiger | (former Grafana, AppDynamics)",
+            "last": "Hull",
+            "public_id": "brianmhull",
+            "type": "profile",
+            "urn": "ACoAAAGTqB0BRnJIbp-lU_nG668fWUhpo74CWNU"
+          },
+          {
+            "first": "Brent R.",
+            "headline": "Chief Operating Officer | Sales, Channel & Technology COO | GTM Transformation | Start-up Board Advisor | B2B SW, SaaS, Cloud and Marketplace | Cyber Security, EdTech, and Customer Experience Advocate",
+            "last": "Wahl",
+            "public_id": "brentrwahl",
+            "type": "profile",
+            "urn": "ACoAAAANx_sBPSfxO5yp1kpnRG-g-CUhMCYPrQo"
+          },
+          {
+            "first": "Peter",
+            "headline": "VP to C-level executive, ex-Bain, Board Director, Co-Founder, FIDE Master",
+            "last": "Yu",
+            "public_id": "petercyu",
+            "type": "profile",
+            "urn": "ACoAAAAhvBIBhoHjm3s1GCwqQWM-hAuz0ROZjug"
+          },
+          {
+            "first": "Mary K.",
+            "headline": "Vice President Revenue Operations at Exterro",
+            "last": "Anguay",
+            "public_id": "mary-k-anguay",
+            "type": "profile",
+            "urn": "ACoAAAAo3YsBhROPoWKkOjKUXIRZ_W3gBnyrUOw"
+          },
+          {
+            "first": "Mohnish",
+            "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+            "last": "Kewlani",
+            "public_id": "mohnishkewlani",
+            "type": "profile",
+            "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+          },
+          {
+            "first": "Olga",
+            "headline": "VP Of Revenue Operations @ Birdeye | Scaling GTM Ops, RevTech, Forecasting & GTM orchestration",
+            "last": "Traskova",
+            "public_id": "olgatraskova",
+            "type": "profile",
+            "urn": "ACoAAANeMlgBVGhuch9K1bD3vUF85pi--_HqaUI"
+          },
+          {
+            "first": "Matthew",
+            "headline": "Director, Revenue Operations @ GumGum",
+            "last": "V.",
+            "public_id": "mvallortigara",
+            "type": "profile",
+            "urn": "ACoAAB8Bu4IBwhuma4oe_kZenBTkGpiSPoBcm0k"
+          }
+        ],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E22AQFo-uvivdgR9w/feedshare-shrink_2048_1536/B4EZ0garu0JcAg-/0/1774365359917?e=1778112000&v=beta&t=rxMmDZ66fZj0Tt1D-zpv2tbEjuK1SDwQHaE9DGafdCI"
+          }
+        ],
+        "num_comments": 18,
+        "num_empathy": 4,
+        "num_likes": 21,
+        "num_praises": 3,
+        "num_reactions": 28,
+        "num_reposts": 6,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7442227729342582784/",
+        "posted": "2026-03-24 15:16:00",
+        "poster_linkedin_url": "https://www.linkedin.com/company/othelloai",
+        "repost_stats": {
+          "num_appreciations": 0,
+          "num_comments": 12,
+          "num_empathy": 4,
+          "num_interests": 0,
+          "num_likes": 28,
+          "num_maybe": 0,
+          "num_praises": 17,
+          "num_reactions": 49,
+          "num_reposts": 2
+        },
+        "repost_urn": "7442473184953737216",
+        "reposted": "2026-03-25 07:31:21",
+        "reshared": true,
+        "resharer_comment": "Woke up to this today and honestly it made my day. Thank you team Othelo for the shout out. Grateful to the RevOps community. \ud83d\ude4f \ud83e\udef6",
+        "text": "We spent Q1 asking people - who are the best RevOps Leaders on the planet?\n\nHere are some more folks who kept coming up:\n\n(LinkedIn won't let me tag more than 20 in one post now, so I'll tag these other 5 in the comments)\n\nAndreas Drakos\nAli Spinelli\nDebby Leisner\nDan Page\nCaitlin Clawson\nBrandon Bussey\nDavid D. Lee\nDavid Matty\nCayce Merrill\nRod Kav\nSheila O. Redding\nCameron Macrae\nRussell Lloyd\nBrian Hull\nBrent R. Wahl\nPeter Yu\nMary K. Anguay\nMohnish Kewlani\nOlga Traskova\nMatthew V.\n\nLinkedIn will only let us tag 20, but here are 5 more that we'll tag in the comments:\n\nJenn Tomassi\nHeather Nannery\nDavid Hayward\nVictoria J. Uecker\nAlexis Langagne\n\nThese RevOps leaders are some of the best in the world at figuring out how to best leverage technology and create scalable systems that helps their GTM orgs drive insane results.\n\nNow, here are the rules:\n\n\ud83c\udff7\ufe0f Tag the RevOps Leader in the comments that you believe deserves to be crowned the \u201cRevOps Leader of the Year\u201d\n\n\u267b\ufe0f Repost this with your nomination, and your vote will count 3x.\n\n\ud83c\udfc6 The winner will get a steak dinner for them and 3 team members.\n\n(Yes, an actual steak dinner. Not a webinar. Not a playbook. Not a gift card. Actual protein.)\n\nLet the games begin!",
+        "time": "3 weeks ago",
+        "urn": "7442227729342582784"
+      },
+      {
+        "attributes": [
+          {
+            "company_id": "22026",
+            "name": "Avalara",
+            "public_id": "avalara",
+            "type": "company"
+          },
+          {
+            "company_id": "108430979",
+            "name": "AIBoomi",
+            "public_id": "aiboomihq",
+            "type": "company"
+          },
+          {
+            "first": "Dulles",
+            "headline": "Managing Director and VP - Avalara India and APAC |. Vice President - GTM @ Avalara APAC I AI-First CRO I GCC leadership | Cloud | FinTech | CX | Industry Solutions I Education",
+            "last": "Krishnan",
+            "public_id": "dulleskrishnan",
+            "type": "profile",
+            "urn": "ACoAAAAkfDkBFDmY4zoS6iy70JZ4SshGDfWkFew"
+          },
+          {
+            "first": "Job Sam",
+            "headline": "APAC Head - Partnerships and Alliances",
+            "last": "Koshy",
+            "public_id": "job-sam-koshy-4a35324a",
+            "type": "profile",
+            "urn": "ACoAAApmnzsB5r95zGsFGNXcfX6_VMfh9oqh1l8"
+          },
+          {
+            "first": "Mukund",
+            "headline": "Marketing @ AsiaPac | Marketing GCC",
+            "last": "Narasimhan",
+            "public_id": "reachmukundnarasimhan",
+            "type": "profile",
+            "urn": "ACoAAAG6yxUBgLxf6C3sln6jNDbQP1hhAnHiD3g"
+          },
+          {
+            "first": "Shantanu",
+            "headline": "GTM & Pipeline Leader | MarTech\u2013SaaS Architect | RPA-Driven Growth Systems | Strategy to Execution",
+            "last": "Mishra",
+            "public_id": "shantanu82",
+            "type": "profile",
+            "urn": "ACoAAAHMahsBT96PwMn5ZCZp7syjbPLjxgiXviA"
+          },
+          {
+            "first": "Komal",
+            "headline": "Sr. Channel Marketing Specialist at Avalara",
+            "last": "Dede",
+            "public_id": "komal-dede-b74992196",
+            "type": "profile",
+            "urn": "ACoAAC4QOQgBqJO1GzBEgMD7jw8y8W3eDMj010M"
+          }
+        ],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQE-8qPmZOfFdA/feedshare-shrink_1280/B56Zy8yKU.H8Ac-/0/1772693792303?e=1778112000&v=beta&t=R3oJZhgbjjCoVTUdhR3SuT1iGqC3qekcKRIsITbwmiQ"
+          }
+        ],
+        "num_comments": 1,
+        "num_empathy": 4,
+        "num_likes": 35,
+        "num_reactions": 39,
+        "num_reposts": 5,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7435216669578489856/",
+        "posted": "2026-03-05 06:56:33",
+        "poster_linkedin_url": "https://www.linkedin.com/company/saasboomi",
+        "repost_stats": {
+          "num_appreciations": 0,
+          "num_comments": 1,
+          "num_empathy": 4,
+          "num_interests": 0,
+          "num_likes": 35,
+          "num_maybe": 0,
+          "num_praises": 0,
+          "num_reactions": 39,
+          "num_reposts": 5
+        },
+        "repost_urn": "7437248547110051842",
+        "reposted": "2026-03-10 21:30:31",
+        "reshared": true,
+        "text": "Avalara joins AIBoomi Annual \u201926 as our Global Expansion Enablement Partner. \ud83c\udf0d\n\nAI companies are going global from day one.\nCompliance cannot be an afterthought.\n\nAvalara simplifies global tax and regulatory complexity, helping SaaS and AI businesses reduce risk, move faster, and scale across borders with confidence.\n\nFor founders building from India to the world, compliance is not optional. It is infrastructure.\n\nAt AIBoomi Annual \u201926, we are bringing together ambitious builders shaping what is next.\nWith Avalara powering global compliance, the ecosystem scales stronger.\n\nBecause building for the world should not stall at the fine print.\n\n\ud83e\udd1d Dulles Krishnan | Job Sam Koshy |  Krishna T. |  Mukund Narasimhan | Shantanu Mishra | Komal Dede \n\n#SBAnnual26 #BuildWhatsNext #AI #SaaS",
+        "time": "1 month ago",
+        "urn": "7435216669578489856"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 36,
+        "num_interests": 8,
+        "num_likes": 50,
+        "num_praises": 5,
+        "num_reactions": 63,
+        "num_reposts": 1,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7434712002846961664/",
+        "posted": "2026-03-03 21:31:11",
+        "poster": {
+          "first": "Kevin",
+          "headline": "Partner at Morgan Executive Search LLC",
+          "image_url": "https://media.licdn.com/dms/image/v2/C5603AQHDYrq6Uy7etQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1517502173810?e=1778112000&v=beta&t=lJ6v9IaRuD64WK1kC3ksouFn2H-lRgpQJrM0iWD_sKc",
+          "last": "Morgan",
+          "linkedin_url": "https://www.linkedin.com/in/kmorgan7",
+          "public_id": "kmorgan7",
+          "urn": "ACoAAAomK-gBOd-pCOxauJ_DSaeiuGBvnrUlCuI"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/kmorgan7",
+        "repost_stats": {
+          "num_appreciations": 0,
+          "num_comments": 36,
+          "num_empathy": 0,
+          "num_interests": 8,
+          "num_likes": 50,
+          "num_maybe": 0,
+          "num_praises": 5,
+          "num_reactions": 63,
+          "num_reposts": 1
+        },
+        "repost_urn": "7436392616751038464",
+        "reposted": "2026-03-08 12:49:21",
+        "reshared": true,
+        "text": "I\u2019m seeing a quiet shift in PE-backed SaaS hiring right now.\n\nThe \u201chero CRO\u201d search is getting replaced by something more unglamorous, and more effective:\n\nRevenue Operations leadership with real authority.\n\nWhy?\n\nBecause boards are realizing the risk is not \u201cwe need a better pitch.\u201d\nThe risk is \u201cwe do not know what is actually true in the funnel.\u201d\n\nWhen AI and automation start changing productivity assumptions, the old operating model breaks.\nEven Deloitte is calling out agentic AI as a 2026 pressure point that forces new approaches for software companies. \n\nSo the question I\u2019m hearing in interviews is changing:\n\nLess:\nCan you grow?\n\nMore:\nCan you make growth measurable, repeatable, and financeable?\n\nWhat that looks like in real life:\n\t1.\tOne definition of pipeline\nNo more Salesforce vs spreadsheet vs \u201cmy number\u201d debates.\n\t2.\tForecasting that survives scrutiny\nNot optimism. Not sandbagging. A model you can explain.\n\t3.\tPricing and packaging discipline\nEspecially as per-user models get challenged and buyers demand ROI clarity.\u00a0\n\t4.\tSales capacity you can trust\nTerritories, ramp, coverage, and conversion that match the plan.\n\nIf you are a CEO or Operating Partner, here\u2019s the litmus test:\n\nIf your CRO left tomorrow, would you still believe the number?\n\nIf the answer is \u201cI\u2019m not sure,\u201d you do not have a CRO problem.\nYou have an operating system problem.\n\nAnd that is why RevOps is moving from \u201csupport function\u201d to \u201ccore leadership hire\u201d in 2026.",
+        "time": "1 month ago",
+        "urn": "7434712002846961664"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQFRmi1_XnwrXw/feedshare-shrink_1280/B4DZxszJaGGQAc-/0/1771351873403?e=1778112000&v=beta&t=WObEmjgmoxIXKiAWWbMSAWPDsk14rD8Py8fUSjv_smE"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 11,
+        "num_reactions": 11,
+        "num_reposts": 1,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7434443690527309824/",
+        "posted": "2026-03-03 03:45:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "This marks the last post in the GTM Metrics series which I started 2 months ago. Thank you for all the thoughtful comments, encouragement and DMs.\n\nFree to paid conversion rate (PLG)\n#RevOps #GTM #saas",
+        "time": "1 month ago",
+        "urn": "7434443690527309824"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQHt-dfOxNG6kA/feedshare-shrink_2048_1536/B56ZxcnGP6KIAk-/0/1771080279349?e=1778112000&v=beta&t=wfkJYNrLUhFElVUWW4hUP7DjfN57b4H1sFgb4HRM10c"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 1,
+        "num_reactions": 2,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7433722706728009729/",
+        "posted": "2026-03-01 04:00:05",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "CSAT\n#GTM #SAAS",
+        "time": "1 month ago",
+        "urn": "7433722706728009729"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQHjeZOEVI6Gag/feedshare-shrink_1280/B56Zxcml.jJ0Ac-/0/1771080147134?e=1778112000&v=beta&t=nilQIBB0iTs6MbKOEjQ9n4i_Op5V0g6T7UMcCzH3mQ8"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 9,
+        "num_reactions": 10,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7432994162515296257/",
+        "posted": "2026-02-27 03:45:06",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "NPS\n#saas #GTM",
+        "time": "1 month ago",
+        "urn": "7432994162515296257"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQGE5g0Uwdv9KQ/feedshare-shrink_1280/B56Zxcl6RCIEAc-/0/1771079968096?e=1778112000&v=beta&t=kSmqY72emhYXPBcSnjof8HvyGpAyHx34tQB0i0krxkM"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 4,
+        "num_reactions": 5,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7432269378311839744/",
+        "posted": "2026-02-25 03:45:04",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Product Adoption Rate\n#Saas #GTM",
+        "time": "1 month ago",
+        "urn": "7432269378311839744"
+      },
+      {
+        "attributes": [
+          {
+            "company_id": "18460626",
+            "name": "Avalara APAC",
+            "public_id": "avalara-apac",
+            "type": "company"
+          }
+        ],
+        "images": [],
+        "num_appreciations": 3,
+        "num_comments": 15,
+        "num_entertainments": 1,
+        "num_likes": 114,
+        "num_reactions": 118,
+        "num_reposts": 4,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7428051525903519744/",
+        "posted": "2026-02-13 12:24:50",
+        "poster": {
+          "first": "Krishna Priya",
+          "headline": "Strategic Site Leadership | AI-First People Transformation | Culture, Inclusion & Leadership Development",
+          "image_url": "https://media.licdn.com/dms/image/v2/D4D03AQERWjfoYbnNag/profile-displayphoto-shrink_800_800/B4DZTfKxr1HAAc-/0/1738910932627?e=1778112000&v=beta&t=qxid1NLOfkMFp-iMGhtYHDSm6yVBJ2wMcpZXEPLI_zQ",
+          "last": "Nambudiri",
+          "linkedin_url": "https://www.linkedin.com/in/krishna-priya-nambudiri-8b54ba18",
+          "public_id": "krishna-priya-nambudiri-8b54ba18",
+          "urn": "ACoAAAOiM4kBpYt-IexhDukDv-aP7gEKj39kTLM"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/krishna-priya-nambudiri-8b54ba18",
+        "repost_stats": {
+          "num_appreciations": 4,
+          "num_comments": 6,
+          "num_empathy": 0,
+          "num_interests": 0,
+          "num_likes": 43,
+          "num_maybe": 0,
+          "num_praises": 0,
+          "num_reactions": 47,
+          "num_reposts": 1
+        },
+        "repost_urn": "7432121801649868801",
+        "reposted": "2026-02-24 17:58:39",
+        "reshared": true,
+        "resharer_comment": "This role is critical to growing our investments in India.  If you love working in a dynamic environment that is reshaping how AI is leveraged in driving compliance operations, reach out to us.\n\nDetails on the job role in the post below.\n\nAvalara APAC Avalara\n\nhttps://lnkd.in/geugEpt5",
+        "text": "I am hiring a Senior People Partner to join my team at Avalara APAC!\n\nIf you\u2019re excited about partnering with a high-performing, business-aligned team that\u2019s creating real magic through AI-driven innovation, this could be your next big move.\nWe\u2019re looking for someone who can think strategically, act boldly, and help shape the future of our organization through strong people leadership.\nIf this sounds like you \u2014 or someone in your network \u2014 I\u2019d love to connect. Let\u2019s build something incredible together. \u2728\n\n#Hiring #PeoplePartner #Avalara #HRLeadership #AI #JoinUs",
+        "time": "2 months ago",
+        "urn": "7428051525903519744"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQEq-4wadE7Kqw/feedshare-shrink_1280/B56Zxclbg6IAAc-/0/1771079842086?e=1778112000&v=beta&t=nZSApYVwhZVI8YhPXbpGyAH4944RNthlQjeXa8Mg-Rg"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 2,
+        "num_reactions": 2,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7431544593634115584/",
+        "posted": "2026-02-23 03:45:02",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Time to First Value\n#Saas",
+        "time": "1 month ago",
+        "urn": "7431544593634115584"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQFdmJiFh7y55w/feedshare-shrink_2048_1536/B56Zxck7mfGcAk-/0/1771079711434?e=1778112000&v=beta&t=5Imy0m6rlrMT4AdYoQwziiwvuJEPYpukUG2eh4-bRWA"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 6,
+        "num_reactions": 7,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7430819816082505729/",
+        "posted": "2026-02-21 03:45:02",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Expansion Rate\n#Saas #GTM",
+        "time": "2 months ago",
+        "urn": "7430819816082505729"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQHj79lduiP20Q/feedshare-shrink_2048_1536/B56ZxckcI0JAAk-/0/1771079582539?e=1778112000&v=beta&t=aZt2tb06TpIzJE36meo53KuaqaYHAvfnNefV8fswwG0"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 7,
+        "num_reactions": 7,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7430095040787480578/",
+        "posted": "2026-02-19 03:45:02",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Churn Rate\n#Saas #GTM",
+        "time": "2 months ago",
+        "urn": "7430095040787480578"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQE_t6ClfziIOQ/feedshare-shrink_1280/B56ZxDaeFoHYAc-/0/1770657538661?e=1778112000&v=beta&t=Aoqk4v6HuZqFuwr2sD1ErElKa9Wl9GqZNedxo0kGGf4"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 3,
+        "num_reactions": 3,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7429362711089594368/",
+        "posted": "2026-02-17 03:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "NRR\n#Saas #GTM",
+        "time": "2 months ago",
+        "urn": "7429362711089594368"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQGQsSMpX_-v8w/feedshare-shrink_2048_1536/B56ZxDZyCjKIAo-/0/1770657358241?e=1778112000&v=beta&t=Nikok-YYfgqvmCgQMuCtGsQBeZGywZbvC1y0VqZK9p0"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 2,
+        "num_reactions": 2,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7428637935908048896/",
+        "posted": "2026-02-15 03:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Gross Retention\n#GTM #Saas",
+        "time": "2 months ago",
+        "urn": "7428637935908048896"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQEH_nnQ1eYzKQ/feedshare-shrink_1280/B56ZxDZExhIcAc-/0/1770657172816?e=1778112000&v=beta&t=qCkoyquz6fK_95_xVsqUB2ZWunr3Uy6MASQ3OYIHLgs"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 4,
+        "num_reactions": 5,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7427913158951874560/",
+        "posted": "2026-02-13 03:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Logo Growth Rate\n#GTM #Saas",
+        "time": "2 months ago",
+        "urn": "7427913158951874560"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQGufktaZ37blQ/feedshare-shrink_2048_1536/B4DZutko2CIEAw-/0/1768143623233?e=1778112000&v=beta&t=XN_RGb-eY0364D1qzgjBs8PxT_Sm_e_DLC0crHyH764"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 8,
+        "num_reactions": 9,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7427158267858014208/",
+        "posted": "2026-02-11 01:15:20",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Deal slippage rate\n#GTM #revops",
+        "time": "2 months ago",
+        "urn": "7427158267858014208"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQHknIXOV89SJw/feedshare-shrink_2048_1536/B4DZutjZHhJgA0-/0/1768143297906?e=1778112000&v=beta&t=74YrOKOB3ZCQRHw_-XDIvmxUNQJl-7OOqQDsiP_lDp4"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 4,
+        "num_reactions": 5,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7426433409675284480/",
+        "posted": "2026-02-09 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Forecast accuracy, MAPE\n#GTM #saas",
+        "time": "2 months ago",
+        "urn": "7426433409675284480"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQF4eVbRCDe8YA/feedshare-shrink_2048_1536/B4DZutg_ptGgA0-/0/1768142668086?e=1778112000&v=beta&t=FpOXV-CdCgWAN9SKPfSrPNALS3LHXGQlm1h7ZyJLULc"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 2,
+        "num_reactions": 3,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7425708646610755584/",
+        "posted": "2026-02-07 01:15:04",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Deal inspection pass rate\n#RevOps",
+        "time": "2 months ago",
+        "urn": "7425708646610755584"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQEtLwy6siypUA/feedshare-shrink_2048_1536/B4DZutgn8FGkAw-/0/1768142570764?e=1778112000&v=beta&t=9UefFvThv0jhFQb2400Df-amIQAU2xKI6OudrFzMdjA"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 4,
+        "num_reactions": 5,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7424983858300846081/",
+        "posted": "2026-02-05 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Quote to Close Ratio\n#RevOps #GTM",
+        "time": "2 months ago",
+        "urn": "7424983858300846081"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQHQmPB1UDUT7g/feedshare-shrink_1280/B4DZutf58xH4Aw-/0/1768142382663?e=1778112000&v=beta&t=VMS9IGTchvz1gTwGVN1jN5bYWZEzYxPgsYW00Kt9RJw"
+          }
+        ],
+        "num_comments": 1,
+        "num_likes": 3,
+        "num_reactions": 3,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7424259086394781696/",
+        "posted": "2026-02-03 01:15:02",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Sales Cycle Length\n#RevOps #saas",
+        "time": "2 months ago",
+        "urn": "7424259086394781696"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQEFMtOAUzL21Q/feedshare-shrink_2048_1536/B4DZutfVjVGgAw-/0/1768142233552?e=1778112000&v=beta&t=5ufLYrdc0pkM1hluCp4wCywI-VJJ4CvIaBaqlRPq2Qg"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 1,
+        "num_likes": 6,
+        "num_reactions": 7,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7423534307211886592/",
+        "posted": "2026-02-01 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Average Deal Size (ASP)\n#GTM #saas",
+        "time": "2 months ago",
+        "urn": "7423534307211886592"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQEi0vXnmyq7wA/feedshare-shrink_1280/B4DZuPN9J4JkAs-/0/1767634360700?e=1778112000&v=beta&t=_HI0qipxRKDAuVjcdpXP77fgyJ89WOS0iHP8xBZKmws"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 5,
+        "num_reactions": 5,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7422809539642540032/",
+        "posted": "2026-01-30 01:15:03",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Pipeline Aging\n#Saas #GTM",
+        "time": "2 months ago",
+        "urn": "7422809539642540032"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQEW4kr1yMAnmw/feedshare-shrink_2048_1536/B4DZuPNMRTIEA0-/0/1767634160383?e=1778112000&v=beta&t=-9zDoPg1SIAcKzy2RagiFKPjf5wNvBsYgZvGA_BXXcs"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 3,
+        "num_reactions": 3,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7422084754776190977/",
+        "posted": "2026-01-28 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Pipeline Velocity\n#GTM #saas",
+        "time": "2 months ago",
+        "urn": "7422084754776190977"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQGacLq_ku2_IA/feedshare-shrink_2048_1536/B4DZuPMpigKQAw-/0/1767634018073?e=1778112000&v=beta&t=HfWnnXMkS4GqxxwKex0Q1qzE3UQXEfMXQFip2vTWG4o"
+          }
+        ],
+        "num_comments": 0,
+        "num_interests": 2,
+        "num_likes": 5,
+        "num_reactions": 7,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7421359979229536256/",
+        "posted": "2026-01-26 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Pipeline Coverage Ratio\n#Saas #GTM",
+        "time": "2 months ago",
+        "urn": "7421359979229536256"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQHMXzlaqSKqSA/feedshare-shrink_2048_1536/B4DZuPL7L6GUAw-/0/1767633828278?e=1778112000&v=beta&t=PKqiMVr_WltnfUQeTe9_Ga4VMnDelZWxb-Jmnn3nk5g"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 7,
+        "num_reactions": 7,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7420635378774167552/",
+        "posted": "2026-01-24 01:15:43",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Pipeline (new)\n#GTM #Saas #RevOps",
+        "time": "3 months ago",
+        "urn": "7420635378774167552"
+      },
+      {
+        "article_subtitle": "inc42.com",
+        "article_target_url": "https://inc42.com/videos/why-compliance-is-the-litmus-test-for-indian-saas-going-global/",
+        "article_title": "Why Compliance Is The Litmus Test For Indian SaaS Going Global",
+        "attributes": [
+          {
+            "first": "Dulles",
+            "headline": "Managing Director and VP - Avalara India and APAC |. Vice President - GTM @ Avalara APAC I AI-First CRO I GCC leadership | Cloud | FinTech | CX | Industry Solutions I Education",
+            "last": "Krishnan",
+            "public_id": "dulleskrishnan",
+            "type": "profile",
+            "urn": "ACoAAAAkfDkBFDmY4zoS6iy70JZ4SshGDfWkFew"
+          },
+          {
+            "company_id": "22026",
+            "name": "Avalara",
+            "public_id": "avalara",
+            "type": "company"
+          }
+        ],
+        "images": [],
+        "num_comments": 0,
+        "num_likes": 15,
+        "num_reactions": 15,
+        "num_reposts": 4,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7420022461276028928/",
+        "posted": "2026-01-22 08:40:12",
+        "poster_linkedin_url": "https://www.linkedin.com/company/inc42",
+        "repost_stats": {
+          "num_appreciations": 0,
+          "num_comments": 0,
+          "num_empathy": 0,
+          "num_interests": 0,
+          "num_likes": 15,
+          "num_maybe": 0,
+          "num_praises": 0,
+          "num_reactions": 15,
+          "num_reposts": 4
+        },
+        "repost_urn": "7420091917608341504",
+        "reposted": "2026-01-22 13:16:11",
+        "reshared": true,
+        "text": "Scaling in the US is about more than just strategy; it\u2019s about mastering a fragmented tax landscape. Delaying compliance isn't just an admin error\u2014it's a \u2018growth risk\u2019 that can disrupt your entire supply chain and investor trust.\n\nDulles Krishnan of Avalara reveals why automated taxability criteria is the secret weapon for Indian businesses. Learn how to turn compliance into an operational win for your startup. Read more.\nhttps://lnkd.in/gQtyAJN9",
+        "time": "3 months ago",
+        "urn": "7420022461276028928"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQGPaRgRiWHvrg/feedshare-shrink_2048_1536/B4DZuPLVQqH0Aw-/0/1767633672745?e=1778112000&v=beta&t=RLvMJZ8UTKm5jwrPHTBoIvYl9M0-4sMuC7z_-xiSi1M"
+          }
+        ],
+        "num_comments": 1,
+        "num_likes": 7,
+        "num_reactions": 7,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7419910430795456512/",
+        "posted": "2026-01-22 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "SQLs/Sales qualified opportunities\n#GTM #saas",
+        "time": "3 months ago",
+        "urn": "7419910430795456512"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQEBOyr9aVZGGg/feedshare-shrink_2048_1536/B4DZuPKsTWKIAw-/0/1767633505021?e=1778112000&v=beta&t=3cN3kI36OiJD2AVHe5GECwcSoWFu5Sy9fin3RJ1snQI"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 3,
+        "num_reactions": 3,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7419185656456859648/",
+        "posted": "2026-01-20 01:15:02",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "MQL to SQL conversion rate\n#GTM #SAAS",
+        "time": "3 months ago",
+        "urn": "7419185656456859648"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQGSXlQgIdIBxQ/feedshare-shrink_2048_1536/B4DZuPKFs9HwAw-/0/1767633347475?e=1778112000&v=beta&t=2cnZWVggY5cDfWXgV2rpGxkzkLTPh3qEckkOTof3HR0"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 3,
+        "num_reactions": 3,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7418460876187451393/",
+        "posted": "2026-01-18 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Partner Sourced Revenue\n#Saas #GTM",
+        "time": "3 months ago",
+        "urn": "7418460876187451393"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 1,
+        "num_comments": 1,
+        "num_interests": 2,
+        "num_likes": 6,
+        "num_reactions": 9,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7418185320040484864/",
+        "posted": "2026-01-17 07:00:03",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "3 Things That Stood Out to Me About \"Claude Cowork\":\n\n1. AI is our colleague now. Claude Cowork doesn\u2019t just answer questions, it takes action inside your folders, files, tools and workflows.\n\n2. You just need to describe the goal and it plans and executes the steps, looping you in like a real teammate.\n\n3. \u201cWorking with AI teammate\u201d is going to become a non-negotiable skill soon. Not prompting, but delegating, reviewing and trusting at the right level.",
+        "time": "3 months ago",
+        "urn": "7418185320040484864"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQEh-ykyRUWQKA/feedshare-shrink_2048_1536/B4DZuPJElrIYA0-/0/1767633080233?e=1778112000&v=beta&t=8wDhKCJl2O90QS2hDvkkJB5-vUDDXqIg1-nWHpAvGfw"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 6,
+        "num_reactions": 6,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7417736212142026752/",
+        "posted": "2026-01-16 01:15:27",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Outbound Contribution\n#GTM #SAAS",
+        "time": "3 months ago",
+        "urn": "7417736212142026752"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQErff9bDnrAeQ/feedshare-shrink_2048_1536/B4DZuPIXDXKIAw-/0/1767632893720?e=1778112000&v=beta&t=Yhfi-jrg6paAHiIXJLTzTzEzCoaAkGhpgS18kCruI3Y"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 5,
+        "num_reactions": 5,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7417011324347469824/",
+        "posted": "2026-01-14 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "MQL Response Time\n#GTM #Saas",
+        "time": "3 months ago",
+        "urn": "7417011324347469824"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQG-80CwRozsRQ/feedshare-shrink_2048_1536/B4DZuE7xDAKIAw-/0/1767461820091?e=1778112000&v=beta&t=jpFK2D-SY8xpcHeXSMa4pMtX-RLO6cHfad-KWmrjMFA"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 13,
+        "num_reactions": 13,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7416286548897284096/",
+        "posted": "2026-01-12 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Cost per MQL\n#RevOps #GTM",
+        "time": "3 months ago",
+        "urn": "7416286548897284096"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQGEEDAl49nsBA/feedshare-shrink_2048_1536/B4DZuE7Un7H0A0-/0/1767461703638?e=1778112000&v=beta&t=Lq5zpcLkAzC3HHOUnQNOmVm_3qIadO-FH3wMPb5JYTc"
+          }
+        ],
+        "num_comments": 0,
+        "num_empathy": 1,
+        "num_likes": 6,
+        "num_reactions": 7,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7415561774206218240/",
+        "posted": "2026-01-10 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "MQL Growth Rate\n#RevOps #Saas #GTM",
+        "time": "3 months ago",
+        "urn": "7415561774206218240"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQFWm49G8PXVyw/feedshare-shrink_1280/B56ZuaNnNbGwAw-/0/1767818819251?e=1778112000&v=beta&t=bIxk5csNJ4zvmoH0WCsdc2U7pBThoqOnwD7Zrv7opu8"
+          }
+        ],
+        "num_appreciations": 11,
+        "num_comments": 453,
+        "num_empathy": 11,
+        "num_entertainments": 16,
+        "num_interests": 48,
+        "num_likes": 375,
+        "num_praises": 21,
+        "num_reactions": 482,
+        "num_reposts": 31,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7414769551286034432/",
+        "posted": "2026-01-07 20:47:00",
+        "poster": {
+          "first": "Timothy",
+          "headline": "Ex-Big Tech \u2192 SaaS Entrepreneur \ud83d\ude80 Bootstrapped Stammer.ai: White Label AI, Notifier.so: Uptime Monitoring & more | Sharing AI & Product Building Tips",
+          "image_url": "https://media.licdn.com/dms/image/v2/D5603AQFjpt7wLmH2XQ/profile-displayphoto-crop_800_800/B56ZuknVVrGQAM-/0/1767993338940?e=1778112000&v=beta&t=lidQGWqneQw8Twmt7PpNlHWQg-5NDGncS1F7B7hWfQY",
+          "last": "Bramlett",
+          "linkedin_url": "https://www.linkedin.com/in/timothybbramlett",
+          "public_id": "timothybbramlett",
+          "urn": "ACoAAAK40OEBgshk2NnQaWBQ6_0H8Z-D9Ii_tXs"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/timothybbramlett",
+        "repost_stats": {
+          "num_appreciations": 0,
+          "num_comments": 0,
+          "num_empathy": 0,
+          "num_interests": 0,
+          "num_likes": 0,
+          "num_maybe": 0,
+          "num_praises": 0,
+          "num_reactions": 0,
+          "num_reposts": 0
+        },
+        "repost_urn": "7415025981238734848",
+        "reposted": "2026-01-08 13:45:58",
+        "reshared": true,
+        "resharer_comment": "Worrisome for businesses that thrive on the basis of communities. #AI",
+        "text": "Stack Overflow has lost 98% of its users to AI. No one misses it.\n\nIn 2014, developers asked 200,000 questions per month on Stack Overflow.\n\nIn December 2025, that number was 3,862.\n\nWhat happened? Developers switched to AI tools like GitHub Copilot directly in their IDEs. Why wait hours for an answer when AI gives you one in seconds?\n\nBut here's the thing: AI didn't kill Stack Overflow. Stack Overflow killed itself.\n\nFor years, the platform was notorious for hostile moderation, condescending replies, and questions marked as \"duplicate\" of threads from 2011 with outdated answers that no longer work.\n\nDevelopers put up with it because there was no alternative.\n\nNow there is.\n\n84% of developers now use or plan to use AI coding tools. And when they made the switch, they didn't look back.\n\nStack Overflow built one of the most valuable knowledge bases in tech history. Then they let their community become so toxic that everyone left the moment something better came along.\n\nThere's a lesson here for any platform that thinks their users have no choice.",
+        "time": "3 months ago",
+        "urn": "7414769551286034432"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQHAVdYCMorwWA/feedshare-shrink_1280/B4DZuE62sfIkAw-/0/1767461580783?e=1778112000&v=beta&t=9P6UZ4LgHtTCRFhSdlQTmvybx23_zrML2AZQLpTynVU"
+          }
+        ],
+        "num_comments": 0,
+        "num_empathy": 1,
+        "num_likes": 12,
+        "num_reactions": 13,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7414837001817931776/",
+        "posted": "2026-01-08 01:15:02",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Marketing Qualified Leads (MQLs)\n#RevOps #GTM #Saas",
+        "time": "3 months ago",
+        "urn": "7414837001817931776"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQFcdCdF9aLGaQ/feedshare-shrink_2048_1536/B4DZuE6R.lI4Aw-/0/1767461430407?e=1778112000&v=beta&t=6x_ybTMK8bwOh7g4tBXDtMoGdhe-DwbahQnhsF_S0Js"
+          }
+        ],
+        "num_comments": 0,
+        "num_likes": 4,
+        "num_reactions": 4,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7414112226732732416/",
+        "posted": "2026-01-06 01:15:02",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "White Space Coverage\n#RevOps #GTM",
+        "time": "3 months ago",
+        "urn": "7414112226732732416"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQGkZYAeXTV-Sw/feedshare-shrink_2048_1536/B56Zt5PbLCKEAw-/0/1767265648445?e=1778112000&v=beta&t=Ua7dlotLxf6upfNbbisW1P5t4_PgC_QLXiBdGoJQjy0"
+          }
+        ],
+        "num_appreciations": 15,
+        "num_comments": 2172,
+        "num_empathy": 32,
+        "num_interests": 12,
+        "num_likes": 627,
+        "num_praises": 10,
+        "num_reactions": 696,
+        "num_reposts": 51,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7412449381867544576/",
+        "posted": "2026-01-01 11:07:29",
+        "poster": {
+          "first": "Jainendra",
+          "headline": "GTM & Ops Engineer @ OneGTMLab | We engineer a unified GTM and automation system for scalable growth.",
+          "image_url": "https://media.licdn.com/dms/image/v2/D5603AQG6dJl_7ld72w/profile-displayphoto-crop_800_800/B56Zlc4br5J8AM-/0/1758199921884?e=1778112000&v=beta&t=loeoTU2gTgoSvCCuVv6XuDjZhxpZe9U9QzmRFwbSZpM",
+          "last": "Ojha",
+          "linkedin_url": "https://www.linkedin.com/in/jaizendra",
+          "public_id": "jaizendra",
+          "urn": "ACoAABVg9bYBGFAXFDGstgEpqxDev9NzLQewSg0"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/jaizendra",
+        "repost_stats": {
+          "num_appreciations": 15,
+          "num_comments": 2172,
+          "num_empathy": 32,
+          "num_interests": 12,
+          "num_likes": 627,
+          "num_maybe": 0,
+          "num_praises": 10,
+          "num_reactions": 696,
+          "num_reposts": 51
+        },
+        "repost_urn": "7413425129130565632",
+        "reposted": "2026-01-04 03:44:45",
+        "reshared": true,
+        "text": "Save $10k and 12 months of trial and error with this comprehensive roadmap.\nA year ago, I dove into GTM engineering.\n\nWhat I found: $5k-10k courses, scattered advice, and zero practical frameworks.\n\nSo I did what any engineer would do: I reverse-engineered it.\n\nI spent 12 months: \n\u2192 Building workflows from scratch \n\u2192 Testing 50+ tools across the stack \n\u2192 Failing (a lot) and documenting wins \n\u2192 Studying top revenue teams' systems\n\nThen I worked with Series A and B companies.\nNow I'm giving away everything I learned.\n\nHere's the truth: Everything you need is already free online.\nYou just need to know where to look.\n\nI've curated the best free resources, tutorials, and frameworks so you don't waste months searching.\n\nThis free guide includes:\n\u2705 Step-by-step systems for Clay, n8n, MCP \n\u2705 Real examples from Series A/B companies\n\u2705 AI automation strategies that actually work \n\u2705 12 modules from email infrastructure to agents \n\u2705 Practical frameworks you can implement today\n\u2705 RevOps dashboards tracking real revenue metrics \n\u2705 60-chapter curriculum covering the complete stack \n\n100% free resources. Zero paywalls. Just organized learning.\nNo fluff. No $10k course. Just the roadmap I wish I had.\n\nWant it?\n\ud83d\udc49 Comment \"GTM\" below, connect with me and I'll send it over\n\ud83d\udd04 Repost for early access\n \nLet's build revenue engines that scale without headcount.",
+        "time": "3 months ago",
+        "urn": "7412449381867544576"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4D22AQFDNnRKCeYS5g/feedshare-shrink_1280/B4DZuE5twAK0As-/0/1767461282561?e=1778112000&v=beta&t=k2J4qGOoC7pLu3fiebUDCjp2Z7qYBXdS8uKLBSonc-c"
+          }
+        ],
+        "num_comments": 3,
+        "num_empathy": 1,
+        "num_interests": 2,
+        "num_likes": 12,
+        "num_reactions": 15,
+        "num_reposts": 0,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7413387449206308864/",
+        "posted": "2026-01-04 01:15:01",
+        "poster": {
+          "first": "Mohnish",
+          "headline": "AI First Leader - Go-to-market Strategy & Operations | Saas",
+          "last": "Kewlani",
+          "linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+          "public_id": "mohnishkewlani",
+          "urn": "ACoAABd-rmEBHRUgerflqIUtd6_1UK3nFIoyDf4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/mohnishkewlani",
+        "reshared": false,
+        "text": "Over the next few weeks, I\u2019ll be sharing a GTM metric every alternate day - metrics that I\u2019ve seen matter most for CROs, founders and GTM leaders in SaaS.\n\nEach post will break down what the metric tells us, why it matters, how to calculate it and when to track it - practical, operator-first and easy to apply.\n\nIf you\u2019re building or scaling a GTM engine, hope this series will be useful. Also curious to know the things you\u2019ve learned the hard way around these.\n\nHere is the first one in the series: \"Win Rate\".\n#RevOps #GTM",
+        "time": "3 months ago",
+        "urn": "7413387449206308864"
+      },
+      {
+        "attributes": [
+          {
+            "company_id": "22026",
+            "name": "Avalara",
+            "public_id": "avalara",
+            "type": "company"
+          },
+          {
+            "company_id": "18460626",
+            "name": "Avalara APAC",
+            "public_id": "avalara-apac",
+            "type": "company"
+          },
+          {
+            "company_id": "105380748",
+            "name": "Inc42 Media",
+            "public_id": "inc42-media",
+            "type": "company"
+          }
+        ],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQFRoHQBafGQxg/feedshare-shrink_2048_1536/B56Ztt9fdDK8Aw-/0/1767076396619?e=1778112000&v=beta&t=eQJMbTqLTqhJBx2ukjpYIQGy_GdOlqNJ0rWJ5VCLhgk"
+          }
+        ],
+        "num_appreciations": 1,
+        "num_comments": 2,
+        "num_empathy": 2,
+        "num_interests": 5,
+        "num_likes": 67,
+        "num_praises": 1,
+        "num_reactions": 76,
+        "num_reposts": 6,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7411655607113678848/",
+        "posted": "2025-12-30 06:33:18",
+        "poster": {
+          "first": "Dulles",
+          "headline": "Managing Director and VP - Avalara India and APAC |. Vice President - GTM @ Avalara APAC I AI-First CRO I GCC leadership | Cloud | FinTech | CX | Industry Solutions I Education",
+          "image_url": "https://media.licdn.com/dms/image/v2/C4D03AQFfp-z-BPasCg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1613108694129?e=1778112000&v=beta&t=uWfcUEdzJjlL2-cfMtELsX5gqObZGVX5cmkncSXuZ4k",
+          "last": "Krishnan",
+          "linkedin_url": "https://www.linkedin.com/in/dulleskrishnan",
+          "public_id": "dulleskrishnan",
+          "urn": "ACoAAAAkfDkBFDmY4zoS6iy70JZ4SshGDfWkFew"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/dulleskrishnan",
+        "repost_stats": {
+          "num_appreciations": 1,
+          "num_comments": 2,
+          "num_empathy": 2,
+          "num_interests": 5,
+          "num_likes": 67,
+          "num_maybe": 0,
+          "num_praises": 1,
+          "num_reactions": 76,
+          "num_reposts": 6
+        },
+        "repost_urn": "7411783231278149634",
+        "reposted": "2025-12-30 15:00:26",
+        "reshared": true,
+        "text": "Three mistakes Indian startups make while doing business in the US. \n\n\n1)  First mistake is delaying sales tax registration. Many founders believe they must set up a U.S. entity before registering, but most states trigger the obligation based on sales thresholds, not corporate structure.\n\n2) The second is misclassifying products or services. Incorrect HS codes can change duty treatment and delay shipments. For SaaS companies, inaccurate classification of digital services can lead to incorrect tax collection because each state defines taxability differently.\n\n3) The third is relying too heavily on payment processors or marketplaces. These platforms may calculate tax at checkout, but they do not manage registration, filing or remittance for the seller. Marketplace facilitator laws require large platforms to collect and remit tax on marketplace transactions, yet sellers must still maintain accurate records and comply with filing rules. The responsibility for compliance remains with the business.\n\nhttps://lnkd.in/ggr4ZDbP\n\nAvalara Avalara APAC. Inc42 Media \n#IndiaStartups\n#SaaS \n#ExportstoUSA\n#Compliance",
+        "time": "3 months ago",
+        "urn": "7411655607113678848"
+      },
+      {
+        "attributes": [
+          {
+            "first": "Shantanu",
+            "headline": "GTM & Pipeline Leader | MarTech\u2013SaaS Architect | RPA-Driven Growth Systems | Strategy to Execution",
+            "last": "Mishra",
+            "public_id": "shantanu82",
+            "type": "profile",
+            "urn": "ACoAAAHMahsBT96PwMn5ZCZp7syjbPLjxgiXviA"
+          },
+          {
+            "first": "Dulles",
+            "headline": "Managing Director and VP - Avalara India and APAC |. Vice President - GTM @ Avalara APAC I AI-First CRO I GCC leadership | Cloud | FinTech | CX | Industry Solutions I Education",
+            "last": "Krishnan",
+            "public_id": "dulleskrishnan",
+            "type": "profile",
+            "urn": "ACoAAAAkfDkBFDmY4zoS6iy70JZ4SshGDfWkFew"
+          },
+          {
+            "first": "Job Sam",
+            "headline": "APAC Head - Partnerships and Alliances",
+            "last": "Koshy",
+            "public_id": "job-sam-koshy-4a35324a",
+            "type": "profile",
+            "urn": "ACoAAApmnzsB5r95zGsFGNXcfX6_VMfh9oqh1l8"
+          },
+          {
+            "first": "Adrianna",
+            "headline": "B2B Saas GTM Leader | Chief Marketing Officer | Member Board of Directors",
+            "last": "Burrows",
+            "public_id": "adrianna-burrows-7abb2a4",
+            "type": "profile",
+            "urn": "ACoAAADg7fMBx3TXpLG3MJUgVrsRxJZpORQ4Txo"
+          },
+          {
+            "first": "Divya",
+            "headline": "Marketing Leader I Board Member | MBA I DE&I Advocate",
+            "last": "Handa",
+            "public_id": "divyahanda1",
+            "type": "profile",
+            "urn": "ACoAAACOyosBhnQtblLWW_A7ULF6HB_2SO-XOBk"
+          }
+        ],
+        "images": [],
+        "num_appreciations": 8,
+        "num_comments": 11,
+        "num_likes": 59,
+        "num_reactions": 67,
+        "num_reposts": 5,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7407395055872946176/",
+        "posted": "2025-12-18 12:23:24",
+        "poster": {
+          "first": "Mukund",
+          "headline": "Marketing @ AsiaPac | Marketing GCC",
+          "image_url": "https://media.licdn.com/dms/image/v2/D4D03AQEU0-Vcua1rxw/profile-displayphoto-crop_800_800/B4DZ126095JoAI-/0/1775816631195?e=1778112000&v=beta&t=MmcxTbq1DYB-MzHy9xdL1bG0DwUiGrBsUX6RC_HzGWc",
+          "last": "Narasimhan",
+          "linkedin_url": "https://www.linkedin.com/in/reachmukundnarasimhan",
+          "public_id": "reachmukundnarasimhan",
+          "urn": "ACoAAAG6yxUBgLxf6C3sln6jNDbQP1hhAnHiD3g"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/reachmukundnarasimhan",
+        "repost_stats": {
+          "num_appreciations": 8,
+          "num_comments": 11,
+          "num_empathy": 0,
+          "num_interests": 0,
+          "num_likes": 59,
+          "num_maybe": 0,
+          "num_praises": 0,
+          "num_reactions": 67,
+          "num_reposts": 5
+        },
+        "repost_urn": "7407416768568332288",
+        "reposted": "2025-12-18 13:49:40",
+        "reshared": true,
+        "text": "We are looking at a full life-cycle marketing agency (Digital + Field) to support our expansion in\n\n1) South Korea\n2) Hong Kong\n\nthe agencies should have local presence in these countries\n\nplease can you recommend any ? \n\nShantanu Mishra Dulles Krishnan Job Sam Koshy\n\nAdrianna Burrows Divya Handa",
+        "time": "4 months ago",
+        "urn": "7407395055872946176"
+      },
+      {
+        "attributes": [
+          {
+            "first": "Navin",
+            "headline": "VP of Revenue Operations @ 1Password | Simplifying Systems & Processes",
+            "last": "Persaud",
+            "public_id": "navinpersaud",
+            "type": "profile",
+            "urn": "ACoAAAEUtmYBHV-jQqnm6Q3JH3ByK_0ooctISyc"
+          },
+          {
+            "company_id": "18648301",
+            "name": "1Password",
+            "public_id": "1password",
+            "type": "company"
+          },
+          {
+            "first": "Ann",
+            "headline": "Building AI-native GTM | 2xIPO | 8xM&A | Start Up Adviser | Passionate about Revenue Scale, DEI & Ironman Triathlon",
+            "last": "Neir",
+            "public_id": "annneir",
+            "type": "profile",
+            "urn": "ACoAAAU_T9kBhLKoSh9PdcVyBuvrF4GCmlxCWvc"
+          },
+          {
+            "company_id": "3677944",
+            "name": "6sense",
+            "public_id": "6sense",
+            "type": "company"
+          },
+          {
+            "first": "Steve",
+            "headline": "Vice President of Revenue Operations and Enablement at Rox",
+            "last": "Sturtevant",
+            "public_id": "stevesturtevant",
+            "type": "profile",
+            "urn": "ACoAAAVyhoAB2oZl6VcS7Vj9dK5eC5np0oK2azg"
+          },
+          {
+            "first": "Debby",
+            "headline": "Transformational Operations Leader & Strategic Advisor | Scalable Growth | Nonprofit Leader & Volunteer Partner | People-First Executive. Advocate. Empathy. Service. Passion.",
+            "last": "Leisner",
+            "public_id": "debbyleisner",
+            "type": "profile",
+            "urn": "ACoAAAFAeYsBVenarspkhYeOrwUxtd_69TYs33Q"
+          },
+          {
+            "company_id": "167056",
+            "name": "Acquia",
+            "public_id": "acquia",
+            "type": "company"
+          },
+          {
+            "first": "Collin",
+            "headline": "VP of Revenue Operations",
+            "last": "Rhea",
+            "public_id": "collinrhea",
+            "type": "profile",
+            "urn": "ACoAAAb0E6kBT3HUgeW6w-5o2cEP7Y6U66SyNUE"
+          },
+          {
+            "company_id": "2681769",
+            "name": "Aptean",
+            "public_id": "aptean",
+            "type": "company"
+          },
+          {
+            "first": "Marco",
+            "headline": "Go-to-Market Operations Executive | Sales Strategy & Operations Leader | Business Transformation Enthusiast",
+            "last": "Mastrapasqua",
+            "public_id": "marcomastrapasqua",
+            "type": "profile",
+            "urn": "ACoAAAGoMNQB6oBx54lxr6CvcdbR1p9coW4W8uM"
+          },
+          {
+            "company_id": "13957",
+            "name": "Barracuda",
+            "public_id": "barracuda-networks",
+            "type": "company"
+          },
+          {
+            "first": "Kari",
+            "headline": "GTM Revenue Leader | Helping Growth Companies Scale with Clarity and Confidence",
+            "last": "Roberts",
+            "public_id": "robertskari",
+            "type": "profile",
+            "urn": "ACoAAAAEbcABFdzxy2dNShXvQI6Ttxe50zU9nyc"
+          },
+          {
+            "first": "Nick",
+            "headline": "Sr. Director Revenue Operations @ Billtrust | GTM Strategy and Planning Leader | Top 50 Sales Comp Professionals 2025 | Marquis Who's Who in America 2025",
+            "last": "Metcalf, M.B.A.",
+            "public_id": "nicholasmetcalfcsu",
+            "type": "profile",
+            "urn": "ACoAAAZ0RxABwjAG2y0teoEQVYL-tX2OrkToK-U"
+          },
+          {
+            "company_id": "99112",
+            "name": "Billtrust",
+            "public_id": "billtrust",
+            "type": "company"
+          },
+          {
+            "first": "Olga",
+            "headline": "VP Of Revenue Operations @ Birdeye | Scaling GTM Ops, RevTech, Forecasting & GTM orchestration",
+            "last": "Traskova",
+            "public_id": "olgatraskova",
+            "type": "profile",
+            "urn": "ACoAAANeMlgBVGhuch9K1bD3vUF85pi--_HqaUI"
+          },
+          {
+            "first": "Brent R.",
+            "headline": "Chief Operating Officer | Sales, Channel & Technology COO | GTM Transformation | Start-up Board Advisor | B2B SW, SaaS, Cloud and Marketplace | Cyber Security, EdTech, and Customer Experience Advocate",
+            "last": "Wahl",
+            "public_id": "brentrwahl",
+            "type": "profile",
+            "urn": "ACoAAAANx_sBPSfxO5yp1kpnRG-g-CUhMCYPrQo"
+          },
+          {
+            "first": "Jeff",
+            "headline": "Vice President, Revenue Operations at DailyPay",
+            "last": "Vanzant",
+            "public_id": "jeff-vanzant",
+            "type": "profile",
+            "urn": "ACoAAA9WBEgB0XJjdkmhX46CjdOEqMpsS08at4s"
+          },
+          {
+            "company_id": "6654085",
+            "name": "DailyPay",
+            "public_id": "dailypay",
+            "type": "company"
+          },
+          {
+            "first": "Heather",
+            "headline": "VP of Revenue Operations & GTM Sales Enablement | Scaling PE-Backed Companies to IPO at Multi-Billion Valuations | Co-founder AI Start Up",
+            "last": "Moore",
+            "public_id": "heathermoore311",
+            "type": "profile",
+            "urn": "ACoAAAAWRcQB5HqYb2wwmDCU7n7Y96XgZE5ETx0"
+          },
+          {
+            "first": "Peter",
+            "headline": "VP to C-level executive, ex-Bain, Board Director, Co-Founder, FIDE Master",
+            "last": "Yu",
+            "public_id": "petercyu",
+            "type": "profile",
+            "urn": "ACoAAAAhvBIBhoHjm3s1GCwqQWM-hAuz0ROZjug"
+          },
+          {
+            "first": "Michael",
+            "headline": "Sales Operations",
+            "last": "Boardman",
+            "public_id": "michael-j-boardman",
+            "type": "profile",
+            "urn": "ACoAAA3NGK0BhYX8fIetybs42jrhwZlgymnwpvM"
+          },
+          {
+            "company_id": "33883",
+            "name": "Everbridge",
+            "public_id": "everbridge",
+            "type": "company"
+          },
+          {
+            "first": "Brian",
+            "headline": "SVP, Revenue Operations and Strategy @ Exiger | (former Grafana, AppDynamics)",
+            "last": "Hull",
+            "public_id": "brianmhull",
+            "type": "profile",
+            "urn": "ACoAAAGTqB0BRnJIbp-lU_nG668fWUhpo74CWNU"
+          },
+          {
+            "first": "Mary K.",
+            "headline": "Vice President Revenue Operations at Exterro",
+            "last": "Anguay",
+            "public_id": "mary-k-anguay",
+            "type": "profile",
+            "urn": "ACoAAAAo3YsBhROPoWKkOjKUXIRZ_W3gBnyrUOw"
+          },
+          {
+            "first": "Michelle",
+            "headline": "VP - WW Strategy & Operations",
+            "last": "Reynaud",
+            "public_id": "mreynaud",
+            "type": "profile",
+            "urn": "ACoAAAChO6UBYTXHeVWNWjzt2MFS2Wu3_Gdtfm8"
+          },
+          {
+            "first": "David",
+            "headline": "Vice President, Revenue Strategy & Operations",
+            "last": "Hayward",
+            "public_id": "david-hayward-4860a0b",
+            "type": "profile",
+            "urn": "ACoAAAH4XKYBWXPRikPAXwjZiXlDU5JpY0J17Wo"
+          },
+          {
+            "company_id": "5101804",
+            "name": "GitLab",
+            "public_id": "gitlab-com",
+            "type": "company"
+          },
+          {
+            "first": "Cindy",
+            "headline": "Sales Operations Leader",
+            "last": "Simonides",
+            "public_id": "cynthiasimonides",
+            "type": "profile",
+            "urn": "ACoAAADP0D4BIfG0h8WTD-gkCv_hGVuVCr_v1w4"
+          },
+          {
+            "first": "Mike",
+            "headline": "SVP of Sales | COO | Board Advisor | Coach | SaaS & B2B Expert | Go-To-Market Strategy | Servant Leader | Demand Generation | Driving Revenue & Margin Growth in Private Equity & Public Companies |",
+            "last": "Kaszuk, MBA",
+            "public_id": "michaelkaszuk",
+            "type": "profile",
+            "urn": "ACoAAABdg48B7_hUp4TCqK5TZWjYOdaGo7tH780"
+          },
+          {
+            "company_id": "10043",
+            "name": "Hyland",
+            "public_id": "hyland-ai",
+            "type": "company"
+          },
+          {
+            "first": "Maher",
+            "headline": "GTM Strategy | Revenue Operations | Business Growth & Transformation | Customer Value",
+            "last": "Iskandar",
+            "public_id": "maher-iskandar",
+            "type": "profile",
+            "urn": "ACoAAACc27ABksHTkY3D7TNLwcPS3HQxo9gbRCQ"
+          },
+          {
+            "company_id": "3882576",
+            "name": "Menlo Security Inc.",
+            "public_id": "menlo-security",
+            "type": "company"
+          },
+          {
+            "first": "Joel",
+            "headline": "RevOps @ Mistral AI",
+            "last": "Davidson",
+            "public_id": "joeldavidson",
+            "type": "profile",
+            "urn": "ACoAAARoQoMB1q3GgQHxqDjBOFmEzZMBYvQBKQ8"
+          },
+          {
+            "company_id": "94273421",
+            "name": "Mistral AI",
+            "public_id": "mistralai",
+            "type": "company"
+          },
+          {
+            "first": "Ari",
+            "headline": "Revenue & Sales Operations Leader - driving growth by aligning teams and processes to GTM Strategy",
+            "last": "Klionsky",
+            "public_id": "klionsky",
+            "type": "profile",
+            "urn": "ACoAAAACed8Be6X4eoNq3tsX3IyssTWhJXsuiQc"
+          },
+          {
+            "company_id": "2525169",
+            "name": "monday.com",
+            "public_id": "mondaydotcom",
+            "type": "company"
+          },
+          {
+            "first": "Suzanne",
+            "headline": "Transformational GTM & Revenue Operations Leader",
+            "last": "Pappas",
+            "public_id": "suzanne-pappas-a3856a83",
+            "type": "profile",
+            "urn": "ACoAABGz20wB3xeC021uwckzyKRyBXJ9agpZNVg"
+          },
+          {
+            "company_id": "99177329",
+            "name": "Omnissa",
+            "public_id": "omnissa",
+            "type": "company"
+          },
+          {
+            "first": "Ali",
+            "headline": "VP, Revenue Operations | Dataminr & PandaDoc",
+            "last": "Spinelli",
+            "public_id": "ali-spinelli",
+            "type": "profile",
+            "urn": "ACoAAFlcrEEBaQrYM7tAiyYANWKgHMcmrEFqCFs"
+          },
+          {
+            "company_id": "2211704",
+            "name": "PandaDoc",
+            "public_id": "pandadoc",
+            "type": "company"
+          }
+        ],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E22AQFyPKBqfMXnFA/feedshare-shrink_2048_1536/B4EZsS8wMoKoAw-/0/1765549487714?e=1778112000&v=beta&t=u4BlPxhOjaZ1W2Imu_Rt6aUHqncqwbfLgdppDW3G-G8"
+          }
+        ],
+        "num_appreciations": 1,
+        "num_comments": 45,
+        "num_empathy": 16,
+        "num_likes": 104,
+        "num_praises": 26,
+        "num_reactions": 147,
+        "num_reposts": 19,
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7405251283453968385/",
+        "posted": "2025-12-12 14:24:48",
+        "poster": {
+          "first": "Jared",
+          "headline": "Empowering sellers in live calls | Othello.ai",
+          "image_url": "https://media.licdn.com/dms/image/v2/D4E03AQHop0LZAhUvLA/profile-displayphoto-crop_800_800/B4EZmGlTT6HEAM-/0/1758899550187?e=1778112000&v=beta&t=NLZTjlLy-TU80oM34wp4x2RHWTIN1K5O2p_2fG5wYuQ",
+          "last": "Zelman",
+          "linkedin_url": "https://www.linkedin.com/in/jaredzelman",
+          "public_id": "jaredzelman",
+          "urn": "ACoAAC0T8agBCBIJxEh9a8bN4DyliHC4nq38v_4"
+        },
+        "poster_linkedin_url": "https://www.linkedin.com/in/jaredzelman",
+        "repost_stats": {
+          "num_appreciations": 0,
+          "num_comments": 0,
+          "num_empathy": 2,
+          "num_interests": 0,
+          "num_likes": 6,
+          "num_maybe": 0,
+          "num_praises": 2,
+          "num_reactions": 10,
+          "num_reposts": 0
+        },
+        "repost_urn": "7406349245684977665",
+        "reposted": "2025-12-15 15:07:43",
+        "reshared": true,
+        "resharer_comment": "So happy to see awesome Ann Neir on this list. She is fabulous.",
+        "text": "We spent 2025 asking 100+ CRO and GTM leaders who the best RevOp leaders were.\n\nThe same 100 or so names kept popping up.\n\nFolks like:\n\nNavin Persaud | 1Password\u00a0\nAnn Neir | 6sense\nSteve Sturtevant | Abnormal AI\nDebby Leisner | Acquia\nCollin Rhea | Aptean\nMarco Mastrapasqua | Barracuda\nKari Roberts | BetterUp\nNick Metcalf, M.B.A. | Billtrust\nOlga Traskova | Birdeye\nBrent R. Wahl | Coursera\nJeff Vanzant | DailyPay\nHeather M. | Enverus\nPeter Yu | Equifax\nMichael Boardman | Everbridge\nBrian Hull | Exiger\nMary K. Anguay | Exterro\nMichelle Reynaud | ExtraHop\nDavid Hayward | GitLab\nCindy Simonides | Granicus\nMike Kaszuk, MBA | Hyland\nMaher Iskandar | Menlo Security Inc.\nJoel Davidson | Mistral AI\nAri Klionsky | monday.com\nSuzanne Pappas | Omnissa\nAli Spinelli | PandaDoc\n\nThey may not be the loudest voices on LinkedIn, or the ones drowning you in frameworks, or even posting dashboard screenshots at 12 AM.\n\nBut they\u2019re the operators in the trenches, keeping the entire revenue engine from collapsing like a gingerbread house built by interns.\n\nSo in spirit of the holidays, we\u2019re launching RevOps Wrapped.\n\n(Since LinkedIn doesn\u2019t allow me to tag them all in one post, we\u2019ll be shouting out more heroes in the coming weeks, so make sure you\u2019re following me.)\n\nRULES:\n\n\ud83d\udd16 Tag the RevOps leader in the comments that you believe deserves to be crowned the \u201cRevOps Santa\u201d this LinkedInMas.\n\n\u267b\ufe0f Repost this with your nomination, and your vote will count 3x.\n\n\ud83c\udfc6 The winner will get a steak dinner for them and 3 team members.\n\n(Yes, an actual steak dinner. Not a webinar. Not a playbook. Not a gift card. Actual protein. For your muscle fibres)\n\nLet\u2019s reward the people who give us the gifts of:\n\n\u2192 Fixing lead routing at 7 am on a Monday.\u00a0\n\u2192 Catching the \u201csmall data discrepancy\u201d that would\u2019ve cost the company $800K.\u00a0\n\u2192 Explaining Salesforce to AEs like they\u2019re explaining taxes to a golden retriever.\u00a0\n\u2192 Getting blamed for literally everything but still showing up with a smile and a spreadsheet.\n\n#RevOps #LinkedInGames #LinkedInmas #12DaysOfLinkedInmas",
+        "time": "4 months ago",
+        "urn": "7405251283453968385"
+      }
+    ],
+    "message": "ok",
+    "paging": {
+      "count": 50,
+      "pagination_token": "dXJuOmxpOmFjdGl2aXR5Ojc0MDYzNDkyNDU2ODQ5Nzc2NjUtMTc2NTgxMTI2MzQ2Nw==",
+      "start": 0
+    }
+  }
+}

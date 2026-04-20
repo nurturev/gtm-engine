@@ -1,0 +1,16 @@
+{
+  "__probe_meta__": {
+    "slug": "v2_company_lookup_domain",
+    "method": "GET",
+    "url": "https://api.rocketreach.co/api/v2/company/lookup",
+    "path": "/api/v2/company/lookup",
+    "status_code": 403,
+    "request_params": {
+      "domain": "microsoft.com"
+    },
+    "response_headers": {}
+  },
+  "response": {
+    "detail": "You have insufficient lookup credits. Upgrade at https://rocketreach.co/pricing or contact sales (https://rocketreach.co/custom) to unlock more lookups."
+  }
+}

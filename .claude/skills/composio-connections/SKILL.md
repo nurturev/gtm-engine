@@ -1,3 +1,8 @@
+---
+name: composio-connections
+description: Discovery flow (list → actions → schema → execute) for user-connected apps like Gmail, Slack, HubSpot, Salesforce, Google Sheets, Calendar, Notion, Linear, ClickUp, and Instantly via Composio. Use when the user asks to send/draft/post/update via an external tool, mentions an app by name, or wants to read from or write to one of their own connected SaaS tools.
+---
+
 # Apps — Connected Tool Actions (via Composio)
 
 ## Apps vs Data Providers

@@ -1,6 +1,6 @@
 ---
 name: humanizer
-description: Remove AI tone from written content — make it sound human-written for social, email, LinkedIn
+description: Strips AI-generated tone from written content (cold emails, LinkedIn posts, Slack messages, social copy) so it reads as human-written. Use when the user asks to "humanize", "make it sound human", "remove AI tone", or says copy sounds "too corporate", "too polished", or "too AI".
 ---
 
 # Content Humanizer

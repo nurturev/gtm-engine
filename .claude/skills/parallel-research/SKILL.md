@@ -1,3 +1,8 @@
+---
+name: parallel-research
+description: Parallel AI web-research API reference for deep company research, market analysis, and AI-driven web intelligence via the gtm_enrich proxy. Use when the user wants AI-powered research on a company, industry, or market segment, or asks to "research", "deep dive", or "analyze" a target.
+---
+
 # Parallel AI Web Research via GTM Engine
 
 ## Overview

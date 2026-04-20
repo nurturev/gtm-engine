@@ -9,7 +9,7 @@ import click
 
 from nrev_lite.client.auth import is_authenticated, load_credentials
 from nrev_lite.client.http import NrvApiError, NrvClient
-from nrev_lite.utils.config import get_api_base_url
+from nrev_lite.utils.config import get_api_base_url_with_source
 from nrev_lite.utils.display import console, print_error, print_warning, spinner
 
 from rich.panel import Panel
@@ -20,7 +20,7 @@ from rich import box
 @click.command("status")
 def status() -> None:
     """Show a full overview: auth, providers, credits, and server health."""
-    base_url = get_api_base_url()
+    base_url, url_source = get_api_base_url_with_source()
 
     # ---- Auth ----
     creds = load_credentials()
@@ -29,7 +29,7 @@ def status() -> None:
             Panel(
                 "[red bold]Not logged in[/red bold]\n\n"
                 "Run [cyan]nrev-lite auth login[/cyan] to get started.\n"
-                f"Server: {base_url}",
+                f"Server: {base_url} [dim](from {url_source})[/dim]",
                 title="nrev-lite status",
                 border_style="red",
             )
@@ -58,7 +58,7 @@ def status() -> None:
         f"[bold]Email:[/bold]   {email}",
         f"[bold]Tenant:[/bold]  {tenant}",
         f"[bold]Token:[/bold]   {token_status}",
-        f"[bold]Server:[/bold]  {base_url} ({'[green]online[/green] v' + server_version if server_ok else '[red]offline[/red]'})",
+        f"[bold]Server:[/bold]  {base_url} [dim](from {url_source})[/dim] ({'[green]online[/green] v' + server_version if server_ok else '[red]offline[/red]'})",
     ]
 
     if not server_ok:

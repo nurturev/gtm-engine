@@ -1,0 +1,126 @@
+{
+  "__probe_meta__": {
+    "slug": "post_reactions",
+    "path": "/get-post-reactions",
+    "status_code": 200,
+    "params": {
+      "urn": "7450415215956987904"
+    }
+  },
+  "response": {
+    "data": [
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Director - GTM",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAAAPWDUYBCoo67pt82mYC2ZlWUCXXBB4lpSQ",
+          "name": "Priyanka Sharma Arora",
+          "urn": "ACoAAAPWDUYBCoo67pt82mYC2ZlWUCXXBB4lpSQ"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "SVP - Technology | Digital Transformation | Delivery Lead | Technical Architect | BSS / OSS Specialist | Passionate Digital Transformation Expert",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAAAThtGABGVgiaobS9qlKa_bPilLhbQgse8w",
+          "name": "Parthasarathy Tmk",
+          "urn": "ACoAAAThtGABGVgiaobS9qlKa_bPilLhbQgse8w"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Associate Vice President - Salesforce Practice Leader Deloitte (Offices Of US) | 11x Salesforce Certified | Application Architect Certified l SAFe Agile 4.7 | PRINCE2 Agile",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAAAVsJwYBkb__FFZcaRP0iSmcnGQ5UFmMcOQ",
+          "name": "Ashish Ranjan Srivastava \u2601\ufe0f",
+          "urn": "ACoAAAVsJwYBkb__FFZcaRP0iSmcnGQ5UFmMcOQ"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Director, Global Talent Acquisition at Avalara | AI Innovation Advocate | Talent Strategy & People Development Leader",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAAACAggUBFrx8Co0WncblawlVR4xm6aQsfuQ",
+          "name": "Brent Schreckengost",
+          "urn": "ACoAAACAggUBFrx8Co0WncblawlVR4xm6aQsfuQ"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Director Professional Services",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAABT0G0kBodF0WsyDA6jnW1FhSMMXZxIODFo",
+          "name": "Mohit Mohaniya",
+          "urn": "ACoAABT0G0kBodF0WsyDA6jnW1FhSMMXZxIODFo"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Founder of Mindvalley | Join 150,0000 who have already studied AI with us. Join us at Mindvalley U 2026 in Tallinn, Estonia",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAAAAOlcAB_q32A05wyucl74fLAsxGcNd4lHs",
+          "name": "Vishen Lakhiani",
+          "urn": "ACoAAAAOlcAB_q32A05wyucl74fLAsxGcNd4lHs"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Senior Business Systems Analyst at Avalara",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAAA2IKhsB8OoRotQX8b6U4Y4owzFgIueTkkw",
+          "name": "Rohit Chougule",
+          "urn": "ACoAAA2IKhsB8OoRotQX8b6U4Y4owzFgIueTkkw"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Trusted Partner for CFOs | Enabling Tax Compliance Automation | B2B SaaS @ Avalara | APAC",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAABRfDGUBgSs98V0QkMYATkHW7lPJ71X3KBo",
+          "name": "Karunakar Dev",
+          "urn": "ACoAABRfDGUBgSs98V0QkMYATkHW7lPJ71X3KBo"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Value Engineer @ Avalara | Building the future of AI-led GTM and Revenue Operations.",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAACMeaykBYb5SWJYkHzuQrTHb66uw__QKMis",
+          "name": "Vishal Sukhramani",
+          "urn": "ACoAACMeaykBYb5SWJYkHzuQrTHb66uw__QKMis"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Value Engineering | AI | Tax Compliance | Revenue Cloud | Pre-Sales | Proposal Manager | RFP/Bid Management | GIS",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAAAM8LSoBeafdIXPYKmhUrKc6spPLViZEA40",
+          "name": "Surender Nitharwal",
+          "urn": "ACoAAAM8LSoBeafdIXPYKmhUrKc6spPLViZEA40"
+        },
+        "type": "LIKE"
+      },
+      {
+        "following_state": null,
+        "reactor": {
+          "headline": "Avalara | Ex- AkzoNobel | COEP '21",
+          "linkedin_url": "https://www.linkedin.com/in/ACoAACTy8NABDx-vCFqIv1Yb0t-yqWw5Jxj4W3k",
+          "name": "Additya Tayade",
+          "urn": "ACoAACTy8NABDx-vCFqIv1Yb0t-yqWw5Jxj4W3k"
+        },
+        "type": "LIKE"
+      }
+    ],
+    "message": "ok",
+    "total": 11
+  }
+}

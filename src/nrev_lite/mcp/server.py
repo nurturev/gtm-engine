@@ -333,7 +333,12 @@ TOOLS: list[dict[str, Any]] = [
                 },
                 "provider": {
                     "type": "string",
-                    "description": "Force a specific provider (e.g. 'apollo', 'pdl'). Omit for auto-selection.",
+                    "description": (
+                        "Force a specific provider. Options: 'apollo' (default, general B2B), "
+                        "'rocketreach' (phones, alumni), 'fresh_linkedin' (direct-from-LinkedIn, "
+                        "preferred when linkedin_url is the primary identifier). "
+                        "Omit for auto-selection."
+                    ),
                 },
             },
             "required": ["email"],
@@ -342,26 +347,263 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "nrev_enrich_company",
         "description": (
-            "Enrich a company by domain or name. Returns company profile with industry, "
-            "employee count, funding, description, and more."
+            "Enrich a company by LinkedIn URL, domain, or name. Returns the canonical Company "
+            "row (name, domain, linkedin_url, employee_count, industry, hq_location) plus "
+            "`additional_data` with vendor extras (description, follower_count, specialties, "
+            "affiliated companies, etc.). Providers: `apollo` (default) for broad firmographics, "
+            "`rocketreach` for RocketReach's Universal company dataset, or `fresh_linkedin` for "
+            "LinkedIn-native fields. For Fresh LinkedIn pass `linkedin_url` or `domain` — domain "
+            "lookup is fuzzy; inspect `additional_data.confident_score` before trusting the match."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
+                "linkedin_url": {
+                    "type": "string",
+                    "description": (
+                        "LinkedIn company URL (e.g. 'https://www.linkedin.com/company/stripe/'). "
+                        "Used by `provider=\"fresh_linkedin\"`."
+                    ),
+                },
                 "domain": {
                     "type": "string",
                     "description": "Company domain (e.g. 'stripe.com'). URLs are auto-cleaned.",
                 },
                 "name": {
                     "type": "string",
-                    "description": "Company name (if domain is unknown).",
+                    "description": "Company name (used by Apollo when domain is unknown).",
                 },
                 "provider": {
                     "type": "string",
-                    "description": "Force a specific provider. Omit for auto-selection.",
+                    "description": (
+                        "Force a specific provider: 'apollo' (default, broad firmographics), "
+                        "'rocketreach' (Universal company dataset), or 'fresh_linkedin' "
+                        "(direct-from-LinkedIn). Omit for auto-selection."
+                    ),
                 },
             },
-            "required": ["domain"],
+        },
+    },
+    {
+        "name": "nrev_search_companies",
+        "description": (
+            "Search for companies using B2B databases (Apollo, RocketReach). "
+            "Returns matching companies with name, domain, industry, size, location. "
+            "Does NOT return contacts — chain nrev_search_people or nrev_enrich_company for that. "
+            "Defaults to Apollo; pass provider='rocketreach' for RocketReach Universal search. "
+            "IMPORTANT: Check tool-skills for provider-specific quirks BEFORE calling."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "names": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Company names to match on (free-text).",
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "Company domains (e.g. ['stripe.com', 'plaid.com']). "
+                        "Apollo quirk: sent as a NEWLINE-SEPARATED STRING; handled automatically."
+                    ),
+                },
+                "industries": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Industry filters (see the rocketreach-enrichment skill for the Industry enum).",
+                },
+                "locations": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Location filters (e.g. ['San Francisco', 'United States']).",
+                },
+                "employee_ranges": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "Employee count ranges. Format is provider-specific: "
+                        "Apollo uses comma-separated e.g. '51,200'; "
+                        "RocketReach uses dashed e.g. '51-200', '501-1000'."
+                    ),
+                },
+                "provider": {
+                    "type": "string",
+                    "description": (
+                        "Force a provider: 'apollo' (default) or 'rocketreach'. "
+                        "Omit for Apollo default."
+                    ),
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max results to return. Default: 25. Max: 100.",
+                    "default": 25,
+                },
+                "page": {
+                    "type": "integer",
+                    "description": "Page number (1-indexed). Default: 1.",
+                    "default": 1,
+                },
+            },
+        },
+    },
+    # ---- Fresh LinkedIn posts (Phase 2.2 / 2.4 + pagination) ----
+    {
+        "name": "nrev_fetch_linkedin_posts",
+        "description": (
+            "Fetch LinkedIn posts via Fresh LinkedIn. Modes: "
+            "source_type='profile' (posts by a person's LinkedIn URL), "
+            "'company' (posts by a company LinkedIn URL), "
+            "'detail' (single post by bare activity URN), "
+            "'search' (filter-driven search across LinkedIn — keyword, author URN, mentions). "
+            "Pagination — profile/company: pass 'start' + 'pagination_token' together from prior "
+            "envelope.pagination; search: increment 'page'. Each page = 3 credits. "
+            "Freshness guaranteed — no caching."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "source_type": {
+                    "type": "string",
+                    "enum": ["profile", "company", "detail", "search"],
+                    "description": (
+                        "'profile' → recent posts by a person (requires linkedin_url). "
+                        "'company' → recent posts by a company (requires linkedin_url). "
+                        "'detail' → single post by URN (requires urn). "
+                        "'search' → filter-driven post search (requires ≥1 filter)."
+                    ),
+                },
+                "linkedin_url": {
+                    "type": "string",
+                    "description": (
+                        "LinkedIn URL — /in/<slug> for source_type='profile', "
+                        "/company/<slug> for source_type='company'."
+                    ),
+                },
+                "urn": {
+                    "type": "string",
+                    "description": (
+                        "Bare activity id (e.g. '7450415215956987904'). "
+                        "Required when source_type='detail'. Harvest from a prior posts response."
+                    ),
+                },
+                "start": {
+                    "type": "string",
+                    "description": (
+                        "Pagination offset for profile/company posts. Echo envelope.pagination.start "
+                        "from prior response. Must be provided together with pagination_token."
+                    ),
+                },
+                "pagination_token": {
+                    "type": "string",
+                    "description": (
+                        "Pagination token for profile/company posts. Echo envelope.pagination.pagination_token "
+                        "from prior response. Must be provided together with start."
+                    ),
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Vendor filter for source_type='profile' (e.g. 'posts'). Pass-through.",
+                },
+                "sort_by": {
+                    "type": "string",
+                    "description": (
+                        "For source_type='company': vendor sort filter (e.g. 'top'). "
+                        "For source_type='search': 'Latest' (default) or 'Relevance'."
+                    ),
+                },
+                "search_keywords": {
+                    "type": "string",
+                    "description": "Keyword filter (source_type='search').",
+                },
+                "date_posted": {
+                    "type": "string",
+                    "description": "Vendor-native time window (e.g. 'past-24h', 'past-week'; source_type='search').",
+                },
+                "content_type": {
+                    "type": "string",
+                    "description": "Vendor-native content filter (e.g. 'videos', 'images'; source_type='search').",
+                },
+                "from_member": {
+                    "type": "array", "items": {"type": "string"},
+                    "description": "Member URNs (ACoAA... form, NOT profile URLs; source_type='search').",
+                },
+                "from_company": {
+                    "type": "array", "items": {"type": "string"},
+                    "description": "Company URNs (source_type='search').",
+                },
+                "mentioning_member": {
+                    "type": "array", "items": {"type": "string"},
+                },
+                "mentioning_company": {
+                    "type": "array", "items": {"type": "string"},
+                },
+                "author_company": {
+                    "type": "array", "items": {"type": "string"},
+                },
+                "author_industry": {
+                    "type": "array", "items": {"type": "string"},
+                },
+                "author_keyword": {
+                    "type": "string",
+                    "description": "Author keyword filter (source_type='search').",
+                },
+                "page": {
+                    "type": "integer", "minimum": 1,
+                    "description": "Page number for search (1-indexed; source_type='search').",
+                },
+            },
+            "required": ["source_type"],
+        },
+    },
+    {
+        "name": "nrev_fetch_post_engagement",
+        "description": (
+            "Fetch engagement on a LinkedIn post via Fresh LinkedIn. "
+            "engagement_type='reactions' → reactors (name, headline, linkedin_url, reaction type). "
+            "engagement_type='comments' → comments (text, commenter, created_at). "
+            "Pagination — reactions: pass 'page' only. Comments: pass 'page' + 'pagination_token' "
+            "together from prior envelope.pagination. urn must be the bare numeric activity id. "
+            "Reactor/commenter linkedin_url is URN-form — to fully enrich, pass to enrich_person. "
+            "Each page = 3 credits."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "engagement_type": {
+                    "type": "string",
+                    "enum": ["reactions", "comments"],
+                    "description": "'reactions' or 'comments'.",
+                },
+                "urn": {
+                    "type": "string",
+                    "description": "Bare activity id (e.g. '7450415215956987904') from a posts response.",
+                },
+                "page": {
+                    "type": "string",
+                    "description": (
+                        "Pagination page. Required for reactions beyond page 1. "
+                        "For comments: must be provided together with pagination_token."
+                    ),
+                },
+                "pagination_token": {
+                    "type": "string",
+                    "description": (
+                        "Pagination token (comments only). Must be provided together with page. "
+                        "Ignored for reactions (not supported upstream)."
+                    ),
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Reactions filter (e.g. 'ALL'). Pass-through.",
+                },
+                "sort_by": {
+                    "type": "string",
+                    "description": "Comments sort filter (e.g. 'Most relevant'). Pass-through.",
+                },
+            },
+            "required": ["engagement_type", "urn"],
         },
     },
     # ---- Data Management ----
@@ -1439,8 +1681,9 @@ def _handle_nrev_enrich_person(args: dict[str, Any]) -> dict[str, Any]:
 
 def _handle_nrev_enrich_company(args: dict[str, Any]) -> dict[str, Any]:
     params: dict[str, Any] = {}
+    if args.get("linkedin_url"):
+        params["linkedin_url"] = args["linkedin_url"].strip()
     if args.get("domain"):
-        # Clean the domain
         domain = args["domain"].strip().lower()
         if domain.startswith(("http://", "https://")):
             from urllib.parse import urlparse
@@ -1454,7 +1697,7 @@ def _handle_nrev_enrich_company(args: dict[str, Any]) -> dict[str, Any]:
         params["name"] = args["name"].strip()
 
     if not params:
-        return {"error": "At least one of 'domain' or 'name' is required."}
+        return {"error": "At least one of 'linkedin_url', 'domain', or 'name' is required."}
 
     body: dict[str, Any] = {
         "operation": "enrich_company",
@@ -1463,6 +1706,86 @@ def _handle_nrev_enrich_company(args: dict[str, Any]) -> dict[str, Any]:
     if args.get("provider"):
         body["provider"] = args["provider"]
 
+    return _api_request("POST", "/execute", json_body=body)
+
+
+def _handle_nrev_fetch_linkedin_posts(args: dict[str, Any]) -> dict[str, Any]:
+    source_type = (args.get("source_type") or "").strip()
+    if source_type not in ("profile", "company", "detail", "search"):
+        return {"error": "source_type must be one of: profile, company, detail, search"}
+
+    params: dict[str, Any] = {}
+    if source_type == "detail":
+        urn = (args.get("urn") or "").strip()
+        if not urn:
+            return {"error": "source_type='detail' requires 'urn' (bare activity id)"}
+        params["urn"] = urn
+        operation = "fetch_post_details"
+    elif source_type == "search":
+        for key in (
+            "search_keywords", "sort_by", "date_posted", "content_type",
+            "from_member", "from_company", "mentioning_member", "mentioning_company",
+            "author_company", "author_industry", "author_keyword", "page",
+        ):
+            if args.get(key) is not None:
+                params[key] = args[key]
+        operation = "search_posts"
+    else:
+        linkedin_url = (args.get("linkedin_url") or "").strip()
+        if not linkedin_url:
+            return {"error": f"source_type='{source_type}' requires 'linkedin_url'"}
+        params["linkedin_url"] = linkedin_url
+        if args.get("start") is not None and args.get("start") != "":
+            params["start"] = str(args["start"])
+        if args.get("pagination_token"):
+            params["pagination_token"] = str(args["pagination_token"])
+        if source_type == "profile":
+            if args.get("type"):
+                params["type"] = str(args["type"])
+            operation = "fetch_profile_posts"
+        else:
+            if args.get("sort_by"):
+                params["sort_by"] = str(args["sort_by"])
+            operation = "fetch_company_posts"
+
+    body = {
+        "operation": operation,
+        "provider": "fresh_linkedin",
+        "params": params,
+    }
+    return _api_request("POST", "/execute", json_body=body)
+
+
+def _handle_nrev_fetch_post_engagement(args: dict[str, Any]) -> dict[str, Any]:
+    engagement_type = (args.get("engagement_type") or "").strip()
+    if engagement_type not in ("reactions", "comments"):
+        return {"error": "engagement_type must be one of: reactions, comments"}
+
+    urn = (args.get("urn") or "").strip()
+    if not urn:
+        return {"error": "'urn' is required (bare activity id)"}
+
+    params: dict[str, Any] = {"urn": urn}
+    if args.get("page") is not None and args.get("page") != "":
+        params["page"] = str(args["page"])
+
+    if engagement_type == "reactions":
+        if args.get("type"):
+            params["type"] = str(args["type"])
+        # pagination_token intentionally not forwarded for reactions.
+        operation = "fetch_post_reactions"
+    else:
+        if args.get("pagination_token"):
+            params["pagination_token"] = str(args["pagination_token"])
+        if args.get("sort_by"):
+            params["sort_by"] = str(args["sort_by"])
+        operation = "fetch_post_comments"
+
+    body = {
+        "operation": operation,
+        "provider": "fresh_linkedin",
+        "params": params,
+    }
     return _api_request("POST", "/execute", json_body=body)
 
 
@@ -1671,6 +1994,7 @@ def _handle_nrev_provider_status(args: dict[str, Any]) -> dict[str, Any]:
     providers_info = [
         ("apollo", "Person & company enrichment, people search"),
         ("rocketreach", "Person enrichment, school/alumni search"),
+        ("fresh_linkedin", "LinkedIn profile enrichment — fresher data when LinkedIn URL is known"),
         ("pdl", "People Data Labs enrichment"),
         ("hunter", "Email finder and verifier"),
         ("leadmagic", "Lead enrichment"),
@@ -2045,6 +2369,60 @@ def _handle_nrev_search_people(args: dict[str, Any]) -> dict[str, Any]:
     return _api_request("POST", "/execute", json_body=body)
 
 
+def _handle_nrev_search_companies(args: dict[str, Any]) -> dict[str, Any]:
+    """Search for companies across Apollo or RocketReach.
+
+    Translates the generic tool inputs into flat per-provider param shapes:
+        - Apollo: q_organization_name, q_organization_domains (newline-joined),
+          organization_industry_tag_ids, organization_locations,
+          organization_num_employees_ranges, per_page, page.
+        - RocketReach: company_name, domain, industry, geo, employees,
+          page_size, start.
+
+    Flat (not nested under `query`) — this is what the server-side providers
+    actually read.
+    """
+    provider = args.get("provider") or "apollo"
+    params: dict[str, Any] = {}
+
+    if provider == "apollo":
+        if args.get("names"):
+            names = args["names"]
+            params["q_organization_name"] = names[0] if len(names) == 1 else names
+        if args.get("domains"):
+            params["q_organization_domains"] = "\n".join(args["domains"])
+        if args.get("industries"):
+            params["organization_industry_tag_ids"] = args["industries"]
+        if args.get("locations"):
+            params["organization_locations"] = args["locations"]
+        if args.get("employee_ranges"):
+            params["organization_num_employees_ranges"] = args["employee_ranges"]
+        params["per_page"] = min(args.get("limit", 25), 100)
+        params["page"] = max(args.get("page", 1), 1)
+
+    elif provider == "rocketreach":
+        if args.get("names"):
+            params["company_name"] = args["names"]
+        if args.get("domains"):
+            params["domain"] = args["domains"]
+        if args.get("industries"):
+            params["industry"] = args["industries"]
+        if args.get("locations"):
+            params["geo"] = args["locations"]
+        if args.get("employee_ranges"):
+            params["employees"] = args["employee_ranges"]
+        params["page_size"] = min(args.get("limit", 25), 100)
+        params["start"] = max(args.get("page", 1), 1)
+
+    body: dict[str, Any] = {
+        "operation": "search_companies",
+        "params": params,
+        "provider": provider,
+    }
+
+    return _api_request("POST", "/execute", json_body=body)
+
+
 def _handle_nrev_estimate_cost(arguments: dict) -> dict:
     """Estimate credit cost for one or many operations.
 
@@ -2082,11 +2460,13 @@ def _handle_nrev_estimate_cost(arguments: dict) -> dict:
     operation = arguments.get("operation", "")
     count = arguments.get("count", 1)
 
-    # Real per-operation credit costs (platform key pricing)
+    # Real per-operation credit costs (platform key pricing).
+    # Mirror of the server-side operation_costs DB table — keep in sync.
     OP_COSTS = {
-        "search_people": 2,       # Apollo/RocketReach people search
-        "enrich_person": 1,       # Person enrichment
-        "enrich_company": 1,      # Company enrichment
+        "search_people": 3,       # Apollo/RocketReach people search
+        "enrich_person": 3,       # Person enrichment
+        "enrich_company": 3,      # Company enrichment
+        "search_companies": 3,    # Apollo/RocketReach company search
         "search_web": 1,          # Google web search
         "google_search": 1,       # Google SERP search
         "scrape_page": 1,         # Web page extraction
@@ -2102,6 +2482,7 @@ def _handle_nrev_estimate_cost(arguments: dict) -> dict:
         "enrich_person": "apollo",
         "enrich_company": "apollo",
         "search_people": "apollo",
+        "search_companies": "apollo",
         "search_web": "rapidapi",
         "scrape_page": "parallel",
         "google_search": "rapidapi",
@@ -2242,6 +2623,15 @@ def _auto_generate_label(tool_name: str, args: dict) -> str:
         return f"Enrich: {ident}"[:50]
     if tool_name == "nrev_enrich_company":
         return f"Company: {args.get('domain') or args.get('name', 'company')}"[:50]
+    if tool_name == "nrev_search_companies":
+        hint = ""
+        if args.get("names"):
+            hint = str(args["names"][0]) if isinstance(args["names"], list) and args["names"] else ""
+        elif args.get("industries"):
+            hint = str(args["industries"][0]) if isinstance(args["industries"], list) and args["industries"] else ""
+        elif args.get("domains"):
+            hint = str(args["domains"][0]) if isinstance(args["domains"], list) and args["domains"] else ""
+        return f"Company Search: {hint}"[:50] if hint else "Company Search"
     if tool_name == "nrev_create_dataset":
         return f"Dataset: {args.get('name', 'data')}"[:50]
     if tool_name == "nrev_scrape_page":
@@ -2361,6 +2751,8 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrev_google_search": _handle_nrev_google_search,
     "nrev_enrich_person": _handle_nrev_enrich_person,
     "nrev_enrich_company": _handle_nrev_enrich_company,
+    "nrev_fetch_linkedin_posts": _handle_nrev_fetch_linkedin_posts,
+    "nrev_fetch_post_engagement": _handle_nrev_fetch_post_engagement,
     "nrev_query_table": _handle_nrev_query_table,
     "nrev_list_tables": _handle_nrev_list_tables,
     "nrev_create_dataset": _handle_nrev_create_dataset,
@@ -2384,6 +2776,7 @@ TOOL_HANDLERS: dict[str, Any] = {
     "nrev_health": _handle_nrev_health,
     "nrev_new_workflow": _handle_nrev_new_workflow,
     "nrev_search_people": _handle_nrev_search_people,
+    "nrev_search_companies": _handle_nrev_search_companies,
     "nrev_estimate_cost": _handle_nrev_estimate_cost,
     "nrev_get_run_log": _handle_nrev_get_run_log,
     "nrev_deploy_site": _handle_nrev_deploy_site,

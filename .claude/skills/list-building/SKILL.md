@@ -1,53 +1,44 @@
-# Prospect List Building
+---
+name: list-building
+description: Build target entity lists (people, companies, posts, jobs) from data sources. Use when user has no list and needs to assemble one from search criteria. Four routes: Company First (company-level ICP criteria needing AI), People First (person-level criteria with optional company qualification), Google Search (niche/ unconventional criteria or exact phrase matching), LinkedIn Post Search (company-specific post discovery). Output: entity table with identifiers for downstream operations.
+---
 
-## Step 1: Define ICP Criteria
-Gather from user:
-- Target titles (VP Sales, CRO, Head of Growth)
-- Company size (51-200, 201-1000)
-- Industries (SaaS, FinTech)
-- Locations (US, SF Bay Area)
-- Technologies used (optional)
+# List Building
 
-## Step 2: Search for Prospects
-Apollo /mixed_people/search:
-  data={"person_titles": ["VP Sales", "CRO"],
-        "organization_num_employees_ranges": ["51,200"],
-        "person_locations": ["United States"],
-        "per_page": 100, "page": 1}
+Answers: **who or what am I targeting?**
 
-Or RocketReach /search:
-  params={"current_title": ["VP Sales"],
-          "company_size": "51-200",
-          "location": ["United States"]}
+## Route Selection
 
-## Step 3: Enrich Each Prospect
-For each result, enrich with additional data:
-- Phone numbers (RocketReach /lookupProfile)
-- Email verification (ZeroBounce /validate)
-- Company data (Apollo /organizations/enrich)
+| User's Starting Point | Route | Subworkflow |
+|---|---|---|
+| Company-level attributes not in person search filters (pricing model, funding stage, tech stack) | Company First | company-first-list-building |
+| Person-level filters (title, seniority, location, function) with optional company qualification | People First | people-first-list-building |
+| Niche/unconventional criteria, exact phrase matching, non-LinkedIn entities | Google Search | google-search-list-building |
+| Posts mentioning specific companies (requires company LinkedIn ID) | LinkedIn Post Search | linkedin-post-search |
 
-## Step 4: Score Against ICP
-Score each prospect 0-100 based on:
-- Title match (40 points)
-- Company size match (20 points)
-- Industry match (20 points)
-- Location match (10 points)
-- Data completeness (10 points)
+**Disambiguation:**
+- Topic-based post discovery ("posts about AI in sales") → Google Search with `site:linkedin.com/posts`, NOT LinkedIn Post Search.
+- Both person AND company criteria with person as primary driver → People First (Route 2a fork-qualify-rejoin).
+- Platform search returns semantic noise (e.g., "travel managers" for "tour managers") → Google Search with quoted phrases.
 
-## Step 5: Save & Export
-**Always save to a dataset first** — this preserves data for re-use, dashboard creation, and scheduled workflow accumulation.
+## Person Search Node Selection
 
-Primary: Save to a persistent dataset using `nrev_create_and_populate_dataset`:
-- Name: descriptive (e.g., "VP Sales SaaS 51-200 Mar 2026")
-- dedup_key: "email" (for contacts) or "domain" (for companies)
-- columns: define all fields with types
+| Criteria includes | Node |
+|---|---|
+| Years of experience, funding stage, revenue, dept growth | RocketReach |
+| Keyword similarity, employment history | Apollo |
+| Simple title + location + seniority | Apollo (default) |
 
-Then optionally export from the dataset:
-- Google Sheets (via Composio connection)
-- CSV (via `nrev_query_dataset` or dashboard CSV export)
-- HubSpot/Salesforce (via Composio connection)
-- Instantly (for email campaigns)
+## Key Decisions
+1. Which route? (driven by where ICP criteria live — company vs person level)
+2. Which person search node? (driven by filter requirements)
+3. Does the list feed directly into research or qualification?
+4. Single run or scheduled/incremental?
 
-## Cost Awareness
-Show the user: "Building a list of N people will cost approximately $X.XX"
-Track actual cost and report: "List complete: N people for $X.XX (Y% hit rate)"
+## Variants
+- **Scheduled**: Scheduler trigger + date thresholds for ongoing TAM expansion.
+- **Multi-Source**: Multiple routes merged + deduplicated on linkedin_url or email. Path B applies for dedup.
+- **Incremental/Delta**: "Seen" list in Google Sheets + LEFT JOIN anti-join to skip already-processed entities.
+
+## Boundaries
+Does NOT include: researching entities (Research), scoring fit (Qualification), selecting for action (Nomination), executing outreach (GTM Automations).

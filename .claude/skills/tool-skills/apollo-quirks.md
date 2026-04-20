@@ -33,7 +33,7 @@ If Apollo attempts to enrich but finds no match, you may still lose credits. Alw
 ```
 
 ### 6. 50,000 record hard ceiling
-Max 100 per page × 500 pages = 50,000 records. If your query returns more, you CANNOT access records beyond this. Partition queries by location or seniority to work around it.
+Max 100 per page x 500 pages = 50,000 records. If your query returns more, you CANNOT access records beyond this. Partition queries by location or seniority to work around it.
 
 ### 7. Intent data NOT available via API
 Despite being a major UI feature, buying intent filters are API-only-not-exposed. You cannot filter by intent topics through the API.
@@ -59,7 +59,7 @@ Despite being a major UI feature, buying intent filters are API-only-not-exposed
 |-----------|------|-------------|
 | `person_titles` | string[] | OR logic. `["VP Sales", "Sales Director"]` |
 | `person_seniorities` | string[] | `c_suite`, `founder`, `owner`, `vp`, `director`, `manager`, `senior`, `head`, `entry`, `intern` |
-| `person_departments` | string[] | `engineering`, `sales`, `marketing`, `finance`, `human_resources`, `operations`, `information_technology`, `legal`, `product_management` |
+| `person_departments` | string[] | `engineering`, `sales`, `marketing`, `finance`, `human_resources`, `operations`, `information_technology`, `legal`, `product_management`. Multiple in ONE query (e.g. `["sales", "marketing"]`), no need for separate calls. |
 | `person_locations` | string[] | Where person lives (NOT company HQ). `["California, US"]` |
 | `q_keywords` | string | Free text across person records |
 | `contact_email_status` | string[] | `["verified"]` for best results |
@@ -69,7 +69,7 @@ Despite being a major UI feature, buying intent filters are API-only-not-exposed
 | Parameter | Type | Values/Notes |
 |-----------|------|-------------|
 | `q_organization_domains` | **STRING** | Newline-separated! `"apollo.io\ngoogle.com"` |
-| `q_organization_name` | string | Company name search |
+| `q_organization_name` | string | **AVOID for search — use `q_organization_domains` instead.** Free-text matching is unreliable. If you only have a name, find the domain first via Org Enrich. |
 | `organization_locations` | string[] | Company HQ. `["San Francisco, CA"]` |
 | `organization_not_locations` | string[] | Exclude HQ locations |
 | `organization_num_employees_ranges` | string[] | `["1,10"]`, `["51,200"]`, `["501,1000"]` |
@@ -138,11 +138,26 @@ Credits do NOT roll over.
 |------------|---------|------------|
 | Email verification | 91% | 65-70% |
 | Bounce rate | Low | 35% reported in some cases |
-| Phone numbers | Available | "A disaster" — expensive (8 credits) and often inaccurate |
+| Phone numbers | Available | Expensive (8 credits) and often inaccurate |
 | European data | Available | Notably weaker than US |
 | Company firmographics | Strong | Revenue estimates rough for private companies |
 
 **Always verify Apollo emails through ZeroBounce/NeverBounce before sending campaigns.**
+
+## Title Keyword Expansion
+
+When a user describes a role, expand into the title keywords people actually use:
+
+**1. Expand horizontally (related functions), not vertically (seniority).** Seniority goes in the `person_seniorities` filter, NOT in title keywords.
+- "Marketing" → brand, growth, demand generation, loyalty, content, digital marketing, performance marketing
+- Do NOT add "Director of Marketing", "VP Marketing" — that pollutes results
+
+**2. Omit noisy generic terms that attract irrelevant results.**
+- For IT/security roles: omit "operations", "system" — pulls in sysadmins, IT ops
+- For sales roles: omit "business" — pulls in business analysts, business ops
+- If ambiguous and would match more wrong than right people, leave it out
+
+Put the expanded keywords in `person_titles` or `q_keywords`. Enable `include_similar_titles: true` for additional coverage.
 
 ## Advanced Techniques
 
@@ -164,5 +179,5 @@ Search (free) → filter → page through results → Bulk Enrich (10/call) → 
 - Alumni/previous employer search → use **RocketReach**
 - Non-standard businesses (local, D2C) → use **Google + Parallel Web**
 - Enterprise-grade data depth + org charts → use **ZoomInfo** ($15k+/yr)
-- Maximum email accuracy → use **waterfall** (Clay/nrev-lite with multiple providers)
+- Maximum email accuracy → use **waterfall** (multiple providers)
 - International/European data → Apollo is weak here

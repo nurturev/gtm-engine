@@ -1,0 +1,1086 @@
+{
+  "__probe_meta__": {
+    "slug": "search_posts",
+    "method": "POST",
+    "path": "/search-posts",
+    "status_code": 200,
+    "body": {
+      "search_keywords": "",
+      "sort_by": "Latest",
+      "date_posted": "",
+      "content_type": "",
+      "from_member": [
+        "ACoAAA8BYqEBCGLg_vT_ca6mMEqkpp9nVffJ3hc"
+      ],
+      "from_company": [],
+      "mentioning_member": [],
+      "mentioning_company": [],
+      "author_company": [],
+      "author_industry": [],
+      "author_keyword": "",
+      "page": 1
+    }
+  },
+  "response": {
+    "data": [
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 235,
+        "num_likes": 868,
+        "num_shares": 51,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7451017578921033728/",
+        "posted": "2026-04-17 21:23:44.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "There are a lot of exciting breakthroughs happening\u00a0in clean energy.\u00a0A few decades from now,\u00a0I\u00a0expect that\u00a0at least one of these\u00a0technologies\u00a0will be\u00a0generating\u00a0a significant chunk\u00a0of the world\u2019s power. \n\nHere are the innovations\u00a0I\u2019m\u00a0tracking:\u00a0https://lnkd.in/g5TiH9pN",
+        "urn": "7451017578921033728"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 135,
+        "num_likes": 946,
+        "num_shares": 55,
+        "original_post": {
+          "attributes": [],
+          "images": [],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7450226660177694720/",
+          "posted": "2026-04-15 17:00:54.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/gates-foundation/posts",
+          "poster_name": "Gates Foundation",
+          "poster_title": "",
+          "text": "In the midst of a changing climate, knowing how to adapt and prepare can make all the difference.\n\nFor smallholder farmers, timely information helps them act quickly to protect their crops, livestock, and livelihoods. That\u2019s why the Gates Foundation supports partners like Digital Green that provide real-time weather alerts right when farmers need them, helping them make informed decisions and increase their crop yields.",
+          "urn": "7450226660177694720",
+          "video": {
+            "duration": 10000,
+            "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E10AQEVcs4Ia2mz3g/mp4-720p-30fp-crf28/B4EZ2SFpoMGcCA-/0/1776272451953?e=1777118400&v=beta&t=1aoLb19iPJ-xB5mLN4WvCMw_x9R-iCEYbWvmMCkpxgU"
+          }
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7450715973365522432/",
+        "posted": "2026-04-17 01:25:15.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Real-time weather alerts are helping farmers protect their crops and livelihoods. Such a simple idea with\u00a0a major\u00a0impact.",
+        "urn": "7450715973365522432"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 447,
+        "num_likes": 5203,
+        "num_shares": 431,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7450294667415302145/",
+        "posted": "2026-04-15 21:31:08.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Finding new pathways to reliable energy is critical. Fortunately, major breakthroughs in electricity are paving the way for a more abundant\u2014and affordable\u2014energy future.",
+        "urn": "7450294667415302145",
+        "video": {
+          "duration": 60033,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQGZXWRUzi2xGQ/mp4-720p-30fp-crf28/B56Z2TDdp.KwCI-/0/1776288664169?e=1777118400&v=beta&t=ZG2CxoXZPcgxxpVrDdKQIlKDemF0khWRPw06VpWOJIc"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 324,
+        "num_likes": 1400,
+        "num_shares": 77,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7449645264463912960/",
+        "posted": "2026-04-14 02:30:38.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "In remote and hard-to-reach communities, many children grow up without receiving vaccines\u2014simply because health services can't reach them. In Uganda, this is changing. Thanks to investments in transport, cold chain systems, and support for local health workers, the number of unimmunized children\u00a0has been cut nearly in half.\n\nWhile progress is underway, thousands of children remain unprotected. But with every new tool and investment, the chance for every child to receive lifesaving vaccines\u00a0is increasing.",
+        "urn": "7449645264463912960"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 297,
+        "num_likes": 1630,
+        "num_shares": 129,
+        "original_post": {
+          "attributes": [],
+          "images": [],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7445534669250678784/",
+          "posted": "2026-04-02 18:16:36.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/breakthrough-energy/posts",
+          "poster_name": "Breakthrough Energy",
+          "poster_title": "",
+          "text": "Where is energy innovation headed next? BE leaders reflect on what they\u2019re seeing from the front lines:\n\u00a0\n\u25aa\ufe0f Bill Gates on the technologies shaping the next era of electricity.\n\u25aa\ufe0f Rodi Guidero on what founders, investors, and companies across the portfolio shared with us during the BEV Investor Summit.\n\u25aa\ufe0f Eric Toone on why shifting cost curves are bringing us closer to a clean energy system.\n\u25aa\ufe0f Carmichael Roberts on the human side of company building in tough industries.\n\u00a0\nSignals from the builders, investors, and systems transforming the energy economy.",
+          "urn": "7445534669250678784"
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7449166083560804352/",
+        "posted": "2026-04-12 18:46:33.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Access to affordable, reliable energy is fundamental to prosperity\u2014and to improving lives around the world.\u00a0\u200b\n\u00a0\u200b\nWe\u2019re seeing real progress from the people building the next generation of energy solutions. Their insights help show what it will take to expand opportunities, strengthen economies, and ensure more people can benefit from a clean energy future.",
+        "urn": "7449166083560804352"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 154,
+        "num_likes": 1416,
+        "num_shares": 61,
+        "original_post": {
+          "attributes": [],
+          "images": [
+            {
+              "alt_text": "",
+              "url": "https://media.licdn.com/dms/image/v2/D5622AQFMO4VuRB0PQw/feedshare-shrink_2048_1536/B56Z1ywM71GoAg-/0/1775746732853?e=1778112000&v=beta&t=m4i0uXnDoI7fn3-Uu52brPa8An-5NRDPG5qQe924Ozc"
+            }
+          ],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7448021627956600832/",
+          "posted": "2026-04-09 14:58:53.000",
+          "poster_linkedin_url": "https://www.linkedin.com/in/ankurvora1",
+          "poster_name": "Ankur Vora",
+          "poster_title": "President of Africa & India Offices and Chief Strategy Officer at Gates Foundation",
+          "text": "I just returned from Nairobi\u2014my first trip to Africa as President of the Gates Foundation's Africa and India Office (AIO). I felt an overwhelming sense of optimism as I watched long-term leaders in the field stand up alongside a new generation of innovators to face challenging headwinds.\n\nWe convened at a critical moment. The ground is shifting quickly. Across much of Africa, funding is tightening, debt is rising, and the model that many of us have worked in for decades is under strain.\n\nThe stakes are high, with child mortality increasing for the first time this century last year.\n\nAnd yet, what I\u2019ve seen this week gives me incredible hope. Locally-led innovations, from ag-tech to digital finance tools, are already improving the lives of people across the continent.\n\nWhat\u2019s needed now is getting these innovations to more people and places, a point that came up in nearly every conversation.\n\nThat means working closely with local leaders and investing in solutions that countries can nurture and sustain on their own. I saw many examples of that during my visit, including at InsectiPro, where I watched flies turn organic waste into animal feed and fertilizer\u2014innovation that is locally-owned, managed, and directly improving the lives of the community.\n\nIt also means countries across the Global South sharing what works with one another. We created AIO to do just that\u2014both bringing decision-making closer to the communities we serve and to strengthen South-South collaboration from within. And leaving Nairobi, I feel hope for our ability to support these aims.\n\nI\u2019m also leaving with an enduring and refreshed gratitude to the teams and partners in Kenya, and across Gates Foundation Africa, who are doing this work every day. Your commitment to genuine, honest, and tireless collaboration is what makes progress possible.",
+          "urn": "7448021627956600832"
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7448944625521696769/",
+        "posted": "2026-04-12 04:06:33.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "So much to be hopeful about. The solutions are already there; the work now is supporting communities to scale them.",
+        "urn": "7448944625521696769"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 189,
+        "num_likes": 1176,
+        "num_shares": 75,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7448475853941960704/",
+        "posted": "2026-04-10 21:03:49.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Timely prevention is one of the most effective tools we have in the fight against malaria\u2014and volunteers like Abednego Afreh are spreading the word to their communities. By strapping a megaphone to his tricycle, Afreh broadcasts health education messages across Kajaji, Ghana to make sure every household is ready to receive preventive treatment when volunteers arrive. This malaria season, his dedication helped 5,302 children get protected.",
+        "urn": "7448475853941960704"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 226,
+        "num_likes": 1257,
+        "num_shares": 90,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7448168103705985024/",
+        "posted": "2026-04-10 00:40:56.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "As a child, Dr. Kelly Chibale survived a life-threatening malaria infection thanks to timely treatment and access to essential medicines. Years later, he and his team of African-based scientists discovered a promising new malaria drug that advanced to clinical trials\u2014the first time any disease treatment had reached this stage through an African-led effort. Stories like his make me hopeful about the future of global health progress.",
+        "urn": "7448168103705985024"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 433,
+        "num_likes": 3611,
+        "num_shares": 227,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7447781609249878016/",
+        "posted": "2026-04-08 23:05:08.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "One of the most encouraging things about climate innovation is how many zero-carbon solutions are becoming cost-competitive\u2014and how\u00a0they\u2019re\u00a0improving people\u2019s lives in the\u00a0process.\u00a0We\u2019re\u00a0seeing real breakthroughs that make clean technologies easier to scale and\u00a0adopt,\u00a0which means\u00a0progress can\u00a0be made much\u00a0faster\u00a0and\u00a0benefit\u00a0more\u00a0people along the way.",
+        "urn": "7447781609249878016",
+        "video": {
+          "duration": 60066,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQFDYoCe40_6hw/mp4-720p-30fp-crf28/B56Z1vV2MPHECE-/0/1775689502534?e=1777118400&v=beta&t=AARBnDKZdBykbxLKD6Tg96dMdEvM7q8ksdxzcnfIglg"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 260,
+        "num_likes": 1382,
+        "num_shares": 69,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7447497202089881600/",
+        "posted": "2026-04-08 04:15:00.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "I'm\u00a0enormously optimistic about Africa's future and encouraged by the ambition of its leaders. The Economist\u00a0recently made the case for the continent\u2019s resilience in purely economic terms.\u00a0I\u2019d\u00a0argue that true strength is measured by how many children are surviving and thriving. And after last year's aid cuts, child mortality went up for the first time this century.\u00a0I wrote a letter to the editor making the case for a more expansive definition of prosperity that puts people at the center.",
+        "urn": "7447497202089881600"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 321,
+        "num_likes": 2482,
+        "num_shares": 147,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7446947260330049536/",
+        "posted": "2026-04-06 15:49:44.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Coaches at\u00a0Grassroot Soccer\u00a0do\u00a0much more\u00a0than run\u00a0drills. Through mentorship and access to HIV healthcare,\u00a0they're\u00a0helping teenagers live their healthiest lives and bringing us one step closer to an AIDS-free generation.",
+        "urn": "7446947260330049536",
+        "video": {
+          "duration": 60066,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQEy0UZWQn3-ZQ/mp4-720p-30fp-crf28/B56Z1jfBM7IACM-/0/1775490578552?e=1777118400&v=beta&t=KNjZHQOevQHFMfpSr3T344fP44jEEKz-Y8cAmBRcGTk"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 366,
+        "num_likes": 1865,
+        "num_shares": 136,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7445937622713221120/",
+        "posted": "2026-04-03 20:57:48.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Breakthroughs\u00a0in fusion have the potential to help us produce the clean energy we need by 2050. One of the\u00a0great things\u00a0about this energy source\u00a0is that\u00a0once\u00a0it\u2019s\u00a0fully commercialized, it can be built anywhere and scaled up\u2014with no carbon emissions and minimal waste. Here are a few other promising technologies that could help us get to a zero-emission future: https://lnkd.in/gbw9VMTc",
+        "urn": "7445937622713221120"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 208,
+        "num_likes": 1871,
+        "num_shares": 153,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7445583302259961856/",
+        "posted": "2026-04-02 21:29:51.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "This is huge news for the fight against tuberculosis. The\u00a0World Health Organization\u00a0is recommending near point-of-care tests that can use tongue swabs to collect samples and diagnose TB within an hour\u2014making testing faster, simpler, and more accessible.\u200b\n\u200b\nTools like this\u00a0will\u00a0reach more people, catch TB earlier, and\u00a0start treatment sooner. Grateful to the scientists and partners who made this progress possible. https://b-gat.es/4clCCIx",
+        "urn": "7445583302259961856"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 990,
+        "num_likes": 13921,
+        "num_shares": 1097,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7445174461001068544/",
+        "posted": "2026-04-01 18:25:16.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "The breakthroughs happening in geothermal, fusion, and geologic hydrogen have\u00a0the\u00a0potential to help make clean electricity widely available to more people.",
+        "urn": "7445174461001068544",
+        "video": {
+          "duration": 119633,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQHtWnzsUhbdkQ/mp4-720p-30fp-crf28/B56Z1KSounKcCI-/0/1775067911252?e=1777118400&v=beta&t=_TkvuwyQxIk2Plq6PRDQFa2-oqfNXQjDWKiRTL9otDo"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "alt_text": "",
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQE0i0Nlf8_VYQ/feedshare-shrink_2048_1536/B56Z1F9.uJJYAk-/0/1774995369212?e=1778112000&v=beta&t=wf3-LTvmaWol9WY4DviQKW6X7_nrwU79Vp3x5T191mk"
+          },
+          {
+            "alt_text": "",
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQG7wFhEEyrBRQ/feedshare-shrink_2048_1536/B56Z1F9.vkJIAg-/0/1774995369383?e=1778112000&v=beta&t=wDG4Y_fP34UdN7JmLj45ARUv98hqm-GXElSIZz19J4s"
+          },
+          {
+            "alt_text": "",
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQHIkCpuphXTuw/feedshare-shrink_2048_1536/B56Z1F9.vBJwAo-/0/1774995369306?e=1778112000&v=beta&t=pN9Wmto7KKYVFyeJ5-olS8jtBBLclou7ccO_W8BtwW4"
+          },
+          {
+            "alt_text": "",
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQGxJFySeastsg/feedshare-shrink_2048_1536/B56Z1F9.t4JYAg-/0/1774995369261?e=1778112000&v=beta&t=sFLN7NYzqDw24mwI_rmXUTmki2z0psCQJzf4XcEYZ-0"
+          }
+        ],
+        "num_comments": 364,
+        "num_likes": 2613,
+        "num_shares": 165,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7444870184869474304/",
+        "posted": "2026-03-31 22:16:11.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Reflecting on my time at the Breakthrough Energy Ventures Investor Summit last week,\u00a0I\u2019m\u00a0left incredibly energized.\n\nThe pace of progress is\u00a0exceeding\u00a0even my most optimistic expectations.\u00a0It\u2019s\u00a0clear that real breakthroughs are happening, and\u00a0they\u2019re\u00a0happening faster and more effectively than I imagined.\n\nWhat\u2019s\u00a0most exciting is the potential impact:\u00a0These advances\u00a0will\u00a0help make reliable\u00a0energy more accessible to more people around the world. That kind of momentum is inspiring to be part\u00a0of.",
+        "urn": "7444870184869474304"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 289,
+        "num_likes": 1646,
+        "num_shares": 100,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7444178045118124032/",
+        "posted": "2026-03-30 00:25:52.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Well-lit rooms, reliable power, and cold storage for medicine are things many of us\u00a0don\u2019t\u00a0think twice about\u2014but in rural health facilities across Uganda, they\u2019re\u00a0far from guaranteed. Programs like this, which ensure access to reliable energy, can make\u00a0a huge difference\u00a0in people\u2019s lives. https://b-gat.es/3PzhGFj",
+        "urn": "7444178045118124032"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 349,
+        "num_likes": 2808,
+        "num_shares": 173,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7443747272116568064/",
+        "posted": "2026-03-28 19:54:07.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "There\u2019s\u00a0something powerful about a room full of people committed to building, deploying, and scaling the next generation of\u00a0clean\u00a0energy.\n\nAt the Breakthrough Energy Ventures Investor Summit, I was reminded\u00a0just how foundational affordable, reliable\u00a0energy\u00a0is to\u00a0opportunity and prosperity.",
+        "urn": "7443747272116568064",
+        "video": {
+          "duration": 43666,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQEAYmt7PkoeQQ/mp4-720p-30fp-crf28/B56Z02ApyxHwCE-/0/1774727641597?e=1777118400&v=beta&t=tCG71BPUYwJXUYNleo-Egm3Vk2HvZZ7i65s7EgYzI0w"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 1078,
+        "num_likes": 6946,
+        "num_shares": 359,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7443421423806799872/",
+        "posted": "2026-03-27 22:19:19.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "I expect that in a few decades,\u00a0at least one of these technologies\u00a0will be\u00a0generating a significant share of the world\u2019s power:\u00a0\u200b\n\u200b\nGeothermal -\u00a0New innovations are making it more accessible than ever before, with companies now drilling deeper and extending wells horizontally to\u00a0unlock\u00a0heat in more places.\n\u00a0\u200b\nFusion\u00a0-\u00a0If successfully commercialized, it could be built\u00a0almost anywhere, scaled up, and used to generate massive amounts of electricity.\u00a0\u200b\n\nGeologic hydrogen\u00a0-\u00a0One of the biggest energy surprises of the past decade.\u00a0It's still in its earliest stage, but\u00a0the\u00a0potential is exciting.\u200b\n\u200b\nThe progress\u00a0is real\u2014and\u00a0it\u2019s\u00a0opening up\u00a0new paths to a clean energy future.",
+        "urn": "7443421423806799872"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 393,
+        "num_likes": 3735,
+        "num_shares": 232,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7442685916231475200/",
+        "posted": "2026-03-25 21:36:40.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "When\u00a0Breakthrough Energy\u00a0launched\u00a0more than a decade ago, energy innovation was scarce, even as demand\u00a0for cleaner and more affordable options\u00a0was growing.\u00a0Today, breakthroughs are\u00a0emerging\u00a0across the entire system\u2014and\u00a0more people will thrive\u00a0around the world\u00a0as a\u00a0result.",
+        "urn": "7442685916231475200",
+        "video": {
+          "duration": 60066,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQHYom7lWtmEQw/mp4-720p-30fp-crf28/B56Z0m7WXQH8CI-/0/1774474594246?e=1777118400&v=beta&t=ioXgJJAFN-H_ulXGBc9OAnD4zmSq4JH6Dm_swauQ-zI"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "alt_text": "",
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQEJNwu2LQYdsA/feedshare-shrink_1280/B56Z0jUKMeJgAM-/0/1774413980898?e=1778112000&v=beta&t=uOZrj2t0ppU1V90LAMV9I4PibVkcvMSfD8aKvreLsQU"
+          }
+        ],
+        "num_comments": 339,
+        "num_likes": 2743,
+        "num_shares": 133,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7442431663940472832/",
+        "posted": "2026-03-25 04:46:22.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "I\u2019m excited to be at the Breakthrough Energy Ventures Investors Summit this week. It\u2019s one of the best places to see the future of energy, and I can\u2019t wait to see how much progress has been made since the last time we came together: https://lnkd.in/gT66_N_b",
+        "urn": "7442431663940472832"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 228,
+        "num_likes": 1677,
+        "num_shares": 107,
+        "original_post": {
+          "attributes": [],
+          "images": [
+            {
+              "alt_text": "",
+              "url": "https://media.licdn.com/dms/image/v2/D4E22AQHvu2bt-FJogw/feedshare-shrink_2048_1536/B4EZ0Mo0UlHYAg-/0/1774033520203?e=1778112000&v=beta&t=UzzUGGoDlUsrjAFhAx2i7BHU66VMD5RolljXOSo_gQc"
+            },
+            {
+              "alt_text": "",
+              "url": "https://media.licdn.com/dms/image/v2/D4E22AQGGXbpQCKbGSg/feedshare-shrink_2048_1536/B4EZ0Mo0qEGkAg-/0/1774033521846?e=1778112000&v=beta&t=1l6veQseT6ABXFyZ_KSIJQ1b1IC0GvlVf01OGPa4ghU"
+            }
+          ],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7440835901863190529/",
+          "posted": "2026-03-20 19:05:23.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/alzheimersdata/posts",
+          "poster_name": "Alzheimer's Disease Data Initiative",
+          "poster_title": "",
+          "text": "We are thrilled to announce\u00a0Biomni-AD and Prima Mente as the winners of the Alzheimer's Insights AI Prize.\n\nWe are doubling the grand prize, and both teams will be taking home $1M each.\n\nThis competition was originally designed to award a single $1M prize, but the insights that have\u00a0emerged\u00a0from this competition have far exceeded our expectations and we\u2019re\u00a0excited to double the prize pot to award two grand prizes. The expansion of the prize reflects the exceptional quality of submissions and the pressing need for innovative approaches in the field.\n\nCongratulations to the teams:\n\nBiomni-AD: Kuan-lin Huang Kexin Huang Stanford University Icahn School of Medicine at Mount Sinai\n\nPrima Mente: Ravi Solanki Jonathan Hoover Yash Shirsath\n\nTo all our finalist teams \u2013 we have been awed by your hard work, creativity, and dedication to advancing Alzheimer's research. This community continues to push the boundaries of what is possible, and\u00a0we\u2019re\u00a0looking forward to seeing what comes next.\n\nA special thank you to our expert judging panel for the thoughtful evaluation and scientific rigor in both the finalist and semifinalist rounds: Gregory Moore MD, PhD Justine Levin-Allerhand Aashima Gupta Zoe Kourtzi Elena Bonfiglioli Tom Stocky Eric Horvitz Hoifung Poon\n\nThe work\u00a0doesn't\u00a0stop here. Stay tuned to learn when\u00a0Biomni-AD and Prima Mente\u2019s tools become available on AD Workbench.",
+          "urn": "7440835901863190529"
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7442231870911750144/",
+        "posted": "2026-03-24 15:32:28.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Over the next 25 years, around 152 million people are projected to be living with Alzheimer's. The good news is that new tools are helping us better understand the disease and move faster towards potential treatments.\u00a0\n\u00a0\nThat's why we created the Alzheimer's Insights AI Prize. Out of 180+ submissions, two teams stood out to the judges. One is building an AI co-scientist that can take lots of messy data (genes, proteins, experiments), make sense of it, and run reproducible research workflows. The other is developing a multi-agent platform that uses virtual neurons and brain cells to model disease and test therapies digitally.\u00a0\n\u00a0\nI've long believed AI will be a powerful tool to dramatically\u00a0accelerate medical breakthroughs\u2014and these two teams are a good example of that potential. Congratulations to both on this win.",
+        "urn": "7442231870911750144"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "alt_text": "",
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQEWgEUfG9VIbg/feedshare-shrink_800/B56Z0cd.B4JsAc-/0/1774299111824?e=1778112000&v=beta&t=hy_IyhW5vGAvVs20DHegD_4V9Fk1uysfTJzPub0AARA"
+          }
+        ],
+        "num_comments": 728,
+        "num_likes": 4448,
+        "num_shares": 334,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7441949866559442944/",
+        "posted": "2026-03-23 20:51:52.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "By 2050, the world will need\u00a0nearly three\u00a0times as much energy as we use today. With breakthroughs in geothermal, nuclear, and hydrogen energy, I believe\u00a0it\u2019s\u00a0possible to\u00a0get there in\u00a0a clean, reliable, and affordable way:  https://lnkd.in/gkBddWwb",
+        "urn": "7441949866559442944"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 277,
+        "num_likes": 1592,
+        "num_shares": 97,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7441681331199238144/",
+        "posted": "2026-03-23 03:04:49.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Breakthrough Energy backs\u00a0practical, scalable solutions that strengthen our energy\u00a0supply\u00a0while cutting emissions. Redwood Materials is an\u00a0example of that approach in action.\u00a0\u200b\n\u200b\nAs AI drives rapid\u00a0construction of\u00a0data centers\u2014and increases demand for reliable, around-the-clock electricity\u2014Redwood Materials has stepped up\u00a0to\u00a0expand its\u00a0energy storage business\u00a0using\u00a0old EV batteries, quadrupling its\u00a0San Francisco footprint\u00a0to help meet that need.",
+        "urn": "7441681331199238144"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 165,
+        "num_likes": 1211,
+        "num_shares": 68,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7441647085407563776/",
+        "posted": "2026-03-23 00:48:44.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "New tools are helping countries better\u00a0anticipate\u00a0malaria risk and respond faster. \u200b\n\u200b\nThat\u2019s\u00a0increasingly important as climate change and extreme weather shift where and when malaria spreads.\u00a0Floods, in particular, create\u00a0the perfect conditions for outbreaks\u2014because the standing\u00a0water they leave behind becomes a\u00a0breeding ground\u00a0for mosquitoes. \u200b\n\u200b\nProjects like the\u00a0Remote Sensing for Malaria Control in Africa program at the University of Pretoria are\u00a0helping\u00a0change\u00a0that. By combining satellite imagery with environmental modeling, health teams can now predict where mosquito populations are most likely to soar and get prevention tools to those areas while disaster response is still\u00a0underway.\u00a0\u00a0\u200b\n\u00a0\u200b\nIt's\u00a0a great example\u00a0of how integrating disease prevention into disaster planning can\u00a0make\u00a0both systems work better. Continued innovation and support for tools like these will be critical to protecting the progress\u00a0we\u2019ve\u00a0made against malaria.",
+        "urn": "7441647085407563776"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 219,
+        "num_likes": 1391,
+        "num_shares": 75,
+        "original_post": {
+          "attributes": [],
+          "document": {
+            "page_count": 5,
+            "title": "Rodi Guidero's Letter to Investors",
+            "url": "https://media.licdn.com/dms/document/media/v2/D561FAQHfGzaQnh8xkA/feedshare-document-chunked-pdf/B56Zz3fNF7KsBk-/0/1773678679707?e=1777118400&v=beta&t=XbAa_dMxUd1O4FHnhuCfeoQhLQ9mfmGpBMHcDFlz8II"
+          },
+          "images": [],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7439348101649444864/",
+          "posted": "2026-03-16 16:33:23.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/breakthrough-energy/posts",
+          "poster_name": "Breakthrough Energy",
+          "poster_title": "",
+          "text": "Ten years after Breakthrough Energy was founded to build companies in some of the world\u2019s most consequential markets, the real story belongs to the founders, engineers, and operators doing the hard work of turning breakthrough science into operating infrastructure.\u00a0\n\u00a0\nOur Executive Director Rodi Guidero shares an update to investors highlighting teams leading that effort:\u00a0\n\u00a0\u00a0\n\u25aa\ufe0fFervo Energy is advancing commercial-scale geothermal power.\u00a0\n\u25aa\ufe0fCommonwealth Fusion Systems is building fusion infrastructure.\u00a0\n\u25aa\ufe0fForm Energy is manufacturing long-duration storage.\u00a0\n\u25aa\ufe0fLuxWall, Inc. and Aeroseal are driving down energy use and cost in buildings.\u00a0\u00a0\n\u25aa\ufe0fKoBold Metals is modernizing mineral discovery.\u00a0\n\u25aa\ufe0fPivot Bio and Rumin8 are reshaping agricultural productivity.\u00a0\n\u00a0\nThese companies are navigating permitting, construction, supply chains, and customer adoption\u2014the practical realities of building in essential industries. Their progress points toward a future where decarbonization is driven by better, cost-competitive products operating at scale.",
+          "urn": "7439348101649444864"
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7440806737022099456/",
+        "posted": "2026-03-20 17:09:29.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "What excites me\u00a0the\u00a0most about clean energy right now is the opportunity to close the gap between innovation and infrastructure\u2014and\u00a0shape the future of human prosperity\u00a0in the process.",
+        "urn": "7440806737022099456"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 191,
+        "num_likes": 1201,
+        "num_shares": 69,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7440524181831835648/",
+        "posted": "2026-03-19 22:26:43.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "For\u00a0nearly 40\u00a0years, pharmaceutical drug donations have played a transformative role in combating neglected tropical diseases.\u00a0These programs deliver medicine at scale, making it possible for countries\u2019 public health systems to prevent and treat NTDs at no cost to patients.\u00a0The collaboration and generosity that enable these donations are critical to eliminating NTDs for good\u2014and one of global health\u2019s greatest success stories.",
+        "urn": "7440524181831835648"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 385,
+        "num_likes": 3171,
+        "num_shares": 192,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7440103138864300032/",
+        "posted": "2026-03-18 18:33:38.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Saidi Jafari lost his wife and daughter to childbirth complications.\u202fToday, he\u2019s an m-mama driver\u2014doing his part\u00a0to\u202fmake\u202fsure that no other family has to suffer that same fate.",
+        "urn": "7440103138864300032",
+        "video": {
+          "duration": 174533,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQHldKj0fc567w/mp4-720p-30fp-crf28/B56Z0COHOVKYCI-/0/1773858813817?e=1777118400&v=beta&t=3e7nimHIvW9m07TruOvhUbYzma_THep0uKETmxqs9PI"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 273,
+        "num_likes": 1927,
+        "num_shares": 138,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7439786827538128896/",
+        "posted": "2026-03-17 21:36:44.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Geothermal has the potential to be one of our most reliable and scalable sources of clean energy, and the\u00a0expertise\u00a0to unlock it already exists.\u00a0\u00a0\u00a0 \n\nBy applying the experience of oil and gas engineers, drillers, and scientists, companies like\u00a0Fervo Energy\u00a0are shaping the next generation of clean energy\u00a0and\u00a0demonstrating\u00a0how\u00a0an\u00a0industry fueled by innovation can deliver dependable power while creating high-quality jobs for a skilled workforce.",
+        "urn": "7439786827538128896"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 191,
+        "num_likes": 1300,
+        "num_shares": 68,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7439703743983620096/",
+        "posted": "2026-03-17 16:06:35.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "The\u00a0best hospital in the world\u00a0could be just\u00a0ten miles away. But if a\u00a0pregnant woman in crisis\u00a0can\u2019t\u00a0reach it, it might as well not exist\u00a0for her.\u00a0\u200b\u200b\n\u200b\u200b\nThat\u2019s\u00a0why m-mama created\u00a0a kind of 911 for rural Africa\u2014coordinating cars, boats, motorbikes, and community drivers to get\u00a0women in labor\u00a0to\u00a0the care they need when every minute counts.",
+        "urn": "7439703743983620096"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 261,
+        "num_likes": 2007,
+        "num_shares": 121,
+        "original_post": {
+          "attributes": [],
+          "images": [
+            {
+              "alt_text": "",
+              "url": "https://media.licdn.com/dms/image/v2/D5622AQFW38JP4ayeog/feedshare-shrink_1280/B56Zx1QGvIIcAg-/0/1771493682386?e=1778112000&v=beta&t=1_a-c9V03hj_y2xYkcLdFVOGA9qYmIUeFY6MD4Jrbjw"
+            }
+          ],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7430183045305094145/",
+          "posted": "2026-02-19 09:34:44.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/biologicale-limited/posts",
+          "poster_name": "Biological E. Limited",
+          "poster_title": "",
+          "text": "A decisive step forward in stopping polio outbreaks \u2014 at speed and at scale.\n\nBiological E. Limited has won Phase II Pre-Qualification from the World Health Organization for nOPV2, validating fully integrated manufacturing from drug substance to finished vaccine \u2014 all at one site.\n\n700M+ doses already powering global response. Now with stronger, end-to-end WHO-qualified capacity when the world needs it most.\n\nLink to the full article is in the comments.\n\n#nOPV2 #Polio #PolioEradication #WHO #PreQualification #BiologicalE #BE",
+          "urn": "7430183045305094145"
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7438703394728407040/",
+        "posted": "2026-03-14 21:51:33.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "India\u2019s Biological E achieved a major\u00a0milestone and\u00a0is now manufacturing a lifesaving\u00a0polio\u00a0vaccine that will be\u00a0critical to stopping\u00a0certain\u00a0outbreaks\u00a0of the virus.\u00a0It\u2019s\u00a0just one more\u00a0example of why, despite the setbacks we saw last year, global health progress is a bell that\u00a0can\u2019t\u00a0be unrung.",
+        "urn": "7438703394728407040"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 167,
+        "num_likes": 1077,
+        "num_shares": 68,
+        "original_post": {
+          "attributes": [],
+          "document": {
+            "page_count": 5,
+            "title": "Rodi Guidero's Letter to Investors",
+            "url": "https://media.licdn.com/dms/document/media/v2/D561FAQEGLluBfMUYeg/feedshare-document-sanitized-pdf/B56ZzY_jxdGgBA-/0/1773167067510?e=1777118400&v=beta&t=qy92hGDgbkzjz40J9YjihPuI7aeISYDwEEkaNHxJuS4"
+          },
+          "images": [],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7437205341446066177/",
+          "posted": "2026-03-10 18:38:49.000",
+          "poster_linkedin_url": "https://www.linkedin.com/in/rodi-guidero",
+          "poster_name": "Rodi Guidero",
+          "poster_title": "Executive Director, Breakthrough Energy & Managing Partner, Breakthrough Energy Ventures",
+          "text": "In an update to investors, I reflect on a decade of building in the world\u2019s foundational industries with Breakthrough Energy\u2014and where I see the next phase of industrial innovation heading.\u00a0\n\u00a0\nFor several years, we\u2019ve been focused on a core question: what does it actually take to build enduring businesses in markets measured in trillions, with infrastructure designed to last for generations?\u00a0\n\u00a0\nIt takes technical depth, patient capital, relentless attention to cost, and the discipline to back companies that can become household names in essential industries.\u00a0\n\u00a0\nI share how our strategy has evolved, what we\u2019re seeing across the portfolio, and why this moment matters for long-term investors.\u00a0\u00a0\n\u00a0\nI look forward to continuing the conversation at our BEV Investor Summit and at CERAWeek later this month.",
+          "urn": "7437205341446066177"
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7437524346803412993/",
+        "posted": "2026-03-11 15:46:26.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "A decade ago, transforming how the world\u00a0was built and\u00a0powered\u00a0felt unlikely. Today,\u00a0it's\u00a0happening. Breakthrough Energy\u00a0is\u00a0focused on helping make clean solutions the most practical and affordable options. Rodi\u00a0shares more about how\u00a0we\u2019re\u00a0doing\u00a0this\u00a0in his\u00a0letter to investors:",
+        "urn": "7437524346803412993"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 560,
+        "num_likes": 2529,
+        "num_shares": 162,
+        "original_post": {
+          "attributes": [],
+          "images": [],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7433105063453241345/",
+          "posted": "2026-02-27 11:05:47.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/dndi/posts",
+          "poster_name": "Drugs for Neglected Diseases initiative (DNDi)",
+          "poster_title": "",
+          "text": "\ud83d\ude80 Huge news for people living with sleeping sickness!\n\nAcoziborole, a one-day, single-dose oral treatment, has received a positive opinion from the European Medicines Agency (EMA) for the treatment of the most common form of sleeping sickness, T.b. gambiense.\n\n\ud83d\udc8a DNDi\u2019s Dr Wilfried remembers treating patients with the old medicine which was so toxic it killed one in twenty patients. Developed together with Sanofi, acoziborole is a revolution since those dark days. It cures sleeping sickness with one-day treatment course of three pills and is effective for both stages of the disease, including severe cases.\n\nThanks to its safety profile, it can be provided at the village level. Acoziborole will therefore become a major tool to facilitate efforts to finally eliminate sleeping sickness.\n\n\ud83e\udd1d This achievement reflects over a decade of collaboration and innovation across the global health community. We thank our partners, donors, staff, and everyone who was involved in making the dream of a single-dose, oral treatment for sleeping sickness come true for the people affected.\n\n\ud83d\udcfd\ufe0f Over the next weeks, we will be sharing stories of some of \u00a0those who played a role in making medical history, and what this milestone means. Follow us to hear their voices!\n\n\ud83d\udc49 More information: https://bit.ly/4tYk8oj \n\n\ud83d\udce2 Help share the news by using our social media toolkit: https://bit.ly/3Ojh7if\n\n#1Dose1Cure #GlobalHealth #beatNTDs",
+          "urn": "7433105063453241345",
+          "video": {
+            "duration": 67366,
+            "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQFN5YBoeL9ILA/mp4-720p-30fp-crf28/B4EZyexjd2JsCI-/0/1772190333285?e=1777118400&v=beta&t=Q3_xBCai39hYoKTDcu5t0WxJS2j-Qub4QX5UQ1sRNKQ"
+          }
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7436474391065985024/",
+        "posted": "2026-03-08 18:14:17.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "It's\u00a0hard to overstate how amazing this news is. When left untreated, sleeping sickness is a death sentence\u2014but for years, the cure was\u00a0nearly as\u00a0dangerous as the disease itself: an arsenic-based drug that killed 1 in 20 patients.\u200b\n\u200b\nThat changed in 2018 with fexinidazole, an incredible, safe, 10-day treatment. And now,\u00a0sleeping sickness can be cured with a single dose of three simple pills\u2014acoziborole\u2014no matter how advanced it is. What once\u00a0required\u00a0dangerous or lengthy care can now be treated easily and safely.\u00a0Thanks to Sanofi's commitment to donate the medicine, it will reach patients free of charge.\u00a0I'm\u00a0incredibly proud that the Gates Foundation was able to support this initiative.\u200b",
+        "urn": "7436474391065985024"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 888,
+        "num_likes": 5562,
+        "num_shares": 181,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7436225931213533184/",
+        "posted": "2026-03-08 01:47:00.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "In many parts of sub-Saharan Africa, the biggest danger during childbirth\u202fis\u00a0that\u00a0a\u00a0pregnant\u00a0woman in crisis\u00a0won\u2019t\u00a0make it to the hospital on time.\u00a0\u200b\n\u200b\nThat's\u202fwhere m-mama comes in,\u00a0using\u00a0community drivers\u2014in cars and on bikes, boats, and even horses\u2014to get\u00a0those women\u00a0the transportation\u00a0they desperately need.\u00a0Since 2013, it has responded to more than 125,000 maternal health emergencies and saved an estimated 5,266 lives.\u00a0\u00a0\u200b\n\u200b\nWhen a mother or baby is in crisis, minutes can make the difference between life and death.\u00a0So\u00a0m-mama is making sure those minutes count.",
+        "urn": "7436225931213533184"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 505,
+        "num_likes": 3623,
+        "num_shares": 175,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7435849334618931200/",
+        "posted": "2026-03-07 00:50:32.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "The NRC has approved the construction of TerraPower's advanced nuclear reactor in\u00a0Kemmerer, Wyoming.\u00a0This is a huge milestone\u2014the first construction permit for a commercial-scale advanced reactor.\u00a0\u00a0\n\u00a0\nThis plant will generate 345 megawatts of carbon-free electricity, create jobs, and help move us toward a cleaner, more reliable\u00a0energy\u00a0future.",
+        "urn": "7435849334618931200"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 985,
+        "num_likes": 4181,
+        "num_shares": 248,
+        "original_post": {
+          "attributes": [],
+          "document": {
+            "page_count": 4,
+            "title": "A Huge Win in the Fight Against Malaria",
+            "url": "https://media.licdn.com/dms/document/media/v2/D561FAQFtucU_WZG-Dg/feedshare-document-chunked-pdf/B56ZwFfkxsK4Bk-/0/1769618690722?e=1777118400&v=beta&t=9caYeNK0mLTV2ijap9tOJEtYvvB8LsC-s0YYk3GTjOM"
+          },
+          "images": [],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7422323506329092096/",
+          "posted": "2026-01-28 17:03:44.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/gates-foundation/posts",
+          "poster_name": "Gates Foundation",
+          "poster_title": "",
+          "text": "Science has brought us one step closer to a world without malaria.\n\nGanLum is the first breakthrough in malaria treatment in more than 25 years, offering hope for families across Africa. With drug resistance currently threatening decades of progress, this innovative treatment arrives at a critical moment.\n\nIt\u2019s a bold reminder of what\u2019s possible when we invest in science and innovation to move toward a malaria-free future.",
+          "urn": "7422323506329092096"
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7423047848730103809/",
+        "posted": "2026-01-30 17:02:00.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "This anti-malarial drug\u00a0is poised to become\u00a0the first breakthrough in malaria treatment in almost 25 years.\u00a0This incredible step forward is a testament to partnership and science\u2014and it couldn\u2019t\u00a0have come\u00a0at a more critical time.\u00a0\u200b",
+        "urn": "7423047848730103809"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 799,
+        "num_likes": 6977,
+        "num_shares": 438,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7422044750519787520/",
+        "posted": "2026-01-27 22:36:03.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "I\u2019m deeply sad to learn of the passing of Dr. Bill Foege. Bill was a towering figure in global health\u2014a man who saved the lives of literally hundreds of millions of people.\u00a0He was also a friend and mentor who gave me a deep grounding in the history of global health and inspired me with his conviction that the world could do more to alleviate suffering. \u200b\n\u200b\nBill and I often talked together about the future of global health. The legacy of his career is that many of the remarkable developments to come will have his imprint all over them.\u00a0\u200b",
+        "urn": "7422044750519787520",
+        "video": {
+          "duration": 121033,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQFei5p8b71rOA/mp4-720p-30fp-crf28/B56ZwBmSZYHQCA-/0/1769553357311?e=1777118400&v=beta&t=qETLidJBNe_WC6CLlzC5_bTcobC88DOofLT9UpaZX48"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 365,
+        "num_likes": 2872,
+        "num_shares": 179,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7420316198921433088/",
+        "posted": "2026-01-23 04:07:24.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "The #Goalkeepers2030 event in Stockholm celebrated heroes working on solutions to the world\u2019s toughest challenges.\u00a0\u200b\n\u200b\nWhen it comes to reducing child deaths, we\u00a0can\u2019t\u00a0stop at \u201calmost.\u201d And Nordic leadership,\u00a0innovation, and changemakers like these are making sure we\u00a0don\u2019t.",
+        "urn": "7420316198921433088",
+        "video": {
+          "duration": 46466,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQEW3kzq4dqSug/mp4-720p-30fp-crf28/B56ZvpCNGzHQCE-/0/1769141238357?e=1777118400&v=beta&t=QDznoqY_JtyPwOhd_P1-BJx0YQPQXYU-Opd0sLeS1Tw"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 774,
+        "num_likes": 4984,
+        "num_shares": 206,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7420280268969861121/",
+        "posted": "2026-01-23 01:44:38.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "I spend a lot of time thinking about how AI can help address fundamental challenges like poverty, hunger, and disease. One issue I keep coming back to is making great health care accessible to everyone. I believe AI can be a gamechanger in\u00a0doing just that\u2014which is why I\u2019m so excited that the Gates Foundation is partnering with OpenAI and African leaders on an ambitious goal: supporting 1,000 healthcare clinics as they find new ways to apply AI to improve care for their communities.",
+        "urn": "7420280268969861121"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 207,
+        "num_likes": 2126,
+        "num_shares": 115,
+        "original_post": {
+          "attributes": [],
+          "images": [
+            {
+              "alt_text": "",
+              "url": "https://media.licdn.com/dms/image/v2/D4D22AQGTkXabaeJfCg/feedshare-shrink_2048_1536/B4DZvmKBL_IgAo-/0/1769092946241?e=1778112000&v=beta&t=Uqhirxltr2E1sMxasqDSJ3X0DIwceYTRPJ_X9b5b6QY"
+            },
+            {
+              "alt_text": "",
+              "url": "https://media.licdn.com/dms/image/v2/D4D22AQFjf1BmqFuxDw/feedshare-shrink_2048_1536/B4DZvmKBLoKAAk-/0/1769092945188?e=1778112000&v=beta&t=kcEuuBwh0eoPR3zlKZc8uVGMOdkaXpmcReZwn00nKLg"
+            }
+          ],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7420113623529893888/",
+          "posted": "2026-01-22 14:42:26.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/alwaleed-philanthropies/posts",
+          "poster_name": "Alwaleed Philanthropies",
+          "poster_title": "",
+          "text": "In line with the guidance of our Chairman HRH Prince Alwaleed bin Talal Al Saud, and reaffirming our global commitment to the eradication of polio, with the participation of our Secretary General, HRH Princess Lamia M Al Saud, and Mr. Bill Gates, Chair of the Gates Foundation, we renew a partnership spanning more than a decade and continue working together to improve the health of millions of children worldwide, supporting their access to essential healthcare and building a more sustainable future for generations to come. To learn more: https://brnw.ch/21wZixa\n#TogetherForHumanity\n\n\u0627\u0645\u062a\u062f\u0627\u062f\u064b\u0627 \u0644\u062a\u0648\u062c\u064a\u0647\u0627\u062a \u0635\u0627\u062d\u0628 \u0627\u0644\u0633\u0645\u0648 \u0627\u0644\u0645\u0644\u0643\u064a \u0627\u0644\u0623\u0645\u064a\u0631 \u0627\u0644\u0648\u0644\u064a\u062f \u0628\u0646 \u0637\u0644\u0627\u0644 \u0627\u064e\u0644 \u0633\u0639\u0648\u062f\u060c \u0631\u0626\u064a\u0633 \u0645\u062c\u0644\u0633 \u0623\u0645\u0646\u0627\u0626\u0646\u0627\u060c \u0648\u062a\u0623\u0643\u064a\u062f\u064b\u0627 \u0639\u0644\u0649 \u0627\u0644\u062a\u0632\u0627\u0645\u0646\u0627 \u0627\u0644\u0639\u0627\u0644\u0645\u064a \u0628\u0627\u0644\u0642\u0636\u0627\u0621 \u0639\u0644\u0649 \u0645\u0631\u0636 \u0634\u0644\u0644 \u0627\u0644\u0623\u0637\u0641\u0627\u0644\u060c \u0648\u0628\u0645\u0634\u0627\u0631\u0643\u0629 \u0623\u0645\u064a\u0646\u0646\u0627 \u0627\u0644\u0639\u0627\u0645 \u0627\u0644\u0623\u0645\u064a\u0631\u0629 \u0644\u0645\u064a\u0627\u0621 \u0628\u0646\u062a \u0645\u0627\u062c\u062f \u0622\u0644 \u0633\u0639\u0648\u062f\u060c \u0648\u0628\u064a\u0644 \u063a\u064a\u062a\u0633\u060c \u0631\u0626\u064a\u0633 \u0645\u062c\u0644\u0633 \u0625\u062f\u0627\u0631\u0629 \u0645\u0624\u0633\u0633\u0629 \u063a\u064a\u062a\u0633\u060c \u0646\u064f\u062c\u062f\u062f \u0634\u0631\u0627\u0643\u062a\u0646\u0627 \u0627\u0644\u0645\u0645\u062a\u062f\u0629 \u0644\u0623\u0643\u062b\u0631 \u0645\u0646 \u0639\u0634\u0631 \u0633\u0646\u0648\u0627\u062a \u0648\u0646\u0648\u0627\u0635\u0644 \u0627\u0644\u0639\u0645\u0644 \u0645\u0639\u064b\u0627 \u0644\u062a\u062d\u0633\u064a\u0646 \u0635\u062d\u0629 \u0645\u0644\u0627\u064a\u064a\u0646 \u0627\u0644\u0623\u0637\u0641\u0627\u0644 \u062d\u0648\u0644 \u0627\u0644\u0639\u0627\u0644\u0645\u060c \u062d\u064a\u062b \u0646\u0633\u062a\u0645\u0631 \u0641\u064a \u062f\u0639\u0645 \u0648\u0635\u0648\u0644\u0647\u0645 \u0625\u0644\u0649 \u0627\u0644\u0631\u0639\u0627\u064a\u0629 \u0627\u0644\u0635\u062d\u064a\u0629 \u0627\u0644\u0623\u0633\u0627\u0633\u064a\u0629 \u0627\u0644\u062a\u064a \u064a\u0633\u062a\u062d\u0642\u0648\u0646\u0647\u0627\u060c \u0648\u0628\u0646\u0627\u0621 \u0645\u0633\u062a\u0642\u0628\u0644 \u0623\u0643\u062b\u0631 \u0627\u0633\u062a\u062f\u0627\u0645\u0629 \u0644\u0644\u0623\u062c\u064a\u0627\u0644 \u0627\u0644\u0642\u0627\u062f\u0645\u0629\n\u0644\u0645\u0632\u064a\u062f \u0645\u0646 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a\nhttps://brnw.ch/21wZix6\n#\u0645\u0639\u064b\u0627_\u0645\u0646_\u0623\u062c\u0644_\u0627\u0644\u0625\u0646\u0633\u0627\u0646",
+          "urn": "7420113623529893888"
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7420148525314854913/",
+        "posted": "2026-01-22 17:01:08.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Thank you, HRH Alwaleed Bin Talal, for your continued leadership\u00a0and commitment\u00a0to polio\u00a0eradication,\u00a0and for your\u00a0generous\u00a0support through Alwaleed Philanthropies.\u200b\n\u200b\nTogether\u00a0with partners around the world,\u00a0we are ushering in a future where\u00a0no child\u00a0has\u00a0to\u00a0live in\u00a0fear of polio.",
+        "urn": "7420148525314854913"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 633,
+        "num_likes": 6423,
+        "num_shares": 486,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7419886151131590656/",
+        "posted": "2026-01-21 23:38:33.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "AI tools are a powerful way to support health workers\u2014helping them extend clinical capacity, improve quality of care, and reach more people, especially in places where resources are scarce.",
+        "urn": "7419886151131590656",
+        "video": {
+          "duration": 119000,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQFseo7l_kaQOg/mp4-720p-30fp-crf28/B56Zvi7DT4KwCA-/0/1769038706985?e=1777118400&v=beta&t=iw_8VCr4u3pzNdovhyTta_3ms319EFSBkm9Zdk0Xp0M"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 341,
+        "num_likes": 2670,
+        "num_shares": 190,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7419617889554599936/",
+        "posted": "2026-01-21 05:52:34.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Despite cuts to aid over the past few years, I\u2019m optimistic about the future of health. Because even though the challenges are significant, new innovations can finally help address them.\u200b\n\u200b\nIn Africa, a persistent and growing shortage of health workers makes it harder for already stretched healthcare systems to reach patients who need care. Through Horizon1000, the Gates Foundation and OpenAI are supporting country-led efforts\u2014starting in Rwanda\u2014to explore how AI tools can help reduce the burden on clinicians, improve quality of care, and reach more patients.",
+        "urn": "7419617889554599936"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 556,
+        "num_likes": 2479,
+        "num_shares": 167,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7418916487928688641/",
+        "posted": "2026-01-19 07:25:27.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Of all the things humans have ever created, AI will change society the most. It will help solve many of our current problems while also bringing new challenges\u00a0very different\u00a0from past innovations. In agriculture, the impacts of a\u00a0warming\u00a0world are already visible. Rising temperatures driven by climate change are hitting farmers with the fewest resources first. AI-powered tools will soon give smallholder farmers better guidance on weather, crop disease, and soil health\u2014helping to protect livelihoods and strengthen food security.\u00a0\u200b\n\u200b\nHealthcare will also get better with AI. Despite an incredible pipeline of medical innovation, cost and complexity continue to limit access to care around the world. Always\u00a0available,\u00a0high-quality medical guidance supported by AI tools will make a meaningful difference in places with too few doctors and nurses.\u00a0\u200b\n\u200b\nIn education, personalized learning has long been a goal but delivering it at scale has proven difficult. AI can help teachers meet students where they are and keep more students engaged, particularly in under resourced systems.\u00a0\u200b\n\u200b\nAcross climate, health, and education, the lesson is clear: Equitable outcomes will not happen on their own. To drive real progress, AI innovations must reach the people who need it most.",
+        "urn": "7418916487928688641"
+      },
+      {
+        "attributes": [],
+        "document": {
+          "page_count": 8,
+          "title": "Optimism With Footnotes",
+          "url": "https://media.licdn.com/dms/document/media/v2/D561FAQEVOwXlcoa94Q/feedshare-document-url-metadata-scrapper-pdf/B56ZvDjDDUJAA8-/0/1768512304835?e=1777118400&v=beta&t=5LJilV687tBE_RCfNoS7JOKrzWXdn-ylvR8K8TBoato"
+        },
+        "images": [],
+        "num_comments": 667,
+        "num_likes": 4013,
+        "num_shares": 363,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7417679084995936256/",
+        "posted": "2026-01-15 21:28:27.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "While I believe the world will keep improving,\u00a0it\u2019s\u00a0harder to see that today than it has been in a long time. \u00a0But it can still happen if we foster generosity, scale innovations, and manage the acceleration of artificial intelligence responsibly: https://lnkd.in/gBEyaJmq",
+        "urn": "7417679084995936256"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 690,
+        "num_likes": 6235,
+        "num_shares": 399,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7416689022678384641/",
+        "posted": "2026-01-13 03:54:18.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "I\u2019m hopeful that the new year means new solutions\u2014and renewed momentum\u2014in the fight to save and improve lives around the world.",
+        "urn": "7416689022678384641",
+        "video": {
+          "duration": 103433,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQF3m9f04ajHGQ/mp4-720p-30fp-crf28/B56Zu1fTD6H4CI-/0/1768276456247?e=1777118400&v=beta&t=3uOiE52X1dWpCFwicq93JsH2nLG2QwoJzHqTE47nM9g"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 1035,
+        "num_likes": 5910,
+        "num_shares": 211,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7416559967329103872/",
+        "posted": "2026-01-12 19:21:29.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "I have always been an optimist. These days, though, my optimism comes with footnotes. For the first time this century, the world slipped backwards on key measures like childhood mortality in 2025, and if we don\u2019t make the right decisions, this trend will continue. \u00a0At the same time, I also believe that, within the next decade, the world will not only get back on track but enter a new era of unprecedented progress. As we start 2026, I\u2019m thinking about how the year ahead will position us for decades to come.",
+        "urn": "7416559967329103872"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "alt_text": "",
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQEOPoHMGd7vqQ/feedshare-shrink_2048_1536/B56ZukBtodHEAw-/0/1767983471496?e=1778112000&v=beta&t=0vxfIwiPia-TCwOYV6_uqJOI7YTAwud83h7os7xcGA0"
+          }
+        ],
+        "num_comments": 670,
+        "num_likes": 3865,
+        "num_shares": 285,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7415460149433118720/",
+        "posted": "2026-01-09 18:31:12.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Friends and colleagues often ask me how I stay optimistic during hard times. Lately, that has become a difficult question to answer. The truth is, I am still an optimist. But these days, my optimism comes with footnotes. As we head into 2026, I\u2019m thinking about how the year ahead will set us up for the decades to come: https://lnkd.in/gFUHarBX",
+        "urn": "7415460149433118720"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 500,
+        "num_likes": 3485,
+        "num_shares": 197,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7415185312454193152/",
+        "posted": "2026-01-09 00:19:05.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Losing my dad to this disease makes the fight for Alzheimer\u2019s breakthroughs very personal to me. Recent advancements in Alzheimer\u2019s diagnostics specifically, like blood-based tests and digital biomarkers, help me stay optimistic about the future.",
+        "urn": "7415185312454193152"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 248,
+        "num_likes": 1669,
+        "num_shares": 117,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7414839546972045312/",
+        "posted": "2026-01-08 01:25:09.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Maternal imaging is a critical way to detect issues early on and\u00a0help\u00a0prevent complications from pregnancy and childbirth. But typical ultrasounds are often unaffordable and inaccessible, especially for women in low-income, rural communities. That\u2019s changing thanks to a small, handheld device that hooks up to mobile phones. It\u2019s called a POCUS, short for point-of-care ultrasound\u2014and it\u2019s the kind of innovation that makes me hopeful about the future of maternal health.",
+        "urn": "7414839546972045312"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 197,
+        "num_likes": 1959,
+        "num_shares": 117,
+        "original_post": {
+          "attributes": [],
+          "images": [],
+          "num_comments": null,
+          "num_likes": null,
+          "num_shares": null,
+          "post_type": "unknown",
+          "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7405272200439570432/",
+          "posted": "2025-12-12 15:47:55.000",
+          "poster_linkedin_url": "https://www.linkedin.com/company/alzheimersdata/posts",
+          "poster_name": "Alzheimer's Disease Data Initiative",
+          "poster_title": "",
+          "text": "Five teams. One $1M prize. The future of Alzheimer's research. \n\nAt the\u00a0AlzInsights\u00a0Summit 2, our semifinalists delivered powerful pitches\u00a0showcasing\u00a0how agentic AI can transform ADRD research\u2014and we announced the finalists who will be competing at #ADPD2026 in Copenhagen.\u00a0 \n\nPlus,\u00a0Alzheimer\u2019s research and\u00a0AI trailblazers Randall Bateman, Director of the C-BrAIn\u00a0Consortium and Eric Horvitz, Chief Scientific Officer at Microsoft, shared insights on how AI is already\u00a0revolutionizing brain and life sciences. \n\nThe innovation happening in this space is extraordinary. Watch the highlights. \n\nLuca Foschini, Gayle Wittenberg, Ph.D., Gabrielle Strobel, Aashima Gupta, Gregory Moore MD, PhD, Tom Stocky, Hoifung Poon, Justine Levin-Allerhand, Ram Mukunda, Paola Ruiz Puentes, Marram \"Beck\" Olson, Duygu Tosun-Turgut, Bingxin Z., Juan Shu, Rawan Tarawneh, Jie Hou, Rupal Patel, Vijaya B. Kolachalama, Ravi Solanki, Jonathan Hoover, Adri\u00e1n Noriega de la Colina, MD PhD, Arvid E. Gollwitzer, Wenrui Hao, Jeffrey R. Petrella, Yiyu Shi, Travis S. Johnson, PhD, Kuan-lin Huang, Kexin Huang, Niranjan Bose",
+          "urn": "7405272200439570432",
+          "video": {
+            "duration": 133333,
+            "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQHn3BwraGQjIg/mp4-720p-30fp-crf28/B4EZsTPvcMIMCI-/0/1765554467353?e=1777118400&v=beta&t=AaPel29CUoEr_fosP1HOfcLA4GUh0qaV8cl1IXmQiw4"
+          }
+        },
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7414403835252768768/",
+        "posted": "2026-01-06 20:33:47.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "Truly impressive\u00a0work and innovation from every team.",
+        "urn": "7414403835252768768"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "alt_text": "",
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQHIy8HYa-Zq6w/feedshare-shrink_2048_1536/B56ZuPXVvoHYAw-/0/1767636819473?e=1778112000&v=beta&t=i-q81cVKwR7NkLgS2mDkmlvKOK0gZtKHVwMsI9FgyzY"
+          }
+        ],
+        "num_comments": 283,
+        "num_likes": 1972,
+        "num_shares": 122,
+        "post_type": "unknown",
+        "post_url": "https://www.linkedin.com/feed/update/urn:li:activity:7414006184728252419/",
+        "posted": "2026-01-05 18:13:40.000",
+        "poster_linkedin_url": "https://www.linkedin.com/in/williamhgates",
+        "poster_name": "Bill Gates",
+        "poster_title": "Chair, Gates Foundation and Founder, Breakthrough Energy",
+        "text": "From health workers who travel miles to deliver care to researchers helping farmers adapt to climate change, these heroes show what commitment looks like.\u00a0Their work is\u00a0moving progress\u00a0forward\u2014one\u00a0improved life\u00a0at a time: https://b-gat.es/3L0Xx9j",
+        "urn": "7414006184728252419"
+      }
+    ],
+    "message": "ok",
+    "total": 247
+  }
+}
