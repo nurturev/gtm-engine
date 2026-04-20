@@ -333,7 +333,7 @@ TOOLS: list[dict[str, Any]] = [
                 },
                 "provider": {
                     "type": "string",
-                    "description": "Force a specific provider (e.g. 'apollo', 'pdl'). Omit for auto-selection.",
+                    "description": "Force a specific provider (e.g. 'apollo', 'rocketreach'). Omit for auto-selection.",
                 },
             },
             "required": ["email"],
@@ -1671,10 +1671,6 @@ def _handle_nrev_provider_status(args: dict[str, Any]) -> dict[str, Any]:
     providers_info = [
         ("apollo", "Person & company enrichment, people search"),
         ("rocketreach", "Person enrichment, school/alumni search"),
-        ("pdl", "People Data Labs enrichment"),
-        ("hunter", "Email finder and verifier"),
-        ("leadmagic", "Lead enrichment"),
-        ("zerobounce", "Email verification"),
         ("rapidapi_google", "Google web search"),
         ("parallel_web", "Web scraping and content extraction"),
         ("predictleads", "Company jobs, news, similar companies"),
