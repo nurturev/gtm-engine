@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import time
 import uuid
+from contextvars import ContextVar
 
 from fastapi import Request, Response
 from jose import jwt
@@ -12,6 +13,16 @@ from jose import jwt
 from server.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Per-request identifiers, read by the JSON log formatter so every log line
+# carries tenant/user/request context automatically.
+request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
+tenant_id_var: ContextVar[str | None] = ContextVar("tenant_id", default=None)
+user_id_var: ContextVar[str | None] = ContextVar("user_id", default=None)
+internal_service_var: ContextVar[str | None] = ContextVar("internal_service", default=None)
+agent_type_var: ContextVar[str | None] = ContextVar("agent_type", default=None)
+thread_id_var: ContextVar[str | None] = ContextVar("thread_id", default=None)
+workflow_id_var: ContextVar[str | None] = ContextVar("workflow_id", default=None)
 
 
 async def request_id_middleware(request: Request, call_next) -> Response:
@@ -24,6 +35,7 @@ async def request_id_middleware(request: Request, call_next) -> Response:
     """
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     request.state.request_id = request_id
+    request_id_var.set(request_id)
 
     client_host = request.client.host if request.client else "unknown"
     logger.info(
@@ -58,6 +70,7 @@ async def tenant_context_middleware(request: Request, call_next) -> Response:
     available early in the request lifecycle for logging and tracing.
     """
     tenant_id: str | None = None
+    user_id: str | None = None
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
         token = auth.removeprefix("Bearer ")
@@ -69,9 +82,25 @@ async def tenant_context_middleware(request: Request, call_next) -> Response:
                 options={"verify_exp": False},
             )
             tenant_id = payload.get("tenant_id")
+            user_id = payload.get("sub")
         except Exception:
-            # Not a JWT — check for X-Tenant-Id (service token path)
-            tenant_id = request.headers.get("X-Tenant-Id")
+            # Not a JWT — service-token path; identifiers come from headers.
+            pass
+
+    # Header values always win for service-to-service calls (X-Internal-Service
+    # is set) and serve as a fallback for auth paths that didn't populate them.
+    tenant_id = request.headers.get("X-Tenant-Id") or tenant_id
+    user_id = request.headers.get("X-User-Id") or user_id
+
     request.state.tenant_id = tenant_id
+    request.state.user_id = user_id
+    tenant_id_var.set(tenant_id)
+    user_id_var.set(user_id)
+
+    internal_service_var.set(request.headers.get("X-Internal-Service"))
+    agent_type_var.set(request.headers.get("X-Agent-Type"))
+    thread_id_var.set(request.headers.get("X-Thread-Id"))
+    workflow_id_var.set(request.headers.get("X-Workflow-Id"))
+
     response: Response = await call_next(request)
     return response
