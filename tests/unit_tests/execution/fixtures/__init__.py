@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-_SAMPLE_DIR = Path(__file__).resolve().parents[4] / "docs" / "sample_responses"
+_SAMPLE_DIR = Path(__file__).resolve().parents[4] / "docs" / "fresh_linkedin_sample_responses"
 
 
 def _load(slug: str) -> dict[str, Any]:

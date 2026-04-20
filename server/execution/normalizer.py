@@ -1207,12 +1207,25 @@ def _normalize_fresh_linkedin_comment_item(raw: dict[str, Any]) -> dict[str, Any
     return comment
 
 
+def _fl_paging(raw: dict[str, Any]) -> dict[str, Any]:
+    """Return the vendor's `paging` sub-dict, tolerating missing/malformed shapes.
+
+    Fresh LinkedIn list endpoints return pagination metadata nested under a
+    top-level `paging` object (observed shapes: `{start, pagination_token}` for
+    profile/company posts, `{page, pagination_token}` for comments,
+    `{page}` for reactions). Extract it once and let the per-endpoint
+    normalizer pick the keys it needs.
+    """
+    paging = raw.get("paging")
+    return paging if isinstance(paging, dict) else {}
+
+
 def _normalize_fresh_linkedin_reactions(raw: dict[str, Any]) -> dict[str, Any]:
     if raw.get("match_found") is False:
         return {
             "reactions": [],
             "total": 0,
-            "cursor": None,
+            "pagination": {"page": None},
             "enrichment_sources": {"fresh_linkedin": []},
         }
     data = raw.get("data") if isinstance(raw.get("data"), list) else []
@@ -1229,16 +1242,11 @@ def _normalize_fresh_linkedin_reactions(raw: dict[str, Any]) -> dict[str, Any]:
     total = raw.get("total")
     if not isinstance(total, int):
         total = len(reactions)
-    cursor = (
-        raw.get("cursor")
-        or raw.get("next_cursor")
-        or raw.get("pagination_token")
-        or None
-    )
+    paging = _fl_paging(raw)
     return {
         "reactions": reactions,
         "total": total,
-        "cursor": cursor,
+        "pagination": {"page": _string_or_none(paging.get("page"))},
         "enrichment_sources": {"fresh_linkedin": ["reactions"] if reactions else []},
     }
 
@@ -1248,7 +1256,7 @@ def _normalize_fresh_linkedin_comments(raw: dict[str, Any]) -> dict[str, Any]:
         return {
             "comments": [],
             "total": 0,
-            "cursor": None,
+            "pagination": {"page": None, "pagination_token": None},
             "enrichment_sources": {"fresh_linkedin": []},
         }
     data = raw.get("data") if isinstance(raw.get("data"), list) else []
@@ -1265,11 +1273,14 @@ def _normalize_fresh_linkedin_comments(raw: dict[str, Any]) -> dict[str, Any]:
     total = raw.get("total")
     if not isinstance(total, int):
         total = len(comments)
-    cursor = raw.get("pagination_token") or raw.get("cursor") or None
+    paging = _fl_paging(raw)
     return {
         "comments": comments,
         "total": total,
-        "cursor": cursor,
+        "pagination": {
+            "page": _string_or_none(paging.get("page")),
+            "pagination_token": _string_or_none(paging.get("pagination_token")),
+        },
         "enrichment_sources": {"fresh_linkedin": ["comments"] if comments else []},
     }
 
@@ -1383,7 +1394,7 @@ def _normalize_fresh_linkedin_search_posts(raw: dict[str, Any]) -> dict[str, Any
     if raw.get("match_found") is False:
         return {
             "posts": [],
-            "page": raw.get("__page__") or 1,
+            "pagination": {"page": raw.get("__page__") or 1},
             "enrichment_sources": {"fresh_linkedin": []},
         }
     data = raw.get("data") if isinstance(raw.get("data"), list) else []
@@ -1403,7 +1414,7 @@ def _normalize_fresh_linkedin_search_posts(raw: dict[str, Any]) -> dict[str, Any
     page = raw.get("page") if isinstance(raw.get("page"), int) else raw.get("__page__", 1)
     return {
         "posts": posts,
-        "page": page,
+        "pagination": {"page": page},
         "enrichment_sources": {"fresh_linkedin": ["search_posts"] if posts else []},
     }
 
@@ -1518,7 +1529,7 @@ def _normalize_fresh_linkedin_post_list(
         return {
             "posts": [],
             "total": 0,
-            "cursor": None,
+            "pagination": {"start": None, "pagination_token": None},
             "enrichment_sources": {"fresh_linkedin": []},
         }
 
@@ -1540,12 +1551,14 @@ def _normalize_fresh_linkedin_post_list(
     if not isinstance(total, int):
         total = len(posts)
 
-    cursor = raw.get("cursor") or raw.get("next_cursor") or raw.get("pagination_token") or None
-
+    paging = _fl_paging(raw)
     return {
         "posts": posts,
         "total": total,
-        "cursor": cursor,
+        "pagination": {
+            "start": _string_or_none(paging.get("start")),
+            "pagination_token": _string_or_none(paging.get("pagination_token")),
+        },
         "enrichment_sources": {"fresh_linkedin": ["posts"] if posts else []},
     }
 

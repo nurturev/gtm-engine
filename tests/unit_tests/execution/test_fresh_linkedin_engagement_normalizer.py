@@ -1,4 +1,4 @@
-"""Phase 2.3 — Reaction and Comment normalizer tests.
+"""Reaction and Comment normalizer tests.
 
 Unit tests for the engagement envelope builders:
 - ``_normalize_fresh_linkedin_reactions(raw)``
@@ -6,7 +6,7 @@ Unit tests for the engagement envelope builders:
 
 Pure function. Zero mocks.
 
-Contracts (HLD Phase 2.3 §3, §5):
+Contracts (HLD Phase 2.3 §3, §5 + Phase 2.5 pagination HLD §6):
 - ``Reaction``: ``type``, ``reactor{name, headline, linkedin_url, urn}``.
 - ``Comment``: ``text``, ``created_at``, ``commenter{name, headline,
   linkedin_url, urn, image_url}``, ``pinned``, ``reply_count``,
@@ -14,8 +14,9 @@ Contracts (HLD Phase 2.3 §3, §5):
   ``annotation``, raw ``replies[]``).
 - **P2-D5 — honesty rule:** reactor/commenter is NOT coerced to a full
   Person. No name-splitting. URL stays URN-style (``linkedin.com/in/ACoAA...``).
-- Envelopes use ``cursor`` uniformly for pagination (vendor's
-  ``pagination_token`` is renamed to ``cursor`` on the way out).
+- **Pagination (Phase 2.5):** envelopes carry a nested ``pagination`` sub-dict
+  — ``{page, pagination_token}`` for comments, ``{page}`` for reactions.
+  Old top-level ``cursor`` key is removed (staging-only, no BC concern).
 """
 
 from __future__ import annotations
@@ -47,13 +48,46 @@ class TestReactionsEnvelope:
         envelope = _normalize_fresh_linkedin_reactions(post_reactions_response())
         assert envelope.get("enrichment_sources") == {"fresh_linkedin": ["reactions"]}
 
-    def test_cursor_key_present_even_when_null(self) -> None:
-        """Our sample's first-page call returned all 11 reactions with no
-        pagination hint. Envelope must expose ``cursor`` (present-with-null)
-        — callers treat null as 'no more pages'."""
+
+class TestReactionsPaginationEnvelope:
+    """HLD §6.2 — reactions envelope exposes only ``pagination.page`` (single-
+    value pagination; no token at the vendor for this endpoint)."""
+
+    def test_pagination_sub_dict_present(self) -> None:
         envelope = _normalize_fresh_linkedin_reactions(post_reactions_response())
-        assert "cursor" in envelope
-        assert envelope["cursor"] is None
+        assert "pagination" in envelope
+        assert isinstance(envelope["pagination"], dict)
+
+    def test_pagination_only_carries_page_key(self) -> None:
+        envelope = _normalize_fresh_linkedin_reactions(post_reactions_response())
+        assert set(envelope["pagination"].keys()) == {"page"}
+
+    def test_page_is_none_when_vendor_omits(self) -> None:
+        """The fixture's first-page response doesn't carry a ``page`` key;
+        envelope surfaces ``None`` (HLD §6.3 — no input-echoing fallback)."""
+        envelope = _normalize_fresh_linkedin_reactions(post_reactions_response())
+        assert envelope["pagination"]["page"] is None
+
+    def test_legacy_top_level_cursor_removed(self) -> None:
+        """HLD §14 breaking change — ``cursor`` no longer lives at the top
+        level; callers read ``envelope.pagination.page`` instead."""
+        envelope = _normalize_fresh_linkedin_reactions(post_reactions_response())
+        assert "cursor" not in envelope
+
+
+class TestReactionsPaginationEchoesVendorPageWhenPresent:
+    """When vendor ships ``page`` in the body, normalizer echoes it as a
+    string under ``pagination.page``."""
+
+    def test_vendor_page_echoed(self) -> None:
+        raw = {"data": [], "total": 0, "page": "2"}
+        envelope = _normalize_fresh_linkedin_reactions(raw)
+        assert envelope["pagination"]["page"] == "2"
+
+    def test_vendor_int_page_coerced_to_str(self) -> None:
+        raw = {"data": [], "total": 0, "page": 2}
+        envelope = _normalize_fresh_linkedin_reactions(raw)
+        assert envelope["pagination"]["page"] == "2"
 
 
 class TestReactionItemShape:
@@ -116,17 +150,58 @@ class TestCommentsEnvelope:
         assert isinstance(envelope.get("comments"), list)
         assert envelope.get("total") == 1
 
-    def test_cursor_passes_through_from_vendor_pagination_token(self) -> None:
-        """Vendor's ``pagination_token`` is renamed to ``cursor`` at our
-        surface — uniformly across engagement endpoints."""
-        envelope = _normalize_fresh_linkedin_comments(post_comments_response())
-        assert envelope.get("cursor") == (
-            "1491721209-1776506342006-390222d6fca581a614f1f77734aad0e9"
-        )
-
     def test_enrichment_sources_records_comments_operation(self) -> None:
         envelope = _normalize_fresh_linkedin_comments(post_comments_response())
         assert envelope.get("enrichment_sources") == {"fresh_linkedin": ["comments"]}
+
+
+class TestCommentsPaginationEnvelope:
+    """HLD §6.2 — comments envelope exposes ``pagination.{page, pagination_token}``.
+    Old top-level ``cursor`` key is removed (HLD §14 breaking change)."""
+
+    def test_pagination_sub_dict_present(self) -> None:
+        envelope = _normalize_fresh_linkedin_comments(post_comments_response())
+        assert "pagination" in envelope
+        assert isinstance(envelope["pagination"], dict)
+
+    def test_pagination_keys_are_page_and_token(self) -> None:
+        envelope = _normalize_fresh_linkedin_comments(post_comments_response())
+        assert set(envelope["pagination"].keys()) == {"page", "pagination_token"}
+
+    def test_token_lifted_from_vendor_pagination_token(self) -> None:
+        """Vendor ships ``pagination_token`` at the top level of the response
+        body. Normalizer surfaces it under ``envelope.pagination.pagination_token``
+        (no renaming, just relocation)."""
+        envelope = _normalize_fresh_linkedin_comments(post_comments_response())
+        assert envelope["pagination"]["pagination_token"] == (
+            "1491721209-1776506342006-390222d6fca581a614f1f77734aad0e9"
+        )
+
+    def test_page_none_when_vendor_omits(self) -> None:
+        """Fixture has no ``page`` key at the top level → envelope surfaces
+        ``None`` (no input-echoing — HLD §6.3)."""
+        envelope = _normalize_fresh_linkedin_comments(post_comments_response())
+        assert envelope["pagination"]["page"] is None
+
+    def test_legacy_top_level_cursor_removed(self) -> None:
+        envelope = _normalize_fresh_linkedin_comments(post_comments_response())
+        assert "cursor" not in envelope
+
+
+class TestCommentsPaginationEndOfStream:
+    """When vendor returns nulls for both keys, envelope surfaces them
+    as ``None`` so callers can detect end-of-stream."""
+
+    def test_both_none_on_last_page(self) -> None:
+        raw = {
+            "data": [],
+            "total": 0,
+            "pagination_token": None,
+            "page": None,
+        }
+        envelope = _normalize_fresh_linkedin_comments(raw)
+        assert envelope["pagination"]["page"] is None
+        assert envelope["pagination"]["pagination_token"] is None
 
 
 class TestCommentItemShape:
