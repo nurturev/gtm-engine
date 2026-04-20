@@ -37,11 +37,14 @@ async def request_id_middleware(request: Request, call_next) -> Response:
     request.state.request_id = request_id
     request_id_var.set(request_id)
 
+    path = request.url.path
+    is_health_probe = path.startswith("/health")
     client_host = request.client.host if request.client else "unknown"
-    logger.info(
-        "Request received: %s %s from=%s request_id=%s",
-        request.method, request.url.path, client_host, request_id,
-    )
+    if not is_health_probe:
+        logger.info(
+            "Request received: %s %s from=%s request_id=%s",
+            request.method, path, client_host, request_id,
+        )
     start = time.monotonic()
     try:
         response: Response = await call_next(request)
@@ -49,15 +52,18 @@ async def request_id_middleware(request: Request, call_next) -> Response:
         duration_ms = int((time.monotonic() - start) * 1000)
         logger.exception(
             "Request raised: %s %s request_id=%s duration_ms=%d",
-            request.method, request.url.path, request_id, duration_ms,
+            request.method, path, request_id, duration_ms,
         )
         raise
     duration_ms = int((time.monotonic() - start) * 1000)
-    logger.info(
-        "Request completed: %s %s status=%d request_id=%s duration_ms=%d",
-        request.method, request.url.path, response.status_code,
-        request_id, duration_ms,
-    )
+    # Skip the completed-log for successful health probes — they're every-few-
+    # seconds noise. Non-2xx/3xx still logs so failing probes are visible.
+    if not (is_health_probe and 200 <= response.status_code < 400):
+        logger.info(
+            "Request completed: %s %s status=%d request_id=%s duration_ms=%d",
+            request.method, path, response.status_code,
+            request_id, duration_ms,
+        )
     response.headers["X-Request-ID"] = request_id
     return response
 

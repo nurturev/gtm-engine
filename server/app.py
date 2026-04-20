@@ -130,6 +130,27 @@ _server_logger.propagate = True
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+
+
+class _SuccessfulHealthcheckFilter(logging.Filter):
+    """Drop uvicorn access-log lines for successful /health probes.
+
+    Failing health checks (5xx) and unexpected status codes still flow through
+    so on-call can see them. Non-health traffic is untouched.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        if not isinstance(args, tuple) or len(args) < 5:
+            return True
+        path = args[2] if isinstance(args[2], str) else ""
+        status = args[4] if isinstance(args[4], int) else 0
+        if path.startswith("/health") and 200 <= status < 400:
+            return False
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(_SuccessfulHealthcheckFilter())
 from server.core.database import engine
 from server.core.middleware import request_id_middleware, tenant_context_middleware
 
