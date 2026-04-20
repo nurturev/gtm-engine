@@ -1,6 +1,6 @@
 ---
 name: tool-skills
-description: Index of tactical reference sheets covering API quirks, field formats, and gotchas for each data provider — Apollo, RocketReach, Hunter, Parallel Web, Instantly, ZeroBounce, BetterContact, PredictLeads, and Google search patterns. Use BEFORE making API calls to a specific provider to avoid wasted credits and bad data.
+description: Provider API quirks and best practices for each data provider
 ---
 
 # Tool Skills — Provider API Quirks & Best Practices
@@ -15,5 +15,11 @@ Auto-load the relevant tool skill BEFORE making any API call to that provider. T
 
 - `apollo-quirks.md` — Apollo API field formats, filter behaviors, URL requirements
 - `rocketreach-quirks.md` — RocketReach previous employer format, search quirks
+- `predictleads-quirks.md` — PredictLeads company signals API, dual-key auth
+- `linkedin-scraping-quirks.md` — Fresh LinkedIn Profile Data (RapidAPI) — endpoint polymorphism, URN extraction, dependency chains, engagement explosion guardrails
 - `google-search-patterns.md` — Site: operators, URL structures by platform
 - `parallel-web-quirks.md` — Parallel Web enrichment capabilities and limits
+- `hunter-quirks.md` — Hunter.io email discovery and verification quirks
+- `bettercontact-quirks.md` — BetterContact waterfall enrichment quirks
+- `instantly-quirks.md` — Instantly.ai campaign management quirks
+- `zerobounce-quirks.md` — ZeroBounce email validation quirks

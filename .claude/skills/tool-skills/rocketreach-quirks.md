@@ -23,20 +23,23 @@ This is a **free-text array** with fuzzy/NLP matching against LinkedIn-sourced c
 
 ### 2. Lookups are ASYNC by default
 Initial lookup response often returns `status: "searching"` or `"progress"`, NOT the final data. You MUST:
-- Poll `/person/checkStatus` (max 1 call/second), OR
-- Use webhooks for delivery
+- Poll the lookup endpoint with the returned profile `id` (max 1 call/second), OR
+- Use a `webhook_id` for async delivery, OR
+- Set `return_cached_emails: true` (default) to receive cached results immediately while the live lookup continues
 
 **Do NOT assume the first response is complete.** Check the `status` field.
 
-### 3. Searches are FREE — only Lookups cost credits
+### 3. All Universal endpoints cost 3 credits per call ($0.03). 18 credits when phone is requested.
 ```
-Search (~10,000/day on paid plans) → FREE (find people, get IDs/names)
-Lookup (get email/phone)           → 1 credit per person
+Universal Person Search   → 3 credits per call
+Universal Person Lookup   → 3 credits (email-only) | 18 credits (with reveal_phone: true)
+Universal Company Search  → 3 credits per call
+Universal Company Lookup  → 3 credits per call
 ```
-This is the OPPOSITE of Apollo's model (Apollo search is free but lookup is free too with email; RocketReach search is free but lookup costs credits).
+Phone enrichment is **6× more expensive** — only set `reveal_phone: true` when phone is actually needed. No credit charged if no verified contact info is returned.
 
 ### 4. Search results do NOT include contact info
-Despite showing names/titles/companies, search results do NOT include emails or phones. You must do a separate Lookup call for contact data. **Two-step process always.**
+Despite showing names/titles/companies, search results do NOT include emails or phones. You must do a separate Lookup call for contact data. **Two-step process always** (search 3 credits → lookup 3 credits = 6 credits per enriched person, 21 with phone).
 
 ### 5. `current_employer` is also free text array (same rules as previous_employer)
 ```json
@@ -79,18 +82,60 @@ Currently defaults to `true` (returns cached/potentially stale emails immediatel
 ### 10. No credit charged if no verified contact found
 Unlike Apollo (which may consume credits on failed enrichments), RocketReach only charges when at least one verified data point is returned. Re-lookups of the same profile are also FREE.
 
-## Endpoints Quick Reference
+### 11. Multi-department queries — single request, OR logic
+Multiple departments can be searched in ONE query — no need for separate API calls:
+```json
+// ONE call, not two ✅
+"department": ["Sales", "Marketing"]
+```
+Same applies to titles, locations, industries, and all other array filters. Multiple values within a single filter use OR logic.
 
-| Endpoint | Method | Path | Cost |
-|----------|--------|------|------|
-| People Search | POST | `/api/v2/person/search` | **FREE** |
-| People Search (Universal) | POST | `/universal/person/search` | **FREE** |
-| Person Lookup | GET | `/api/v2/person/lookup` | 1 credit |
-| Person Check Status | GET | `/api/v2/person/checkStatus` | FREE |
-| Company Search | POST | `/api/v2/searchCompany` | **FREE** |
-| Company Lookup | GET | `/api/v2/company/lookup` | 1 company credit |
-| Bulk Lookup | POST | `/api/v2/person/bulk_lookup` | 1 credit/person |
-| Account Info | GET | `/api/v2/account` | FREE |
+### 12. `include_past_titles` toggle controls which API field is used
+- `current_title` — matches **current title only**
+- `current_or_previous_title` — matches current OR past titles
+- The node uses a boolean `include_past_titles` toggle that switches between these two API fields under the hood. Don't try to set both — the toggle picks one.
+
+### 13. Company Revenue — empty-field handling
+The API rejects empty min/max values. Apply these defaults:
+- **Both empty:** don't send the parameter at all
+- **Only min empty:** send min as `0`
+- **Only max empty:** send max as `1000000000000` (1 trillion sentinel)
+
+### 14. Company Size — special max value for `100001+`
+If the user selects the open-ended `100001+` bracket, send max as `10000000` (10 million sentinel). The literal `100001+` string will fail validation.
+
+### 15. Department Growth — structured string format
+The `growth` filter takes a structured string combining department, time range, and percentage range:
+```
+min_pct-max_pct::Department,TimeRange
+```
+- TimeRange values: `six_months`, `one_year`
+- Example: `5-30::Engineering,six_months` — 5-30% growth in Engineering over 6 months
+- Negative growth: `-10--20::Sales,one_year` — 10-20% decline in Sales over 1 year
+
+**Common growth presets:**
+| Pattern | Range |
+|---|---|
+| Surge | `5-25` |
+| Aggressive Hiring | `25-50` |
+| Growth Rocket | `50-` |
+| Slowdown | `-5--10` |
+| Layoffs | `-10-` |
+
+## Endpoints Quick Reference (Universal API only)
+
+RocketReach has consolidated on the **Universal API**. Use ONLY these endpoints — the older `/api/v2/*` endpoints are deprecated for our purposes.
+
+| Endpoint | Reference | Cost |
+|---|---|---|
+| Universal Person Lookup | [`create_universal_person_lookup`](https://docs.rocketreach.co/reference/create_universal_person_lookup) | 3 credits (email) / 18 credits (with `reveal_phone: true`) |
+| Universal Person Search | [`create_universal_person_search`](https://docs.rocketreach.co/reference/create_universal_person_search) | 3 credits per call |
+| Universal Company Lookup | [`create_universal_company_lookup`](https://docs.rocketreach.co/reference/create_universal_company_lookup) | 3 credits per call |
+| Universal Company Search | [`create_universal_company_search`](https://docs.rocketreach.co/reference/create_universal_company_search) | 3 credits per call |
+
+**Auth:** `Api-Key: <your_key>` header (see Gotcha #6).
+
+**No credit charged** if no verified contact info is returned. Re-lookups of the same profile are FREE.
 
 ## Search Filters (People)
 
@@ -149,9 +194,42 @@ Supports radius search: append `::~50mi` to location string.
 ### Education
 | Parameter | Type | Notes |
 |-----------|------|-------|
-| `school` | string[] | University/college |
+| `school` | string[] | University/college — **always send multiple variants** (see School Name Expansion below) |
 | `degree` | string[] | Degree type |
 | `major` | string[] | Field of study |
+
+#### School Name Expansion (mandatory for alumni search)
+
+RocketReach matches school names against LinkedIn-sourced text, which varies in format. **Always generate multiple variants for every school** — never send a single name.
+
+For every school input, generate ALL of these:
+1. **Common abbreviation** — e.g., `IIT KGP`
+2. **Abbreviation + city** — e.g., `IIT Kharagpur`
+3. **Full institute name + city** — e.g., `Indian Institute of Technology Kharagpur`
+4. **Full name with comma for location** — e.g., `Indian Institute of Technology, Kharagpur`
+
+Examples:
+```json
+// User says "IIT KGP"
+"school": [
+  "IIT KGP", "IIT Kharagpur",
+  "Indian Institute of Technology Kharagpur",
+  "Indian Institute of Technology, Kharagpur"
+]
+
+// User says "MIT"
+"school": [
+  "MIT", "Massachusetts Institute of Technology",
+  "Massachusetts Institute of Technology, Cambridge"
+]
+
+// User says "ISB"
+"school": [
+  "ISB", "ISB Hyderabad",
+  "Indian School of Business",
+  "Indian School of Business, Hyderabad"
+]
+```
 
 ### Healthcare (specialized)
 | Parameter | Type | Notes |
@@ -186,8 +264,8 @@ RocketReach's `previous_employer` filter is **unique** — Apollo and most other
 
 ### Alumni Search Pattern
 ```json
-// Step 1: Search (FREE)
-POST /api/v2/person/search
+// Step 1: Universal Person Search (3 credits)
+POST create_universal_person_search
 {
   "query": {
     "previous_employer": ["Yellow.ai", "yellow.ai"],
@@ -198,8 +276,8 @@ POST /api/v2/person/search
   "page_size": 100
 }
 
-// Step 2: Lookup each result (1 credit each)
-GET /api/v2/person/lookup?id=12345
+// Step 2: Universal Person Lookup for each result (3 credits each, 18 with reveal_phone)
+GET create_universal_person_lookup?id=12345
 ```
 
 ### Previous Employer Name Variations Strategy
@@ -248,7 +326,7 @@ GET /api/v2/person/lookup?id=12345
 }
 ```
 
-**Critical:** `status` can be `"complete"`, `"searching"`, or `"failed"`. If `"searching"`, poll `/person/checkStatus` with the ID.
+**Critical:** `status` can be `"complete"`, `"searching"`, or `"failed"`. If `"searching"`, re-call Universal Person Lookup with the same `id` (max 1 call/second), or supply `webhook_id` for async delivery.
 
 ### Best Lookup Identifiers (Ranked by Match Rate)
 1. **LinkedIn URL** — 99% return data
@@ -279,28 +357,30 @@ GET /api/v2/person/lookup?id=12345
 
 **429 responses include `Retry-After` header** — always check it instead of fixed delays.
 
-## Pricing
+## Pricing (How nRev Bills)
+
+| Operation | Credits | USD |
+|---|---|---|
+| Universal Person Search | 3 | $0.03 |
+| Universal Person Lookup (email-only) | 3 | $0.03 |
+| Universal Person Lookup (with `reveal_phone: true`) | 18 | $0.18 |
+| Universal Company Search | 3 | $0.03 |
+| Universal Company Lookup | 3 | $0.03 |
+
+**No credit charged** if no verified contact info is found. Re-lookups of the same profile are FREE.
+
+### Vendor-side context (RocketReach plan tiers)
+
+These are RocketReach's public plans — provided for awareness, not billing. nRev consumes the API on the user's behalf at the per-call rates above.
 
 | Plan | Annual | Lookups/Year | Notes |
-|------|--------|-------------|-------|
+|---|---|---|---|
 | Essentials | $399/yr | 1,200 | Email only, limited API |
 | Pro | $899/yr | 3,600 | Email + phone + full API |
 | Ultimate | $2,099/yr | 10,000 | Full API + priority support |
 | Custom | $6,000+/yr | Negotiable | Enterprise |
-| Overage | $0.30-$0.45/lookup | — | Beyond plan limits |
 
-**Credits do NOT roll over.** Set calendar reminders for renewal — auto-renewal is aggressive.
-**Full API access requires Ultimate plan ($2,099/yr) or higher.** Essentials and Pro have limited/no API access.
-
-## Credit Types
-| Type | When Charged |
-|------|-------------|
-| Premium Credit | A/A- grade email OR valid phone returned |
-| Standard Credit | A/A- grade email only |
-| Enrich Credit | Contact exists in database |
-| Company Credit | Company info returned (separate pool) |
-
-**No credit charged** if no verified contact info is found. Re-lookups of same profile are FREE.
+**Full API access requires Ultimate plan or higher.** Essentials/Pro have limited/no API access at the vendor level.
 
 ## Accuracy Reality Check
 
@@ -323,7 +403,7 @@ GET /api/v2/person/lookup?id=12345
 | Scenario | Why RocketReach Wins |
 |----------|---------------------|
 | Alumni/previous employer search | **Only provider with `previous_employer` filter** |
-| Phone included free | Same credit gets email + phone (Apollo charges 8 extra) |
+| Phone coverage | Higher hit rate than Apollo, but costs 18 credits per call vs 3 for email-only |
 | Email accuracy grades | A/A-/B/F system gives confidence before sending |
 | No credit waste on failures | No charge if no verified data found |
 | LinkedIn URL enrichment | 99% match rate |
@@ -348,10 +428,12 @@ GET /api/v2/person/lookup?id=12345
 ```
 1. Apollo search (FREE) — find people, get names/companies
 2. Apollo enrich — get email (1 credit, $0.03)
-3. If Apollo email bounces → RocketReach lookup — get alternative email + phone (1 credit)
-4. If alumni search needed → RocketReach search with previous_employer (FREE) → lookup
+3. If Apollo email bounces → RocketReach Universal Person Lookup — get alternative email (3 credits) or email+phone (18 credits)
+4. If alumni search needed → RocketReach Universal Person Search with previous_employer (3 credits) → Universal Person Lookup (3 credits)
 5. Always check email grade before sending — only A/A- are safe
 ```
+
+**Note:** Per the Waterfall Enrichment Principle in `provider-selection/SKILL.md`, do NOT chain providers manually for email-coverage waterfall — that's BetterContact's job. Step 3 above is for *targeted retry* (Apollo missed → try RocketReach for THIS person), not bulk waterfall.
 
 ## API Quirks Summary
 

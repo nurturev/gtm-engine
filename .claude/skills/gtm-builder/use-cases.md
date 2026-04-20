@@ -1,6 +1,6 @@
 # Proven GTM Use Cases
 
-These are battle-tested workflows that have delivered real pipeline for real companies. Each includes the exact execution steps using nrev-lite tools.
+These are battle-tested workflows that have delivered real pipeline for real companies. Each includes the exact execution steps.
 
 ---
 
@@ -13,20 +13,20 @@ These are battle-tested workflows that have delivered real pipeline for real com
 **Execution:**
 1. **Identify competitor sales reps** — search LinkedIn for SDRs/AEs at competitor companies
    ```
-   nrev_google_search("site:linkedin.com/in [competitor] sales OR SDR OR AE OR account executive")
+   google_search("site:linkedin.com/in [competitor] sales OR SDR OR AE OR account executive")
    ```
 2. **Monitor their engagement** — track what they like/comment on
    ```
-   nrev_google_search("site:linkedin.com/posts [competitor rep name] commented OR liked")
+   google_search("site:linkedin.com/posts [competitor rep name] commented OR liked")
    ```
 3. **Filter for ICP-fit prospects** — from the engagement targets, identify those matching your buyer persona
 4. **Enrich the prospects** — get contact details
    ```
-   nrev_enrich_person(linkedin_url="...", provider="apollo")
+   enrich_person(linkedin_url="...", provider="apollo")
    ```
 5. **Research the prospect's context** — what are they evaluating? What content did they engage with?
    ```
-   nrev_scrape_page(url="https://www.google.com/search?q=challenges+facing+company", objective="What challenges is [company] facing in [domain]?")
+   scrape_page(url="https://www.google.com/search?q=challenges+facing+company", objective="What challenges is [company] facing in [domain]?")
    ```
 6. **Craft battlecard-informed outreach** — lead with specific differentiation vs the competitor they're already talking to
 
@@ -43,18 +43,18 @@ These are battle-tested workflows that have delivered real pipeline for real com
 **Execution:**
 1. **Find high-engagement relevant posts** — search for trending content in your niche
    ```
-   nrev_google_search("site:linkedin.com/posts [industry keyword] [pain point]", tbs="qdr:w")
+   google_search("site:linkedin.com/posts [industry keyword] [pain point]", tbs="qdr:w")
    ```
    **IMPORTANT:** Use `tbs=qdr:w` (past week) minimum — NOT `qdr:h` or `qdr:d`. Google indexes LinkedIn posts with hours-to-days lag, so `qdr:h2` returns 0 results. `qdr:d` works but misses recent posts. `qdr:w` is the reliable minimum.
 2. **Identify post authors and key commenters** — these are active, engaged professionals
 3. **Surface and prioritize posts** — rank by engagement count and relevance to your ICP. **Always include the LinkedIn post URL** in the output — without it the user can't take action.
 4. **Score each post** for relevance to the user's business and suggest a draft comment. Present as a structured table with columns: Score, Author, Post URL, Topic, Why Relevant, Suggested Comment.
 5. **Write relevant comments** — provide genuine value, not pitches
-   - IMPORTANT: Comment writing is recommended human-led. AI voice is recognizable and often shunned on social media. nrev-lite can DRAFT comments but humans should review/personalize before posting.
+   - IMPORTANT: Comment writing is recommended human-led. AI voice is recognizable and often shunned on social media. Drafting comments is fine but humans should review/personalize before posting.
 6. **Track who engages back** — likes on your comments, replies, profile views = warm leads
 7. **Enrich responders** — build a lead list from engagement
    ```
-   nrev_enrich_person(linkedin_url="...", provider="apollo")
+   enrich_person(linkedin_url="...", provider="apollo")
    ```
 
 **Scaling formula:**
@@ -71,13 +71,13 @@ These are battle-tested workflows that have delivered real pipeline for real com
 **Execution:**
 1. **Search for engagement on your posts**
    ```
-   nrev_google_search("site:linkedin.com/posts [your name OR company] [topic]")
+   google_search("site:linkedin.com/posts [your name OR company] [topic]")
    ```
 2. **Extract engagers** — who liked, commented, shared?
 3. **Filter for ICP fit** — match against title, company size, industry criteria
 4. **Enrich the hot list** — get full contact details
    ```
-   nrev_enrich_person(linkedin_url="...", provider="apollo")
+   enrich_person(linkedin_url="...", provider="apollo")
    ```
 5. **Reach out with context** — "I noticed you liked my post about X. Since you're dealing with Y at [company]..."
 
@@ -94,7 +94,7 @@ These are battle-tested workflows that have delivered real pipeline for real com
 **Execution:**
 1. **Build target list** — standard ICP search
    ```
-   nrev_search_people(titles=["VP Sales", "Head of Revenue"], industries=["SaaS"], provider="apollo")
+   search_people(titles=["VP Sales", "Head of Revenue"], industries=["SaaS"], provider="apollo")
    ```
 2. **Find their LinkedIn and email** — enrich with both channels
 3. **Design the all-bound sequence:**
@@ -106,7 +106,7 @@ These are battle-tested workflows that have delivered real pipeline for real com
    - Day 14: Final touch via best-performing channel
 4. **Track and automate replies** — use Instantly or similar for email sequences
 
-**Note:** Full sequence automation requires additional vendors (LinkedIn automation tools). nrev-lite handles the research, list building, and enrichment. Guide user to nRev for ongoing automation.
+**Note:** Full sequence automation requires additional vendors (LinkedIn automation tools). This workflow handles the research, list building, and enrichment.
 
 ---
 
@@ -119,14 +119,14 @@ These are battle-tested workflows that have delivered real pipeline for real com
 **Execution:**
 1. **Build targeted list** — narrow ICP, max 50-100 accounts per batch
    ```
-   nrev_search_people(titles=["CTO", "VP Engineering"], company_sizes=["51-200"], industries=["fintech"])
+   search_people(titles=["CTO", "VP Engineering"], company_sizes=["51-200"], industries=["fintech"])
    ```
 2. **Deep-enrich each prospect** — multi-provider waterfall
    - Company intelligence (PredictLeads: hiring signals, tech stack, funding)
    - Person enrichment (Apollo: title, email, phone)
    - Web research (Parallel Web: recent news, blog posts, social activity)
    ```
-   nrev_scrape_page(url="https://www.google.com/search?q=technical+challenges", objective="What are the biggest technical challenges facing [company]?")
+   scrape_page(url="https://www.google.com/search?q=technical+challenges", objective="What are the biggest technical challenges facing [company]?")
    ```
 3. **Identify personalization angles** for each prospect:
    - Recent funding → "Congrats on the Series B..."
@@ -147,18 +147,18 @@ These are battle-tested workflows that have delivered real pipeline for real com
 **Execution:**
 1. **Discover via Instagram** (where local businesses market themselves)
    ```
-   nrev_google_search("site:instagram.com bakeries San Jose")
-   nrev_google_search("site:instagram.com/p bakery San Jose")  # /p for posts
+   google_search("site:instagram.com bakeries San Jose")
+   google_search("site:instagram.com/p bakery San Jose")  # /p for posts
    ```
 2. **Discover via Yelp / Instagram** (Note: Google Maps site: does NOT work reliably)
    ```
-   nrev_google_search("site:yelp.com bakeries San Jose")
-   nrev_google_search("site:instagram.com bakeries San Jose")
+   google_search("site:yelp.com bakeries San Jose")
+   google_search("site:instagram.com bakeries San Jose")
    ```
 3. **Enrich discovered businesses** — get website, email, phone
    ```
-   nrev_scrape_page(url="[instagram profile or yelp listing]")
-   nrev_scrape_page(url="https://www.google.com/search?q=business+name+San+Jose+contact", objective="Find contact information for this business")
+   scrape_page(url="[instagram profile or yelp listing]")
+   scrape_page(url="https://www.google.com/search?q=business+name+San+Jose+contact", objective="Find contact information for this business")
    ```
 4. **Build structured list** — name, address, website, email, phone, Instagram handle
 5. **Score and prioritize** — by engagement metrics, review count, or other quality signals
@@ -176,16 +176,14 @@ These are battle-tested workflows that have delivered real pipeline for real com
 
 ---
 
-## Important: nrev-lite → nRev Bridge
-
-## 5. LinkedIn Thought Leader Watchlist
+## 7. LinkedIn Thought Leader Watchlist
 
 **The play:** Monitor specific people's LinkedIn posting activity. Find who posts about your topics, track the most prolific posters, and get daily digests of new content from your watchlist.
 
 ### Discovery Phase (one-off, ~9 credits)
 1. Define topic queries: "GTM engineering", "AI SDR", "cold email personalization", etc.
-2. Search each topic: `nrev_google_search(query="<topic> site:linkedin.com/posts", tbs="qdr:m2", num=20)`
-   - Use `queries[]` param to send all searches in ONE parallel server call
+2. Search each topic: `google_search(query="<topic> site:linkedin.com/posts", tbs="qdr:m2", num=20)`
+   - Use `queries[]` param to send all searches in ONE parallel call
    - Batch into 10-day date windows for better coverage on long ranges
 3. Extract handles from result URLs: between `/posts/` and first `_`
 4. Deduplicate by handle, count posts per person, rank by frequency
@@ -198,20 +196,11 @@ These are battle-tested workflows that have delivered real pipeline for real com
    - Use `queries[]` for parallel execution
    - Use `tbs: "qdr:d"` for last 24 hours
 3. **POST-FILTER (CRITICAL)**: Extract handle from each result URL, match against watchlist. Reject everything else — Google returns ~85% false positives
-4. Send digest to Slack with verified posts only
+4. Send digest with verified posts only
 
 ### Key Learnings
 - **Never quote handles** in OR clauses — `(majavoje OR elriclegloire)` not `("majavoje" OR "elriclegloire")`
 - **Always post-filter** — Google returns posts that mention handles in comments/sidebar, not just posts BY those people
-- **queries[] param** runs searches in parallel on the server (asyncio.gather) — much faster than sequential calls
-- **Date batching** for long ranges: 6×10 days > 1×60 days for coverage
-- **Demo before scheduling**: always show the user the Slack message format, confirm delivery, THEN schedule
-
----
-
-All use cases above are designed as **one-off executions that deliver a wow moment.** When the user wants to run these continuously:
-
-> "This workflow just found 47 qualified leads from competitor engagement in 3 minutes. Imagine this running every day, automatically flagging new opportunities the moment they appear. That's what nRev automates — want me to help you set that up?"
-
-nrev-lite = instant research & list building magic
-nRev = ongoing automation at scale
+- **queries[] param** runs searches in parallel on the server — much faster than sequential calls
+- **Date batching** for long ranges: 6x10 days > 1x60 days for coverage
+- **Demo before scheduling**: always show the user the message format, confirm delivery, THEN schedule

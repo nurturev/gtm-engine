@@ -9,10 +9,10 @@
 
 ### 1. Enrichment is ASYNC — you must poll or use webhooks
 ```
-// WRONG — expecting immediate results ❌
+// WRONG — expecting immediate results
 POST /api/v2/async → response contains enriched data
 
-// CORRECT — submit then fetch ✅
+// CORRECT — submit then fetch
 POST /api/v2/async → returns {"id": "request-id"}
 GET  /api/v2/async/{request_id} → poll until status="terminated"
 ```
@@ -33,11 +33,11 @@ Maximum 100 leads per POST. For larger lists, chunk into batches and submit sequ
 
 ### 5. Required fields depend on each other
 ```json
-// MINIMUM — company name OR domain is required ✅
+// MINIMUM — company name OR domain is required
 {"first_name": "Jane", "last_name": "Doe", "company": "Acme Corp"}
 {"first_name": "Jane", "last_name": "Doe", "company_domain": "acme.com"}
 
-// BETTER — domain + LinkedIn URL maximizes match rate ✅
+// BETTER — domain + LinkedIn URL maximizes match rate
 {"first_name": "Jane", "last_name": "Doe", "company_domain": "acme.com", "linkedin_url": "https://linkedin.com/in/janedoe"}
 ```
 `first_name` and `last_name` are always required. You must provide either `company` or `company_domain` (domain preferred for accuracy).
@@ -68,7 +68,7 @@ Maximum 100 leads per POST. For larger lists, chunk into batches and submit sequ
 | Pro 10K | 10,000 | $399 | ~$0.040 |
 | Pro 50K | 50,000 | $1,999 | ~$0.040 |
 
-Credits roll over (capped at 2x your plan). BYOK option available at $199/mo add-on — paste your own Apollo/RocketReach/Hunter keys to use their credits instead.
+Credits roll over (capped at 2x your plan).
 
 ## Common Errors
 
