@@ -162,7 +162,7 @@ Before making ANY API call, reference the tool skills in `../tool-skills/` for p
 Always follow this pattern:
 1. **Discover** — find targets using search (Google site: operators for local/non-standard, Apollo/RocketReach for B2B)
 2. **Extract** — get structured data from discovered URLs (Parallel Web for Yelp/Instagram/anti-bot pages, web search per business name as fallback)
-3. **Enrich** — fill in missing data using the best provider for the data type. BetterContact handles waterfall enrichment externally — do NOT implement multi-provider fallback manually. Pick one provider per data type (see provider-selection skill). Do NOT use Apollo/RocketReach `enrich_company` for businesses sourced from Google/Yelp/Instagram — they won't be in B2B databases. Use Parallel Web Task API instead.
+3. **Enrich** — fill in missing data using the best provider for the data type. nrev-lite does NOT implement multi-provider waterfall — pick one provider per data type (see provider-selection skill). Do NOT use Apollo/RocketReach `enrich_company` for businesses sourced from Google/Yelp/Instagram — they won't be in B2B databases. Use Parallel Web Task API instead.
 4. **Score** — rate against ICP criteria
 5. **Validate** — verify emails, check data freshness
 6. **Deliver** — ALWAYS output a structured table with hit rate stats. This is non-negotiable.
