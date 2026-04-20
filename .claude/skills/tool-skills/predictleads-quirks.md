@@ -9,20 +9,20 @@
 
 ### 1. Dual-key authentication — BOTH api_token AND api_key required
 ```
-// WRONG — single key ❌
+// WRONG — single key
 ?api_key=abc123
 
-// CORRECT — both credentials ✅
+// CORRECT — both credentials
 ?api_token=YOUR_TOKEN&api_key=YOUR_KEY
 ```
 PredictLeads requires two separate credentials on every request. The `api_token` identifies your account; the `api_key` authenticates it. Missing either one returns 401. These can also be passed as headers (recommended).
 
 ### 2. Domain-based lookups — not company name
 ```
-// WRONG — searching by company name ❌
+// WRONG — searching by company name
 GET /api/v3/companies/Stripe/job_openings
 
-// CORRECT — use domain ✅
+// CORRECT — use domain
 GET /api/v3/companies/stripe.com/job_openings
 ```
 All company endpoints use the company's domain as the identifier, not the company name. If you only have a company name, resolve it to a domain first (via Apollo or Google search).
@@ -102,7 +102,7 @@ The tech stack endpoint returns WHERE a technology was detected (career page, ma
 | Stale job data | Normal — refresh cycle is ~36 hours |
 | Wrong company returned | Use exact root domain (stripe.com not www.stripe.com) |
 
-## Integration Pattern with nrev-lite
+## Integration Pattern
 ```
 PredictLeads (company signals) → identify trigger events
   → Apollo search_people (find decision makers at that company)
