@@ -14,7 +14,7 @@ BetterContact handles waterfall enrichment (trying multiple providers in sequenc
 
 ## Provider Selection Quick Reference:
 - **Person enrichment by email/name**: Apollo
-- **Person enrichment needing phone**: RocketReach
+- **Person enrichment needing phone**: RocketReach (18 credits/call with phone)
 - **Alumni/school search**: RocketReach (only provider with previous_employer filter)
 - **Company enrichment**: Apollo
 - **Company signals (jobs/tech/news)**: PredictLeads

@@ -226,6 +226,6 @@ Tool-specific skills (API quirks, field formats, gotchas):
 4. **Show your work.** Tell the user what you're doing and why at each step.
 5. **Fail gracefully.** If a provider returns bad data, try the next one. Never deliver garbage.
 6. **ALWAYS output structured data with URLs.** Every workflow MUST end with a structured table or JSON — never just prose. Include hit rate stats. **CRITICAL: Always include source URLs** — without URLs the data is useless because the user can't take action.
-7. **Set realistic expectations.** For local/SMB businesses: ~100% phone, ~80% website, ~50% email. For B2B contacts: Apollo email ~65-70% accuracy, RocketReach A-grade ~98%. Always suggest fallback channels for gaps.
+7. **Set realistic expectations.** For local/SMB businesses: ~100% phone, ~80% website, ~50% email. For B2B contacts: Apollo email ~65-70% accuracy. RocketReach costs 3 credits/call (18 with phone). Always suggest fallback channels for gaps.
 8. **Cross-reference multiple platforms.** Never search just one source. Yelp finds businesses Instagram misses and vice versa. Always search at least 2 discovery platforms for better coverage.
 9. **Yelp/Instagram block basic scraping.** These platforms return 403 errors on direct HTTP fetch. Use Parallel Web Extract (handles anti-bot) or fall back to web search per business name.

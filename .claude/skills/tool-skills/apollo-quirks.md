@@ -70,7 +70,6 @@ Despite being a major UI feature, buying intent filters are API-only-not-exposed
 |-----------|------|-------------|
 | `q_organization_domains` | **STRING** | Newline-separated! `"apollo.io\ngoogle.com"` |
 | `q_organization_name` | string | **AVOID for search — use `q_organization_domains` instead.** Free-text matching is unreliable. If you only have a name, find the domain first via Org Enrich. |
-| `q_organization_name` | string | Company name search |
 | `organization_locations` | string[] | Company HQ. `["San Francisco, CA"]` |
 | `organization_not_locations` | string[] | Exclude HQ locations |
 | `organization_num_employees_ranges` | string[] | `["1,10"]`, `["51,200"]`, `["501,1000"]` |
