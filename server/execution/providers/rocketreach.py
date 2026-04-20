@@ -35,8 +35,10 @@ RocketReach API quirks handled here:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
+import time
 from typing import Any
 from urllib.parse import urlparse
 
@@ -674,6 +676,10 @@ class RocketReachProvider(BaseProvider):
     ]
 
     BASE_URL = "https://api.rocketreach.co/api/v2"
+    _POLL_PATH = "/universal/person/check_status"
+    _POLL_INTERVAL_SECONDS = 3.0
+    _POLL_CAP_SECONDS = 30.0
+    _ASYNC_STATUSES = frozenset({"searching", "progress", "waiting"})
 
     # Map operations to their Universal API details
     _OPERATION_MAP = {
@@ -779,6 +785,22 @@ class RocketReachProvider(BaseProvider):
                 status_code=401,
             )
         if response.status_code == 403:
+            # Universal endpoints return 403 when the key lacks a Universal
+            # credit allocation. Map to 402 to match insufficient-credits
+            # convention (see execution/router.py :109, :358).
+            body_detail = ""
+            try:
+                body_detail = str(response.json().get("detail") or "")
+            except ValueError:
+                body_detail = response.text[:200]
+            if "Universal Credits" in body_detail:
+                raise ProviderError(
+                    self.name,
+                    "RocketReach key lacks Universal credit allocation. "
+                    "Upgrade the RocketReach plan at rocketreach.co, or "
+                    "contact nRev support to provision Universal credits.",
+                    status_code=402,
+                )
             raise ProviderError(
                 self.name,
                 "RocketReach API key lacks permission for this operation. "
@@ -813,16 +835,132 @@ class RocketReachProvider(BaseProvider):
 
         data = response.json()
 
-        # Step 4: Handle async lookup status
-        # Person lookups may return status="progress" (still searching)
-        if isinstance(data, dict) and data.get("status") == "progress":
-            data["_async_in_progress"] = True
+        # Step 4: Async lookup handling for enrich_person.
+        # Universal person lookup can return status in {searching, progress,
+        # waiting} with a vendor id; poll /check_status until the record
+        # reaches complete/failed or we hit the 30-second wall-time cap.
+        if (
+            operation == "enrich_person"
+            and isinstance(data, dict)
+            and data.get("status") in self._ASYNC_STATUSES
+            and isinstance(data.get("id"), int)
+        ):
             logger.info(
-                "RocketReach lookup in progress for %s — cached data may be partial",
-                operation,
+                "RocketReach enrich_person async; id=%s status=%s — polling",
+                data["id"], data.get("status"),
+            )
+            data = await self._poll_person_lookup_until_complete(
+                vendor_id=data["id"], api_key=api_key,
             )
 
         return data
+
+    async def _poll_person_lookup_until_complete(
+        self,
+        vendor_id: int,
+        api_key: str,
+    ) -> dict[str, Any]:
+        """Poll /universal/person/check_status until complete/failed or 30s cap.
+
+        Contract:
+            - On status=complete: returns the matched profile payload verbatim.
+            - On status=failed: returns the match_found=false sentinel.
+            - On cap-hit: returns the last-seen profile with lookup_status and
+              retry_hint stamped on it so the normalizer can thread them
+              through to the caller.
+        """
+        headers = {
+            "Api-Key": api_key,
+            "Content-Type": "application/json",
+        }
+        url = f"{self.BASE_URL}{self._POLL_PATH}"
+        params = {"ids": str(vendor_id)}
+
+        start = time.monotonic()
+        last_profile: dict[str, Any] = {}
+
+        async with httpx.AsyncClient() as client:
+            while True:
+                remaining = self._POLL_CAP_SECONDS - (time.monotonic() - start)
+                if remaining <= 0:
+                    break
+
+                await asyncio.sleep(min(self._POLL_INTERVAL_SECONDS, remaining))
+
+                try:
+                    response = await client.get(
+                        url, headers=headers, params=params, timeout=15.0,
+                    )
+                except (httpx.TimeoutException, httpx.HTTPError) as exc:
+                    logger.info("RocketReach poll tick transient failure: %s", exc)
+                    continue
+
+                self._log_rate_info(response, "check_status")
+
+                if response.status_code == 429:
+                    retry_after = int(response.headers.get("Retry-After", "3"))
+                    sleep_for = min(retry_after, max(remaining - 0.1, 0.0))
+                    if sleep_for <= 0:
+                        break
+                    await asyncio.sleep(sleep_for)
+                    continue
+                if response.status_code == 401:
+                    raise ProviderError(
+                        self.name,
+                        "RocketReach API key became invalid during async poll.",
+                        status_code=401,
+                    )
+                if response.status_code in (402, 403):
+                    raise ProviderError(
+                        self.name,
+                        "RocketReach rejected async poll — permission or "
+                        "credit state changed mid-request.",
+                        status_code=response.status_code,
+                    )
+                if response.status_code != 200:
+                    continue
+
+                try:
+                    payload = response.json()
+                except ValueError:
+                    continue
+
+                entries = (
+                    payload if isinstance(payload, list)
+                    else payload.get("profiles") if isinstance(payload, dict)
+                    else []
+                )
+                matched = next(
+                    (
+                        entry for entry in entries
+                        if isinstance(entry, dict) and entry.get("id") == vendor_id
+                    ),
+                    None,
+                )
+                if matched is None:
+                    continue
+                last_profile = matched
+                status = matched.get("status")
+                if status == "complete":
+                    return matched
+                if status == "failed":
+                    logger.info(
+                        "RocketReach async lookup returned status=failed id=%s",
+                        vendor_id,
+                    )
+                    return {"match_found": False, "profiles": []}
+
+        result = dict(last_profile)
+        result["lookup_status"] = "in_progress"
+        result["retry_hint"] = {
+            "vendor_id": vendor_id,
+            "retry_after_seconds": int(self._POLL_CAP_SECONDS),
+        }
+        logger.warning(
+            "RocketReach enrich_person cap-hit at %ss; returning in_progress id=%s",
+            self._POLL_CAP_SECONDS, vendor_id,
+        )
+        return result
 
     def _log_rate_info(self, response: httpx.Response, operation: str) -> None:
         """Log RocketReach rate limit status from response headers."""

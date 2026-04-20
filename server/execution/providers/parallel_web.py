@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import Any
 
 import httpx
@@ -399,29 +400,34 @@ class ParallelWebProvider(BaseProvider):
         self, run_id: str, api_key: str, timeout: float
     ) -> dict[str, Any]:
         """Poll a task run until completion."""
-        elapsed = 0.0
+        start = time.monotonic()
         async with httpx.AsyncClient(timeout=30.0) as client:
-            while elapsed < timeout:
-                resp = await client.get(
-                    f"{PARALLEL_BASE}/v1/tasks/runs/{run_id}/result",
-                    headers=self._headers(api_key),
-                )
+            while (time.monotonic() - start) < timeout:
+                try:
+                    resp = await client.get(
+                        f"{PARALLEL_BASE}/v1/tasks/runs/{run_id}/result",
+                        headers=self._headers(api_key),
+                    )
+                except httpx.ReadTimeout:
+                    # /result long-polls; a timed-out connection means "still running".
+                    await asyncio.sleep(_POLL_INTERVAL)
+                    continue
 
                 if resp.status_code == 200:
                     data = resp.json()
-                    status = data.get("status", "unknown")
+                    run_meta = data.get("run") or {}
+                    status = run_meta.get("status", "unknown")
 
                     if status == "completed":
                         return {
                             "run_id": run_id,
                             "status": "completed",
                             "output": data.get("output"),
-                            "basis": data.get("basis", []),
-                            "usage": data.get("usage"),
+                            "run": run_meta,
                         }
 
                     if status == "failed":
-                        errors = data.get("errors", [])
+                        errors = run_meta.get("errors", [])
                         raise ProviderError(
                             self.name,
                             f"Task failed: {errors}",
@@ -434,7 +440,6 @@ class ParallelWebProvider(BaseProvider):
                     self._check_response(resp, "task poll")
 
                 await asyncio.sleep(_POLL_INTERVAL)
-                elapsed += _POLL_INTERVAL
 
         raise ProviderError(
             self.name,

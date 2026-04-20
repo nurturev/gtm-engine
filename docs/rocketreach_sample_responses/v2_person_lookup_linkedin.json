@@ -1,0 +1,16 @@
+{
+  "__probe_meta__": {
+    "slug": "v2_person_lookup_linkedin",
+    "method": "GET",
+    "url": "https://api.rocketreach.co/api/v2/person/lookup",
+    "path": "/api/v2/person/lookup",
+    "status_code": 403,
+    "request_params": {
+      "linkedin_url": "https://www.linkedin.com/in/satyanadella/"
+    },
+    "response_headers": {}
+  },
+  "response": {
+    "detail": "You have insufficient lookup credits. Upgrade at https://rocketreach.co/pricing or contact sales (https://rocketreach.co/custom) to unlock more lookups."
+  }
+}

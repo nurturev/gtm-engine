@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 import redis.asyncio as aioredis
 from fastapi import FastAPI
@@ -12,44 +14,143 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from server.core.config import settings
 
-# Configure app-level logging for dev/local environments.
-#
-# Why this is needed: uvicorn configures its own loggers (`uvicorn`,
-# `uvicorn.error`, `uvicorn.access`) but does NOT touch the root logger or
-# our `server.*` loggers. Python's root logger defaults to WARNING, so every
-# `logger.info(...)` we write in our app modules is silently dropped.
-#
-# `logging.basicConfig()` is unreliable here — if anything in the import
-# chain has already attached a handler to the root logger, basicConfig is a
-# no-op. So we explicitly attach our own StreamHandler and set levels.
-#
-# Gated on ENVIRONMENT so prod logging stays under whatever centralized
-# config we ship there (currently nothing special — the dev config is fine
-# for prod too, but we keep the gate so we can swap in JSON formatters etc).
+# Configure app-level logging. Uvicorn configures its own loggers but leaves
+# the root logger at WARNING, which would silently drop every `logger.info(...)`
+# from our `server.*` modules. We attach a JSON StreamHandler so logs are
+# structured for aggregators (CloudWatch, Loki, Datadog) in every environment.
+_STD_LOGRECORD_ATTRS = frozenset({
+    "name", "msg", "args", "levelname", "levelno", "pathname", "filename",
+    "module", "exc_info", "exc_text", "stack_info", "lineno", "funcName",
+    "created", "msecs", "relativeCreated", "thread", "threadName",
+    "processName", "process", "message", "asctime", "taskName",
+})
+
+
+class _JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        # Minimal base payload — always present even if enrichment below fails.
+        try:
+            timestamp = (
+                datetime.fromtimestamp(record.created, tz=timezone.utc)
+                .isoformat(timespec="milliseconds")
+                .replace("+00:00", "Z")
+            )
+        except Exception:
+            timestamp = ""
+        payload: dict[str, object] = {
+            "timestamp": timestamp,
+            "level": getattr(record, "levelname", "INFO"),
+            "logger": getattr(record, "name", ""),
+            "message": record.getMessage() if record.args else str(record.msg),
+        }
+
+        # Per-request identifiers. request_id is the primary tracer — if the
+        # ContextVar lookup fails for any reason we still try to surface it
+        # from the LogRecord's extras below, so it's never silently lost.
+        try:
+            from server.core.middleware import (
+                agent_type_var,
+                internal_service_var,
+                request_id_var,
+                tenant_id_var,
+                thread_id_var,
+                user_id_var,
+                workflow_id_var,
+            )
+            for key, var in (
+                ("request_id", request_id_var),
+                ("tenant_id", tenant_id_var),
+                ("user_id", user_id_var),
+                ("internal_service", internal_service_var),
+                ("agent_type", agent_type_var),
+                ("thread_id", thread_id_var),
+                ("workflow_id", workflow_id_var),
+            ):
+                try:
+                    value = var.get()
+                except Exception:
+                    continue
+                if value is None or value == "":
+                    continue
+                payload[key] = value
+        except Exception:
+            pass
+
+        try:
+            for key, value in record.__dict__.items():
+                if key in _STD_LOGRECORD_ATTRS or key.startswith("_"):
+                    continue
+                payload.setdefault(key, value)
+        except Exception:
+            pass
+
+        if record.exc_info:
+            try:
+                payload["exception"] = self.formatException(record.exc_info)
+            except Exception:
+                pass
+        if record.stack_info:
+            try:
+                payload["stack"] = self.formatStack(record.stack_info)
+            except Exception:
+                pass
+
+        try:
+            return json.dumps(payload, default=str)
+        except Exception:
+            # Last-resort fallback: never let a log line crash the handler.
+            safe = {
+                "timestamp": payload.get("timestamp", ""),
+                "level": payload.get("level", "ERROR"),
+                "logger": payload.get("logger", ""),
+                "message": str(payload.get("message", ""))[:1000],
+                "format_error": "json_serialization_failed",
+            }
+            if (rid := payload.get("request_id")) is not None:
+                safe["request_id"] = str(rid)
+            return json.dumps(safe, default=str)
+
+
 print(">>> server.app module loaded", flush=True)
-if settings.ENVIRONMENT in ("development", "local"):
-    _log_formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
-    )
-    _log_handler = logging.StreamHandler()
-    _log_handler.setFormatter(_log_formatter)
+_log_formatter = _JsonFormatter()
+_log_handler = logging.StreamHandler()
+_log_handler.setFormatter(_log_formatter)
 
-    _root_logger = logging.getLogger()
-    _root_logger.setLevel(logging.INFO)
-    # Avoid duplicate handlers on uvicorn --reload
-    if not any(getattr(h, "_nrev_dev_handler", False) for h in _root_logger.handlers):
-        _log_handler._nrev_dev_handler = True  # type: ignore[attr-defined]
-        _root_logger.addHandler(_log_handler)
+_root_logger = logging.getLogger()
+_root_logger.setLevel(logging.INFO)
+# Avoid duplicate handlers on uvicorn --reload
+if not any(getattr(h, "_nrev_dev_handler", False) for h in _root_logger.handlers):
+    _log_handler._nrev_dev_handler = True  # type: ignore[attr-defined]
+    _root_logger.addHandler(_log_handler)
 
-    # Force our server.* loggers to INFO and propagate to root
-    _server_logger = logging.getLogger("server")
-    _server_logger.setLevel(logging.INFO)
-    _server_logger.propagate = True
+_server_logger = logging.getLogger("server")
+_server_logger.setLevel(logging.INFO)
+_server_logger.propagate = True
 
-    # Quiet noisy libs
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("httpcore").setLevel(logging.WARNING)
-    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+
+
+class _SuccessfulHealthcheckFilter(logging.Filter):
+    """Drop uvicorn access-log lines for successful /health probes.
+
+    Failing health checks (5xx) and unexpected status codes still flow through
+    so on-call can see them. Non-health traffic is untouched.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        if not isinstance(args, tuple) or len(args) < 5:
+            return True
+        path = args[2] if isinstance(args[2], str) else ""
+        status = args[4] if isinstance(args[4], int) else 0
+        if path.startswith("/health") and 200 <= status < 400:
+            return False
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(_SuccessfulHealthcheckFilter())
 from server.core.database import engine
 from server.core.middleware import request_id_middleware, tenant_context_middleware
 
@@ -126,7 +227,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title="nrev-lite API",
-    version="0.1.0",
+    version="2.0.0",
     description="Agent-native GTM execution platform",
     lifespan=lifespan,
 )

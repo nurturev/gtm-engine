@@ -1,0 +1,1232 @@
+{
+  "__probe_meta__": {
+    "slug": "company_posts",
+    "method": "GET",
+    "path": "/get-company-posts",
+    "status_code": 200,
+    "params": {
+      "linkedin_url": "https://www.linkedin.com/company/google/"
+    }
+  },
+  "response": {
+    "data": [
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E22AQHDswykpvs1mA/feedshare-shrink_1280/B4EZ2b_blGHUAM-/0/1776438610383?e=1778112000&v=beta&t=xgmYFv7xj27k8IA-cKEfWzNQhS8UP7SOD6W2ukl0fSc"
+          }
+        ],
+        "num_appreciations": 4,
+        "num_comments": 47,
+        "num_empathy": 12,
+        "num_interests": 15,
+        "num_likes": 425,
+        "num_praises": 24,
+        "posted": "2026-04-17 15:10:11",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Today, we\u2019re introducing a smarter way to plan your PTO. With individual hotel price tracking in Google Search, you can now monitor your favorite spots and get email notifications when prices change \u2014 just like you can with flights. Here\u2019s how it works: \n\n1\ufe0f\u20e3 Head to Google Search and look up a hotel by name and add your chosen dates.\n\n2\ufe0f\u20e3 Tap the new price tracking toggle on.\n\n3\ufe0f\u20e3 Voila! You\u2019ll get email alerts if rates change significantly during your dates. \n\nYou can also track individual hotel prices at google.com/hotels. Just select a hotel listing and look for the price tracking toggle on the Overview or Prices tab. \n\nLearn more travel hacks from Google \u2192 https://goo.gle/4tdvkg9",
+        "time": "18 hours ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_today-were-introducing-a-smarter-way-to-activity-7450923574481137664-awhS",
+        "urn": "7450923574481137664"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E22AQE-UvNnSrNvGA/feedshare-shrink_1280/B4EZ2SFqYLIgAM-/0/1776272451488?e=1778112000&v=beta&t=NU4WD5goBZz0Lvdq6GrN_JIVyHQJ15iGGEn-Fa7Y4xc"
+          }
+        ],
+        "num_appreciations": 18,
+        "num_comments": 254,
+        "num_empathy": 268,
+        "num_interests": 34,
+        "num_likes": 3630,
+        "num_praises": 273,
+        "posted": "2026-04-15 17:00:53",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "The Gemini app is now available natively on Mac, bringing you a faster, more integrated way to get AI help right on your desktop. \ud83c\udf4e\n\nWith a quick keyboard shortcut (Option + Space), you can bring up Gemini from anywhere on your screen, getting you the answers you need without switching tabs.\n\nHere\u2019s a few ways you can use it to streamline your work:\n\n\ud83d\uddbc\ufe0f Share your window: Get answers based on the documents, code, data or anything else you're looking at.\n\n\ud83c\udfa8 Stay in your creative flow: Quickly generate images with Nano Banana or videos with Veo without leaving your workspace.\n\n\ud83d\udcbb Quick access: Whether you\u2019re drafting a report or building a complex spreadsheet, help is now just a keyboard shortcut away.\n\nAvailable globally for users on macOS 15 and up at no cost. Download the Gemini app for Mac today \u2192 https://gemini.google/mac/",
+        "time": "2 days ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_the-gemini-app-is-now-available-natively-activity-7450226654813057024-hTYf",
+        "urn": "7450226654813057024"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E22AQGB2Sai_xtF6w/feedshare-shrink_1280/B4EZ2R_J.CHYAM-/0/1776270745805?e=1778112000&v=beta&t=WG2e2RkG0yLXKRSbHQaqmcznZsJqtNAeTHjT4Ap_HAg"
+          }
+        ],
+        "num_appreciations": 4,
+        "num_comments": 39,
+        "num_empathy": 23,
+        "num_interests": 7,
+        "num_likes": 479,
+        "num_praises": 49,
+        "posted": "2026-04-15 16:32:26",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Sundar Pichai and Neal Mohan were named to the TIME100 Most Influential People of 2026 list. Sundar was highlighted for his leadership in the AI era, emphasizing Google\u2019s startup-like nimbleness in launching innovative AI products \u2014 like Nano Banana, AI Studio, NotebookLM, Gemini CLI and Antigravity. Neal was recognized as an innovator in digital media for leading YouTube to be the most popular video provider on U.S. televisions.\n\nCheck out the full list: https://lnkd.in/gExHy3de",
+        "time": "2 days ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_sundar-pichai-and-neal-mohan-were-named-to-activity-7450219497283661824-ErAi",
+        "urn": "7450219497283661824"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 8,
+        "num_comments": 32,
+        "num_empathy": 15,
+        "num_interests": 23,
+        "num_likes": 503,
+        "num_praises": 5,
+        "posted": "2026-04-16 21:00:22",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "\ud83d\udc4b Calling all students: We\u2019re sharing six easy ways you can use Gemini to help you during exam season. Because finals week shouldn\u2019t have to be the most stressful week of your year.",
+        "time": "1 day ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_calling-all-students-were-sharing-six-activity-7450649311689957378-GEOw",
+        "urn": "7450649311689957378"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQGg61fSvk3mFw/image-shrink_1280/B56Z2ICkuWHEAk-/0/1776103869763?e=1777111200&v=beta&t=nsh5q3we1fyevSFQU7tMk_jAoPwlMMtcGLvCpjPBWWc"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQF-x_cZyaqzOA/image-shrink_1280/B56Z2ICk6dIIAc-/0/1776103870520?e=1777111200&v=beta&t=wRwo5oAybMJQJMo_-7a6BzetBte87M9HfAg5M1DbdjE"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQGbjCfZb1HWng/image-shrink_1280/B56Z2IClHMIYAc-/0/1776103872160?e=1777111200&v=beta&t=wRugEnz7W5u0iCbCG_psbmxYTR0r_IwDCBwjgc0AsbY"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQGHxDZU6JLxRQ/image-shrink_1280/B56Z2IClT9IsAg-/0/1776103872700?e=1777111200&v=beta&t=8Xd7pGe4x0seVaQHZBZJZgR6YBOTIKAXSU-LOSxzfIw"
+          }
+        ],
+        "num_appreciations": 2,
+        "num_comments": 63,
+        "num_empathy": 33,
+        "num_interests": 1,
+        "num_likes": 790,
+        "num_praises": 47,
+        "posted": "2026-04-13 18:11:13",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "After 12 years as a game designer in South Korea, Hyunuk decided to hit reset on his career. Going back to study Computer Science allowed him to pivot into his current role as a Developer Advocate on the Cloud Advocacy team. \u201cMy specific journey with Google started with a summer internship at the New York office,\u201d he explains. \u201cThat experience led me to return as a full-time Developer Advocate, initially starting at the Seattle South Lake Union office. Then, exactly a year later, I transferred to the beautiful Kirkland office, where I am today!\u201d\n\nHyunuk spends his days making complex data and AI tools more approachable. By applying the same principles he used in gaming, he creates technical content, videos and step-by-step guides for products, and helps developers unlock the full potential of our tech so they feel empowered to build. \u201cBy weaving in gamification elements from my previous career, I aim to build highly engaging, interactive experiences that inspire developers,\u201d he says.\n\nHis advice for those eyeing a pivot? \"Career paths aren't linear sprints; they are marathons without a defined end. Don't compare your \"behind-the-scenes\" struggles with everyone else's \"highlight reel\" on social media, he says. \u201cYour timeline is yours alone. It\u2019s never too late to reset and redefine your goals.\u201d\n\nWant to join the Google Kirkland office? Explore our open roles \u2192 https://goo.gle/4mBD7Sr",
+        "time": "4 days ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_after-12-years-as-a-game-designer-in-south-activity-7449519580991090689-Ulpz",
+        "urn": "7449519580991090689"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 1,
+        "num_comments": 12,
+        "num_empathy": 11,
+        "num_interests": 4,
+        "num_likes": 260,
+        "num_praises": 16,
+        "posted": "2026-04-16 16:22:48",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/showcase/google-cloud/posts",
+          "name": "Google Cloud"
+        },
+        "reshared": true,
+        "text": "We're live streaming the #GoogleCloudNext Opening Keynote! \n\nJoin Thomas Kurian and industry experts on April 22, where they'll introduce the blueprint for the agentic enterprise.\n\nSelect the 'attend' button to get notified when we're live. And register for a complimentary digital ticket to access select sessions on demand \u2192 https://goo.gle/4bWhVS6\n\nSee you in Vegas (and here on LinkedIn)!",
+        "time": "2 weeks ago \u2022 Edited \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google-cloud_googlecloudnext-ugcPost-7444409010436374529-PDZn",
+        "urn": "7450579460849836032"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 5,
+        "num_comments": 82,
+        "num_empathy": 61,
+        "num_interests": 72,
+        "num_likes": 1483,
+        "num_praises": 80,
+        "posted": "2026-04-16 17:54:34",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "We\u2019re introducing a new Search experience in Google Chrome that lets you open webpages side-by-side with AI Mode \u2014 no tab switching required. \n\nNow, you\u2019ll be able to compare details and ask follow-up questions while still maintaining the context of your search.\n\nThese updates to AI Mode in Chrome are now available in the U.S., and we\u2019ll expand soon to more places around the world.\u00a0 Learn more \u2192 https://goo.gle/4cO9oCr",
+        "time": "1 day ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_were-introducing-a-new-search-experience-activity-7450602554192969728-K605",
+        "urn": "7450602554192969728",
+        "video": {
+          "duration": 43233,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQHedYAHTH_jYw/mp4-720p-30fp-crf28/B56Z2XbgVoH4Aw-/0/1776362067797?e=1777111200&v=beta&t=oZdbLgUDEKP7fJENZIp2iOeH-ZKuTN2wppDMPlWU-tQ"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 4,
+        "num_comments": 29,
+        "num_empathy": 37,
+        "num_interests": 10,
+        "num_likes": 505,
+        "num_praises": 30,
+        "posted": "2026-04-16 16:41:53",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "We\u2019re introducing new ways for Personal Intelligence and our best image generation model, Nano Banana 2, to generate images that reflect your life, interests, and the things you care about most.\n\nPersonal Intelligence securely connects the dots across Google apps like Google Photos and Gmail so Gemini can inherently understand your likes and interests. This allows you to skip long, complex prompts, so a simple request like \"design my dream house\" now automatically can reflect your unique style and taste. \ud83c\udfe1\n\nGemini can even use your labeled Google Photos library of you and your loved ones as a visual guide for your creations.\n\nTry asking Gemini things like: \u201cCreate a claymation image of me and my family enjoying our favorite activity,\u201d and watch your inner circle come to life, automatically.\n\nYou\u2019re always in control: This remains an opt-in experience that you can adjust in your settings at any time.\n\nIt\u2019s rolling out now for Google AI Plus, Pro, and Ultra subscribers in the U.S., and we plan to bring this to Gemini in Chrome desktops and more users soon.\n\nLearn more \u2192 goo.gle/4cSDCDp",
+        "time": "1 day ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_were-introducing-new-ways-for-personal-intelligence-activity-7450584265060143105-Yerj",
+        "urn": "7450584265060143105",
+        "video": {
+          "duration": 85466,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4D05AQFF7HuaFcE9SQ/mp4-720p-30fp-crf28/B4DZ2XK1obK0CE-/0/1776357708681?e=1777111200&v=beta&t=AuPJWRfEDMddzMbwSJALa2ra6j1D5ZEBrn1VkUOhVcw"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 6,
+        "num_comments": 31,
+        "num_empathy": 23,
+        "num_interests": 43,
+        "num_likes": 876,
+        "num_praises": 24,
+        "posted": "2026-04-16 15:24:58",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Tammy, a recruiter for Google Cloud AI, shares tips for acing our AI/ML-focused technical interviews.\n\nReady to explore our open roles? Apply today \u2192 https://goo.gle/4rx4sWX",
+        "time": "1 day ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_tammy-a-recruiter-for-google-cloud-ai-shares-activity-7450564906002595840-Jxnk",
+        "urn": "7450564906002595840",
+        "video": {
+          "duration": 135000,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5610AQFtuZIbzUgLpw/mp4-720p-30fp-crf28/B56Z2W5OfLH4CE-/0/1776353097104?e=1777111200&v=beta&t=Oc4Pg7hIOIhJ9q2gMhAV6kLfE-SM2bPY4BNb0F2GQrc"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 2,
+        "num_comments": 43,
+        "num_empathy": 27,
+        "num_interests": 10,
+        "num_likes": 575,
+        "num_praises": 32,
+        "posted": "2026-04-16 15:15:01",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "In 2025, we took a major step forward in keeping our ad platforms safe, thanks to Gemini.\n\nBy analyzing hundreds of billions of signals, our AI models now better understand intent, helping us spot and block malicious content with incredible precision.\n\nA few highlights from our 2025 Ads Safety Report:\n\ud83d\udee1\ufe0f Gemini caught over 99% of policy-violating ads before they were ever served\n\u26d4 Our teams blocked or removed over 8.3 billion bad ads\n\ud83d\udcc9 And we reduced incorrect advertiser suspensions by 80%\n\nSee how we're using AI to stay ahead of bad actors and keep people safe online \u2192 https://goo.gle/4coNUMx",
+        "time": "1 day ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_in-2025-we-took-a-major-step-forward-in-activity-7450562404121325570-AhdO",
+        "urn": "7450562404121325570",
+        "video": {
+          "duration": 30000,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQE7dJHoycHiGw/mp4-720p-30fp-crf28/B4EZ2W2.rIJECI-/0/1776352495693?e=1777111200&v=beta&t=TH_RsVmW_JaOuO41rx-UOTDUleTQDWYJra_hDaOnenM"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 6,
+        "num_comments": 25,
+        "num_empathy": 21,
+        "num_interests": 2,
+        "num_likes": 296,
+        "num_praises": 10,
+        "posted": "2026-04-15 17:46:17",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Family Link is our app that parents can use to manage accounts and set ground rules for their children online. Mindy Brooks, VP Product Management, shares three tips to help families navigate the digital world safely and confidently. \n\nSee all of our tools and resources on Family Link to help you set the right boundaries for your family \u2192 https://lnkd.in/e4gq4wuP",
+        "time": "2 days ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_family-link-is-our-app-that-parents-can-use-activity-7450238083393871873-EfCx",
+        "urn": "7450238083393871873",
+        "video": {
+          "duration": 66266,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQGdmAfLtqGf6A/mp4-720p-30fp-crf28/B4EZ2SP77fGcCI-/0/1776275167692?e=1777111200&v=beta&t=VEYAlzsmCP3Sexe2dqa2HJfaucBmJPYCSCFUdBrYd5M"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 4,
+        "num_comments": 42,
+        "num_empathy": 11,
+        "num_interests": 1,
+        "num_likes": 284,
+        "num_praises": 12,
+        "posted": "2026-04-02 02:23:49",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "\ud83d\udcc5 Save the date: YouTube's Brandcast is returning to Lincoln Center for the Performing Arts on May 13, including host Trevor Noah, creators Kareem Rahma and Quenlin Blackwell, and other special guests. Learn more from Neal Mohan.",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_brandcast-youtubes-annual-upfront-is-coming-activity-7445294894622859264-f_v9",
+        "urn": "7445294894622859264"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 8,
+        "num_comments": 62,
+        "num_empathy": 57,
+        "num_interests": 57,
+        "num_likes": 1033,
+        "num_praises": 21,
+        "posted": "2026-04-14 15:26:22",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Curious about quantum? Step onto Google\u2019s Quantum AI Campus to get answers to some of the world\u2019s top trending quantum questions. For World Quantum Day, experts Jenna and Andrew break down the basics of quantum mechanics, the purpose behind quantum computers, as well as set the record straight on how this technology could actually be used.",
+        "time": "3 days ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_quantum-experts-answer-the-worlds-top-trending-activity-7449840483108831232-ZdMZ",
+        "urn": "7449840483108831232",
+        "video": {
+          "duration": 235100,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQFuWHz50OR5qQ/mp4-720p-30fp-crf28/B56Z2MmKkZGgCE-/0/1776180376308?e=1777111200&v=beta&t=N4tFntbtJ4zhVaARpLdD3yUqB70l5GD_01XHNrgyTk4"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_comments": 40,
+        "num_empathy": 9,
+        "num_interests": 6,
+        "num_likes": 353,
+        "num_praises": 11,
+        "posted": "2026-04-01 20:54:51",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "This week at the IAPP Global Summit, Kent Walker shared Google's perspective on the future of privacy, and how we must work together to build a future where our data protection frameworks evolve with our tools. Learn more.",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_iappsummit26-activity-7445212108176134145-w34y",
+        "urn": "7445212108176134145"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQGcgK_aBIin1w/feedshare-shrink_1280/B56Z14e60cHEAM-/0/1775842864641?e=1778112000&v=beta&t=XFrwZHDlHWcE3ObRiDq9cyViYVIcHdtbFuSqdMZUNyQ"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQFvJPDy2hpBfw/feedshare-shrink_1280/B56Z14e6wrKcAM-/0/1775842864428?e=1778112000&v=beta&t=womzKYIzEAvRhen4L03Oaq1dX7h4XxmdU7m2DmpqUfI"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQE0ZB-mqgOyng/feedshare-shrink_2048_1536/B56Z14e6xBIIAg-/0/1775842864418?e=1778112000&v=beta&t=f1PPs3AB56_d0dAL_sWzcrQuwcVJeIuF3XCFCIlfcxQ"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQGiEWwpmqnXpw/feedshare-shrink_1280/B56Z14e6yeIIAQ-/0/1775842864573?e=1778112000&v=beta&t=3JsLb2Vutb4xCFUfgb6ah_pqOJUKsvTtV7ikqsl0o1w"
+          }
+        ],
+        "num_appreciations": 34,
+        "num_comments": 72,
+        "num_empathy": 129,
+        "num_likes": 843,
+        "num_praises": 14,
+        "posted": "2026-04-10 17:41:06",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Our offices in Mountain View are home to a host of wildlife, thanks in part to our ongoing conservation efforts: monarch butterflies, honeybees, rare birds and more. But in January, the Google campus got one of its most unlikely visitors yet: a six-month-old California sea lion. Later affectionately named Babymac, the wayward pup had somehow wandered far from home and wound up in one of our parking lots.\n\nBabymac was quickly rescued with the help of concerned Googlers, our Global Security Operations Center (GSOC) team and the Mountain View police, who kept him safe until responders from The Marine Mammal Center were able to transport him to the center for rehabilitation. He faced a long road to recovery from severe malnutrition and other maladies.\n\nFortunately, Babymac thrived in his treatment at The Marine Mammal Center. After graduating from a special fish smoothie mixture to eating whole herrings on his own, Babymac successfully gained the weight he needed to. In March, he passed a release exam, and was safely returned to the wild in Point Reyes, California.\n\n\u201cWe are thrilled Babymac made such positive strides in recovery and was able to be released back to his ocean home,\u201d says Dr. Emily Whitmer, a clinical veterinarian at The Marine Mammal Center.\n\nAs for future visits? \u201cWe always enjoy visitors at our offices at Google,\u201d says Robert Ortiz Carlos of GSOC operational support. \u201cBut if Babymac decides to visit in the future, he\u2019ll need to be signed in at the kiosk and escorted. Hopefully one trip to the Googleplex is enough for a lifetime.\u201d",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_our-offices-in-mountain-view-are-home-to-activity-7448424838509002752-g07g",
+        "urn": "7448424838509002752"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQFHkvz3FmVN8Q/image-shrink_1280/B56Z1ys1KSJ4Ac-/0/1775745849320?e=1777111200&v=beta&t=jrV231fM_gYt2i9wYKg9YrJ-zQA2ZzsOrKGBjBopjLA"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQEtGXWyQ5FPaw/image-shrink_1280/B56Z1ys1VvIQAc-/0/1775745849112?e=1777111200&v=beta&t=TppaV-e8ST6D4K0TPF5eW5609OaW3cOnFOtzTjh9DXM"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQFIQTwMNcaYig/image-shrink_1280/B56Z1ys1h2H4Ac-/0/1775745850884?e=1777111200&v=beta&t=EeDUbCbggUVI5S2OScc1owcXoqnUKas2eWd0vADoOBk"
+          }
+        ],
+        "num_appreciations": 16,
+        "num_comments": 65,
+        "num_empathy": 33,
+        "num_interests": 1,
+        "num_likes": 684,
+        "num_praises": 15,
+        "posted": "2026-04-09 14:44:21",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Prerit\u2019s path to Security Engineer on the Mandiant Security Validation Consulting team at Google started with a simple curiosity about how things break. While studying, he pivoted from general engineering to the specialized world of cybersecurity. \"I took formal security courses and joined the hacking club, which introduced me to Capture the Flag (CTF) and the field of security engineering,\" he says.\n\nThat early passion led to a Google internship that moved at lightning speed. \"It was my first-ever security job, and within weeks I was supported enough to co-invent a patent,\" he continues. \n\nToday, Prerit spends his day-to-day in the Google New York office keeping our clients safe. \"I create and simulate malicious behaviors in controlled settings to see if my attempts are blocked or detected,\" he explains. \"Ultimately, this helps in ensuring that the security systems are robust enough to catch and prevent real-world threats before they cause harm.\"\n\nPrerit\u2019s career advice for students: \u201cTake initiative. Explore the different sub-niches within this vast field so you can find what interests you most. Learning the basics of how something works is the first step towards understanding how it can be hacked.\u201d\n\nInterested in a career like Prerit\u2019s? Explore our open Security Engineer roles \u2192  https://goo.gle/3ZLUg19",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_prerits-path-to-security-engineer-on-the-activity-7448017968128524289-UA7f",
+        "urn": "7448017968128524289"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 1,
+        "num_comments": 24,
+        "num_empathy": 9,
+        "num_interests": 3,
+        "num_likes": 227,
+        "num_praises": 9,
+        "posted": "2026-04-15 18:38:03",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "At our inaugural AI for the Economy Forum with MIT FutureTech, we brought together economists, industry leaders, policymakers and workforce training experts to discuss AI\u2019s impact on jobs and the economy. We believe that by working together we can navigate the AI transition successfully. We also shared new investments focused on better understanding how AI will change the economy, training and apprenticeships:\n\n-A new AI & Economy Research Program to answer pressing questions about AI's impact\n-New AI training for rural healthcare workers through a $10 million Google.org initiative in collaboration with the Johnson & Johnson Foundation\u00a0\n-$10 million in Google.org funding to support the Manufacturing Institute in its efforts to train U.S. workers in critical AI skills, and new apprenticeships for manufacturing employees as a pathway to new jobs\n-Expanded Google.org support for researchers exploring public policy solutions\n\nLearn more about how we're working across sectors to get our economy AI-ready from James Manyika \u2b07\ufe0f",
+        "time": "2 days ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_neither-the-benefits-nor-the-risks-of-ai-activity-7450251107643285504-6Bw6",
+        "urn": "7450251107643285504"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 19,
+        "num_comments": 120,
+        "num_empathy": 56,
+        "num_interests": 59,
+        "num_likes": 1713,
+        "num_praises": 30,
+        "posted": "2026-04-03 19:51:28",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Last month, we gave Google Maps its biggest upgrade in a decade with Ask Maps and Immersive Navigation. We also made it easier to use Gemini in Google Workspace apps including Docs, Sheets, Slides and Drive. \n\nRead more about our biggest AI moments from March and how our latest updates can help you in your daily life.",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_last-month-we-gave-google-maps-its-biggest-activity-7445920930419195904-o6tI",
+        "urn": "7445920930419195904"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQFiVySVUGQdDw/image-shrink_1280/B56Z1JeSuLKgAc-/0/1775054171398?e=1777111200&v=beta&t=-NBQbOP1x0R3LkNZwGncekVfQ1mWpBqmAdNqapoIGtU"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQFB6Md4wTDPhg/image-shrink_1280/B56Z1JeS6PJ8Ag-/0/1775054172157?e=1777111200&v=beta&t=KS2IItlJklPjwEoQYssEpzre3MKjKv6aVbn-C1nZLWQ"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQELjVySyECkcQ/image-shrink_1280/B56Z1JeTIqHMAc-/0/1775054173325?e=1777111200&v=beta&t=d-HwbHYro2XoIFZWp4PuqUv0naMddu1A-krRk8_aInQ"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQF9wUWL_L4C0w/image-shrink_1280/B56Z1JeTSKJsAg-/0/1775054173616?e=1777111200&v=beta&t=Th6NM3FL436-CCKtpaywuv4zq_gL8TM8vVzZCV-cu24"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQHw9CduMy4kEQ/image-shrink_1280/B56Z1JeTe7HMAc-/0/1775054174434?e=1777111200&v=beta&t=QpFEtzZzE9y98Lt7cPG_UazUG2B79xloaFALPlBLl2E"
+          }
+        ],
+        "num_appreciations": 4,
+        "num_comments": 69,
+        "num_empathy": 22,
+        "num_interests": 3,
+        "num_likes": 998,
+        "num_praises": 34,
+        "posted": "2026-04-01 14:36:15",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "When there was an opportunity to join the Cloud Business Intelligence team as a Looker Sales Lead in a new market, Rakhi made the move from India to our Melbourne Docklands office. \n\nOnce she arrived, she found that the role was about much more than just numbers.  \"Working at Google and representing Looker means more than just solving technical problems; it\u2019s about the people. From critical customer issues to representing our tech at industry events, the energy is non-stop,\" she explains. \u201cThe most impactful conversations happen when we move past 'how the tool works' and start discussing how data can reshape a business model.\u201d\n\nTo keep the creative momentum going after those big conversations, Rakhi relies on a workspace designed for spontaneous \"aha!\" moments. \"You\u2019ll find graffiti walls in meeting rooms, quirky Melbournian names for meeting rooms, large open space for events, table tennis/pool, photo booth and plenty of cozy breakout spaces with seating,\" she says about the office.\n\nToday, Rakhi\u2019s impact continues to grow beyond her day-to-day role. She leads initiatives for Women@Australia, and collaborates with Google Research on hearing health accessibility.\n\nInterested in joining Rakhi and the Cloud team? Check out our open roles \u2192 https://goo.gle/4mdmcVz",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_when-there-was-an-opportunity-to-join-the-activity-7445116830572249089-hqQK",
+        "urn": "7445116830572249089"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 8,
+        "num_comments": 60,
+        "num_empathy": 28,
+        "num_interests": 53,
+        "num_likes": 1004,
+        "num_praises": 61,
+        "posted": "2026-04-14 17:40:10",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Today, we\u2019re introducing Skills in Google Chrome, so you can build one-click workflows for your most frequently used AI prompts \u2014 like scanning long documents for important information or\u00a0 generating side-by-side comparisons across multiple tabs.\n\nWhen you write a prompt that you\u2019ll want to use again, you can save it as a Skill directly from your chat history. The next time you need it, select your saved Skill in Gemini in Chrome by typing forward slash ( / ) or clicking the plus sign ( + ) button, and your Skill will run on the page you\u2019re viewing, along with any other tabs you select.\u00a0 \n\nWe\u2019re also launching a library of ready-to-use Skills for common tasks and workflows. You\u2019ll be able to add them as a saved Skills, and can customize them to better fit your needs by updating the prompt. \n\nLearn more \u2192 https://goo.gle/4cbNskD",
+        "time": "3 days ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_keep-tabs-on-our-latest-chrome-feature-coming-activity-7449874156898136064-hV7L",
+        "urn": "7449874156898136064"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQE7E2_VACc0lw/image-shrink_1280/B56Z0_OkYYHoAg-/0/1774882277542?e=1777111200&v=beta&t=RLdYiRfA31a55DM8qOeKA131-nEyly8zUNhhgKxvtfc"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQGaKYOWm-bXDQ/image-shrink_1280/B56Z0_OkmFHwAc-/0/1774882278155?e=1777111200&v=beta&t=MIV2K8AgWrW1XcfQSpZ0oOIFZmWaIidrn6CMNsns56M"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQFYr3vn17fmLA/image-shrink_1280/B56Z0_OkzOJsAc-/0/1774882278934?e=1777111200&v=beta&t=fyYD6WpiD5WdYBZvjf4M_Dg6P2z0MHCMUAseBYcA1Tw"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQEos979LDY5qg/image-shrink_1280/B56Z0_Ok_4I8Ac-/0/1774882279810?e=1777111200&v=beta&t=7DIy8uJ3MH8YW4h31ciOUckKO-TAw_VN0637ZfUR_kI"
+          }
+        ],
+        "num_appreciations": 5,
+        "num_comments": 60,
+        "num_empathy": 32,
+        "num_interests": 1,
+        "num_likes": 733,
+        "num_praises": 26,
+        "posted": "2026-03-30 14:51:21",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "For Daniel, the path to his current job as Manager of Ads Marketing Analytics in Mexico City began with a passion for AI and a search for a culture where innovation is a fundamental part of the DNA.  He describes the Mexico City office as a \u201cdream\u201d because \u201cit combines a world-class tech environment with the vibrant, fast-paced energy of one of the most beautiful cities in the world.\u201d\n\nDaniel\u2019s day-to-day involves leading a team of data scientists and engineers to ensure every user data point serves a larger marketing purpose. His team uses \u201cadvanced analytics and cutting-edge AI to uncover key insights, optimize marketing campaigns and ensure our strategies are data-driven and highly effective.\u201d\n\nWhen it comes to joining the team, Daniel\u2019s advice for future Googlers is to move beyond the classroom and start solving real problems. \u201cDon\u2019t just take classes; contribute to open-source projects, enter Kaggle competitions or solve a problem in your local community using data. Google looks for 'owners' \u2014 people who see a problem and don't wait for permission to fix it.\u201d\n\nLooking to join the Mexico City office? Check out our open roles \u2192 https://goo.gle/4qM2XDE",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_for-daniel-the-path-to-his-current-job-as-activity-7444395853278015488-rv9S",
+        "urn": "7444395853278015488"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 4,
+        "num_comments": 67,
+        "num_empathy": 38,
+        "num_interests": 11,
+        "num_likes": 969,
+        "num_praises": 32,
+        "posted": "2026-03-27 16:10:50",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "New month, new Gemini Drops \u2728 See what's new in the Gemini app \u2014 from transferring your chat history from other AI apps to creating 3 minute tracks.\n\nLearn more \u2192 gemini.google/gemini-drops",
+        "time": "3 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_see-whats-new-in-the-gemini-app-this-month-activity-7443328692509986816-E3xh",
+        "urn": "7443328692509986816"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 6,
+        "num_comments": 52,
+        "num_empathy": 22,
+        "num_interests": 43,
+        "num_likes": 696,
+        "num_praises": 6,
+        "posted": "2026-03-26 18:38:12",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Tax season is stressful enough without the added weight of potential cyber threats. From high-priority Gmail warning banners to scam detection alerts, we have a roster of tools designed to help you protect yourself from scammers. \n\nLearn more: https://goo.gle/4bUry41",
+        "time": "3 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_how-to-protect-yourself-from-scammers-activity-7443003388000215040-fhJP",
+        "urn": "7443003388000215040"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQEwaBQt39nGhQ/image-shrink_1280/B56Z0n_nOBGsAk-/0/1774492480708?e=1777111200&v=beta&t=ZOK7m4JFqJtIFu_a8rjJwy9YTJ-N87Fkm_dcho9vRs0"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQH5YuzBdg5Blw/image-shrink_1280/B56Z0n_nZoGsAc-/0/1774492481837?e=1777111200&v=beta&t=v9kvEsZ7uNyxtF_x7u9vbPQ4HgyEjbyd4n6FqMK-y6U"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQGsm9-DxONl2w/image-shrink_1280/B56Z0n_njsJYAc-/0/1774492482309?e=1777111200&v=beta&t=9PZaETtDwLnYJh_0peXsyJQwzDlf0HAPiJAYkWxZXHQ"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQHY1rBfsuFmrw/image-shrink_1280/B56Z0n_nujGYAc-/0/1774492482767?e=1777111200&v=beta&t=n_dGJYl2k1Akql0lUoLjheravxPalKpSNztHejeDJCs"
+          }
+        ],
+        "num_appreciations": 10,
+        "num_comments": 72,
+        "num_empathy": 152,
+        "num_interests": 1,
+        "num_likes": 1663,
+        "num_praises": 101,
+        "posted": "2026-03-26 02:34:44",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "\u201cI\u2019m Feeling Lucky\u201d may be a button on our Search page, but for Guru, Senior Director of Engineering in Core Data and Google Bangalore Site Lead, it\u2019s his daily reality. \u201cI am deeply privileged to serve this large team as one of the site leads,\u201d he says. \u201cOur offices in Bangalore are gorgeous, energetic and pulsing with life.\u201d\n\nGuru manages the infrastructure that makes AI feel seamless for billions, providing the training data and systems that enable developers to build smarter and move faster. \u201cOur work spans from consumer, Cloud, and Enterprise, and extends across surfaces from server-side infrastructure to Android and wearables,\u201d he explains. \u201cAll in service of creating more helpful, personalized experiences for billions of users around the world.\u201d\n\nGuru\u2019s advice for success at Google? It\u2019s all about the mindset. Those who succeed are people who are \u201ccurious, enjoy understanding how things work from the perspective of first principles, and bring patience, creativity, optimism and a sense of joy to solving incredibly difficult problems.\"\n\nWant to join the team? Explore our open roles in Bangalore \u2192 https://goo.gle/4c57zkQ",
+        "time": "3 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_im-feeling-lucky-may-be-a-button-on-our-activity-7442760924903587840-Gh6r",
+        "urn": "7442760924903587840"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQGnkWCk88bqZg/image-shrink_1280/B56Z0d6oGCH0Ac-/0/1774323401453?e=1777111200&v=beta&t=tvRsYkINSlJaGUi3_A3GLSl5sYNfP1Ak6d7dwJG9YnM"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQENmxRafqK72A/image-shrink_1280/B56Z0d6oRBJwAg-/0/1774323402477?e=1777111200&v=beta&t=Uby8Kosha-h7npMaMCgfENZ2P22cyG3EATGK1yLylB8"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQHo1BuTQWDxgQ/image-shrink_1280/B56Z0d6opvJYAc-/0/1774323403673?e=1777111200&v=beta&t=jbkvEVjVT274dsyeDVAL-_O2bA9XhWjJJMknKRCOvSE"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQFQutuM1C7hfQ/image-shrink_1280/B56Z0d6o3kJMAc-/0/1774323404929?e=1777111200&v=beta&t=hhsVNRFWKWVnATehIhXT6uVlCbNEqo8SputazIp2B2w"
+          }
+        ],
+        "num_appreciations": 14,
+        "num_comments": 28,
+        "num_empathy": 22,
+        "num_likes": 850,
+        "num_praises": 6,
+        "posted": "2026-03-24 03:36:59",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Innovation is a team sport. In our Singapore office, UX Manager Kai Yee, Product Managers (PM) Lauren and Ira, and Software Engineer Janssen combined design, technical finesse and strategy to turn digital payments into a nationwide viral sensation with \"Huat Pals,\" which allowed Google Pay users to collect digital stickers to celebrate Lunar New Year and earn rewards.\n\nLauren explains how the Product team transformed a utility into a cultural moment: thinking beyond transactions to create a social ecosystem. \"We kind of thought about that whole game as building an economy where we would be the central bank printing out the digital currency which were these characters or digital stickers,\" she says.\n\nIra sees it as the intersection of technology, trust and everyday life. While the campaign brings joy through lovable characters and games like \"Huat Rain,\" security remains paramount. According to Ira, \"The goal is to design products that are easy and simple for users while maintaining high levels of security.\"\n\nJanssen notes the project has evolved into a reusable framework for seasonal campaigns like Diwali/Deepavali in India. His role involves significant coordination with UX to ensure art and functionality align perfectly. For Janssen, the best part is a culture where everyone steps up to share expertise.\n\nAnd finally, for Kai Yee, cross-functional teamwork is the driving force behind Google\u2019s intentional product design. He explains that \u201cUX teams partner closely with product and engineering to guarantee that experiences are engaging, well-loved and built collaboratively.\u201d\n\nLooking to join the collaborative environment at our Singapore office? Explore our open roles \u2192 https://goo.gle/4tS1Bdq",
+        "time": "3 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_innovation-is-a-team-sport-in-our-singapore-activity-7442051816491671553-YYtQ",
+        "urn": "7442051816491671553"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 7,
+        "num_comments": 60,
+        "num_empathy": 36,
+        "num_interests": 10,
+        "num_likes": 655,
+        "num_praises": 27,
+        "posted": "2026-04-10 15:24:48",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Find answers to the question \"So, what are you doing after graduation?\" with Career Dreamer, an experimental generative AI tool that helps you design your future. You\u2019ll be able to:\n\n- Uncover hidden skills, like how your volunteer work maps to what employers need\n- Explore personalized paths with career options grounded in real-world market data\n- Articulate your value with a powerful career identity statement\n- Grow into your next role with upskilling resources \n\nWatch a tutorial and get started today \u2192 https://goo.gle/4vCbrRE",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_find-answers-to-the-question-so-what-are-activity-7448390538266980352-Objn",
+        "urn": "7448390538266980352",
+        "video": {
+          "duration": 12766,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5610AQHxhp6235fBOQ/mp4-720p-30fp-crf28/B56Z13_sFwHkCA-/0/1775834679237?e=1777111200&v=beta&t=o1HIZo_Univ2hmziKBidFzMjYFGI4qN5mkCbGg8sa1Q"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E22AQHSLBoCyukGNA/feedshare-shrink_2048_1536/B4EZ1ECzu0IgAg-/0/1774963094556?e=1778112000&v=beta&t=Jz8X8k0NFtvyyuzW4utDGvOMyBil6wmly3BXzaJNWd8"
+          }
+        ],
+        "num_appreciations": 10,
+        "num_comments": 133,
+        "num_empathy": 117,
+        "num_interests": 17,
+        "num_likes": 1360,
+        "num_praises": 111,
+        "posted": "2026-03-31 13:18:09",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Tag your friend or co-worker who needs to hear this: If you\u2019re a U.S. Google user, you can now change your account username for tools like Gmail, Photos, Drive and more \u2014 while keeping your emails, data and account history. Here\u2019s what to know: \n\n1\ufe0f\u20e3 You can choose any available @gmail.com username. \n\n2\ufe0f\u20e3 Your old username will become an alias, so you won\u2019t lose access to it. You can still sign in and send and receive emails with both usernames. Plus, you can also revert to your old username.\n\n3\ufe0f\u20e3 You can choose a new username once a year \u2014 up to three times total. \n\nHere\u2019s more information to get started --> https://goo.gle/4v3g1ry",
+        "time": "2 weeks ago \u2022 Edited \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_tag-your-friend-or-co-worker-who-needs-to-activity-7444734786956431360-SfRi",
+        "urn": "7444734786956431360"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 11,
+        "num_comments": 147,
+        "num_empathy": 153,
+        "num_interests": 22,
+        "num_likes": 1824,
+        "num_praises": 135,
+        "posted": "2026-04-08 21:02:03",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Meet notebooks in the Gemini app. \ud83d\udcd3\n\nWe\u2019re connecting Gemini with NotebookLM, our AI-powered research partner, to create a home base for your projects that stays in sync across both tools.\n\nThink of a notebook like a dedicated project folder for your big ideas and specific tasks. You can even move past chats into notebooks and add files like documents and PDFs for it to reference. Because Gemini draws from your specific sources, its answers are uniquely tailored to help you with the task at hand.\n\nThe best part? It all stays in sync. You can start a project in Gemini and jump into NotebookLM to use features like Video Overviews or Slide Decks to wrap things up \u2014 and vice versa.\n\nWe're rolling out notebooks in Gemini this week, starting with Google AI Ultra, Pro and Plus subscribers on the web. In the coming weeks we'll expand access to mobile, more countries across Europe and to free users.\n\nLearn more \u2192 goo.gle/4eadmGA",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_meet-notebooks-in-the-gemini-app-we-activity-7447750633064947713-aW5f",
+        "urn": "7447750633064947713",
+        "video": {
+          "duration": 34000,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQHFJXmIFP91eg/mp4-720p-30fp-crf28/B4EZ1u5sYoG8CI-/0/1775682115331?e=1777111200&v=beta&t=eHLubtOEtwbEFS1JSyXktm3bW-K2Xdq9YPry0P81g48"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 7,
+        "num_comments": 42,
+        "num_empathy": 27,
+        "num_interests": 10,
+        "num_likes": 764,
+        "num_praises": 21,
+        "posted": "2026-04-08 15:13:59",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Kyra, an NYC-based sales recruiter, shares her advice for candidates going through our sales interview process. \n\nExplore our open opportunities \u2192 https://goo.gle/3ZUb06f",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_recruiter-tips-advice-for-sales-interviews-activity-7447663041204183041-r5Al",
+        "urn": "7447663041204183041",
+        "video": {
+          "duration": 116566,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5610AQEqy1Nk00lSFg/mp4-720p-30fp-crf28/B56Z1tp_uUHgCA-/0/1775661235341?e=1777111200&v=beta&t=b0RIYlDeskZ1QoPawIoGEARFDPK5vxZoBsbZVEHnVqM"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 15,
+        "num_comments": 56,
+        "num_empathy": 30,
+        "num_interests": 6,
+        "num_likes": 507,
+        "num_praises": 22,
+        "posted": "2026-04-07 17:44:56",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Mental health is one of the most significant public health challenges today, impacting over one billion people around the world. For many years, Google has been committed to helping people find high-quality information and crisis support in the moments they need it most. While we realize that AI tools can pose new challenges, we believe that responsible AI can play a positive role for people\u2019s mental well-being. \n\nToday, we\u2019re sharing an update on our mental health work, including some new changes to better connect people with the right information, resources, and human support at the right time on the Gemini app, including:\n-Updates to Gemini to streamline the path to support for those who need it. When a conversation might signal a user may need information about mental health Gemini will surface a redesigned \"Help is available\" module \u2014 developed with clinical experts \u2014 to provide more effective and immediate connections to care.\n-$30 million in Google.org funding globally over the next three years to help global hotlines. This funding will help effectively scale their capacity to provide immediate and safe support for people in crisis.\n-As people interact with Gemini in deeper, more complex ways, our clinical, engineering and safety teams are helping Gemini respond in acute mental health situations and directing people to real-world help.\n-New specific protections for minors, designed to provide the most helpful responses and avoid harmful topics when using Gemini.\n\nLearn more about the latest updates to our mental health work \u2192 https://goo.gle/3NSkJIe\n\nPlus, watch Laurie Richardson, VP Trust & Safety, and Dr. Megan Jones Bell, our clinical director, discussing our approach to mental health in the age of AI \u2192 https://lnkd.in/e62v9A37",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_mental-health-is-one-of-the-most-significant-activity-7447338637672857611-dJYI",
+        "urn": "7447338637672857611",
+        "video": {
+          "duration": 57933,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQFm34u_p3umig/mp4-720p-30fp-crf28/B4EZ1pC8GGHUCI-/0/1775583885261?e=1777111200&v=beta&t=qqTVemZoHGihk8r5HhYFyuEmUxLffSjS0f28ZSam7NI"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 2,
+        "num_comments": 27,
+        "num_empathy": 14,
+        "num_interests": 11,
+        "num_likes": 279,
+        "posted": "2026-04-07 16:02:23",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Your inbox is your business. That's why when you ask Gemini in Gmail to summarize a lengthy thread \u2014 or do other tasks in your inbox for you \u2014 it \u201cclocks in\u201d to complete the task and then leaves your inbox. Gemini in Gmail doesn\u2019t store your info, or use your personal emails to train our foundational AI models.\n\nBlake Barnes, our VP of Product at Gmail, explains how this works \u2b07\ufe0f",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_how-we-keep-your-data-secure-and-private-activity-7447312830644674561-w47Y",
+        "urn": "7447312830644674561",
+        "video": {
+          "duration": 83333,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4D05AQH-AZsEvLTlWA/mp4-720p-30fp-crf28/B4DZ1orZ5NIoCI-/0/1775577736733?e=1777111200&v=beta&t=5Cb2WBDcxju7QlY_iK-upo6UEnOF2AMu3kfue00SWpk"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 3,
+        "num_comments": 76,
+        "num_empathy": 35,
+        "num_interests": 6,
+        "num_likes": 796,
+        "num_praises": 40,
+        "posted": "2026-04-02 18:10:18",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "New AI capabilities, powered by Lyria 3 and Veo 3.1, are starting to roll out to Google Vids. With these new features, you\u2019ll be able to:\n\n\u2728 Generate high-quality video clips from just a simple prompt or photo\n\u2728 Score your video with custom music generation in Lyria 3 to perfectly match your vibe\n\u2728 Create directable, customizable avatars that can interact with uploaded objects and props\u00a0\n\u2728 Capture and share your creations easily with tools that connect directly to Chrome and YouTube\n\n\u2026and more. \n\nLearn more about the updates coming to Google Vids \u2192 https://goo.gle/3Odsj05",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_new-ai-capabilities-are-coming-to-google-activity-7445533082427858945-QyGB",
+        "urn": "7445533082427858945",
+        "video": {
+          "duration": 26800,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQHVQaAWXwPIYQ/mp4-720p-30fp-crf28/B56Z1PY2eDKMCQ-/0/1775153412473?e=1777111200&v=beta&t=e5RGY3-_tq1l5PSKEdIr9qBJfesrz0ogV3A29yW8daQ"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 15,
+        "num_comments": 167,
+        "num_empathy": 167,
+        "num_interests": 36,
+        "num_likes": 2401,
+        "num_praises": 170,
+        "posted": "2026-04-02 16:07:49",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Today we're introducing Gemma 4 \u2014 our newest family of open models.\n\nBuilt from the same world-class research as Gemini 3, this family of models brings breakthrough intelligence directly to your own hardware. From autonomous agents that can plan and navigate apps to local-first coding assistants, Gemma 4 is designed for the most complex reasoning tasks.\n\nHere\u2019s what\u2019s new:\n\n\ud83d\udd39 Longer context \u2014 up to a 256K context window to seamlessly process large datasets.\n\n\ud83d\udd39 Four versatile sizes \u2014 tailored for everything from mobile phones to developer workstations.\n\n\ud83d\udd39 Native multimodality \u2014 built-in support for vision and audio processing.\n\n\ud83d\udd39 Global reach in 140+ languages \u2014 natively trained on over 140 languages to help you build for a worldwide audience.\n\n\ud83d\udd39 Apache 2.0 license \u2014 a commercially permissive license that gives you total control to build freely and deploy securely.\n\nBy bringing our most advanced proprietary research into an open ecosystem, we\u2019re giving you everything you need to build the next generation of AI \u2014 anywhere you want.\n\nYou can start building with Gemma 4 now in Google AI Studio, or download the model weights from Hugging Face, Kaggle, and Ollama.\n\nLearn more \u2192 goo.gle/4s9G1yQ",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_today-were-introducing-gemma-4-our-newest-activity-7445502258181705728-9pp_",
+        "urn": "7445502258181705728",
+        "video": {
+          "duration": 171666,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQFM8Yi47O2mFA/mp4-720p-30fp-crf28/B56Z1O8v6.I8CE-/0/1775146064139?e=1777111200&v=beta&t=vp-mI3ji4WWkr1VTjcHwYOkaZfO8MRXCl4XqCTPaNAg"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 5,
+        "num_comments": 118,
+        "num_empathy": 111,
+        "num_interests": 20,
+        "num_likes": 1531,
+        "num_praises": 102,
+        "posted": "2026-04-07 20:06:53",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/in/miketorreshq",
+          "name": "Mike Torres"
+        },
+        "reshared": true,
+        "text": "We\u2019re rolling out two new Google Chrome features to help improve your focus: \n\n\u2195\ufe0f Organize your tabs vertically\n\nIf you\u2019re like me and prefer working off of a large monitor, vertical tabs are perfect for freeing up some real estate at the top of your screen.\n\nJust right-click at the top of any Chrome window and click \u201cShow Tabs Vertically.\u201d This moves your tabs to the side of your browser, so you can read full page titles and manage tab groups with ease \u2014 even with lots of tabs open. \n\nYou can also pin your most important tabs for easy access. \n\n\ud83d\udcd6 Deepen your focus with full-page reading mode\n\nReading mode now has a full-page interface that reduces visual clutter and turns busy webpages into an immersive, text-focused reading experience.\n\nYou can also customize fonts, colors, text sizes and more to your liking. And if you\u2019re multitasking, you can listen to articles instead.\n\nPersonally, I can't imagine browsing without either of these features now. Excited to hear your thoughts once you try them!",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/miketorreshq_were-rolling-out-two-new-google-chrome-features-ugcPost-7447348061871374336-jEJn",
+        "urn": "7447374360849547264",
+        "video": {
+          "duration": 9100,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQEsYb5TszOG2w/mp4-720p-30fp-crf28/B56Z1pLm2VH8CI-/0/1775586146110?e=1777111200&v=beta&t=5UWkMqmk_oQdxdsX3nkB4IWIROo-IfRfEYI0MkmlFdQ"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 10,
+        "num_comments": 36,
+        "num_empathy": 47,
+        "num_interests": 18,
+        "num_likes": 751,
+        "num_praises": 26,
+        "posted": "2026-03-31 21:25:08",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Next stop: The moon \ud83d\ude80  We teamed up with NASA - National Aeronautics and Space Administration to answer your top Artemis II searches.",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_next-stop-the-moon-we-teamed-up-with-activity-7444857338110500864-Ry48",
+        "urn": "7444857338110500864",
+        "video": {
+          "duration": 96066,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQERZL1t4ZJafA/mp4-720p-30fp-crf28/B56Z1FxjiIKgCE-/0/1774992121286?e=1777111200&v=beta&t=gg3Nq90gHVuP-OiUx1VpmZPe9egcZxiIoarsnRDCWHQ"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 5,
+        "num_comments": 31,
+        "num_empathy": 39,
+        "num_interests": 9,
+        "num_likes": 775,
+        "num_praises": 23,
+        "posted": "2026-03-31 20:17:31",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "How do you visualize the concept of a world model? Coders Kaloyan Kolev and Arden Schager sat down with Logan Kilpatrick and Alexander Chen share how they used Google AI Studio to vibe code custom design tools for Project Genie. They demonstrate how hands-on tools like 3D physics sliders and custom animation timelines enable teams of designers and engineers to work together to explore new ideas.",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_visualizing-world-models-with-project-genie-activity-7444840322414604288-LYnh",
+        "urn": "7444840322414604288",
+        "video": {
+          "duration": 328033,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5605AQHtCscv3KyCkw/mp4-720p-30fp-crf28/B56Z1FiqBMK0CE-/0/1774988245056?e=1777111200&v=beta&t=2y9fdzAlWvje3xUlVjTH-vEMdc_lnKcdWTDbpzB1D7w"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 4,
+        "num_comments": 35,
+        "num_empathy": 34,
+        "num_interests": 10,
+        "num_likes": 638,
+        "num_praises": 32,
+        "posted": "2026-03-31 18:22:52",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "PSA: You can change your Google account username without losing access to your entire account history. That way, you don\u2019t have to make a new account to avoid using your Gmail address from years ago. \n\nHere\u2019s how \u2b07\ufe0f",
+        "time": "2 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_how-to-change-your-google-account-username-activity-7444811470833496064-uOTb",
+        "urn": "7444811470833496064",
+        "video": {
+          "duration": 30166,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQFZXh-Jio6EGg/mp4-720p-30fp-crf28/B4EZ1FIiinGoCI-/0/1774981367509?e=1777111200&v=beta&t=lwsw1zJRv9PvMTd3ANtKN2BK6Us3oQMAjfP-0rsLVZg"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 6,
+        "num_comments": 59,
+        "num_empathy": 52,
+        "num_interests": 54,
+        "num_likes": 1204,
+        "num_praises": 7,
+        "posted": "2026-03-27 16:49:02",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Simra, a Google Recruiter in our NYC office, breaks down our interview process and shares her top tips on how to prepare. \n\nExplore our open roles \u2192 https://goo.gle/4rx4sWX",
+        "time": "3 weeks ago \u2022 Edited \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_simra-a-google-recruiter-in-our-nyc-office-activity-7443338305678680064-Z_sj",
+        "urn": "7443338305678680064",
+        "video": {
+          "duration": 123833,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D5610AQGIzMZAGkU1IA/mp4-720p-30fp-crf28/B56Z0wMq8.K4CA-/0/1774630138364?e=1777111200&v=beta&t=2NBD7WIFowJPOE0Md-pnPLU9iVYa5CrIEgeF4407oIY"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5622AQEwOArZnqLnKA/feedshare-shrink_2048_1536/B56Z0vz.cdGYAg-/0/1774623663522?e=1778112000&v=beta&t=rM41eYmdLs7J77FPpQJvS28_zfrkaCRZHXs9laEyUtY"
+          }
+        ],
+        "num_appreciations": 9,
+        "num_comments": 154,
+        "num_empathy": 41,
+        "num_interests": 64,
+        "num_likes": 1521,
+        "num_praises": 61,
+        "posted": "2026-03-27 15:01:11",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "It\u2019s AI Literacy Day and we\u2019re making it easier than ever to use AI tools to reach your personal and professional goals. We developed the Google AI Professional Certificate to help you learn how to use generative AI at work \u2014 designed in collaboration with employers based on workplace skills they value most. It covers tips and tricks for using AI in areas like communication, research, data analysis, content generation, planning and organization, and vibe coding. \n\nLearn more about our AI training programs and get started today \u2193 https://goo.gle/3NSVgOy",
+        "time": "3 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_its-ai-literacy-day-and-were-making-it-activity-7443311164769628161-VAcX",
+        "urn": "7443311164769628161"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 7,
+        "num_comments": 67,
+        "num_empathy": 47,
+        "num_interests": 13,
+        "num_likes": 994,
+        "num_praises": 44,
+        "posted": "2026-03-26 15:32:51",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "For a long time, building voice-first AI meant choosing between speed and reliability. With Gemini 3.1 Flash Live, we\u2019ve optimized for both. \u26a1\ufe0f\n\nOur latest audio model is faster, smarter, and more intuitive. Whether you\u2019re brainstorming a big project or just asking a quick question, Gemini stays on track and responds in real time.\n\nWe\u2019re also taking Search Live global. Now, people in 200+ countries and territories can have natural, real-time, multimodal conversations with Search in their preferred language. \ud83c\udf0d\n\nGemini 3.1 Flash Live is rolling out now across Google products:\n\n- For Everyone: Available now in Search Live and Gemini Live\n- For Developers: Available in preview via the Gemini Live API in Google AI Studio\n- For Enterprises: Available in Gemini Enterprise for Customer Experience\n\nRead the full update \u2192 goo.gle/4t7qeBz",
+        "time": "3 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_for-a-long-time-building-voice-first-ai-activity-7442956744185675777-ujiZ",
+        "urn": "7442956744185675777",
+        "video": {
+          "duration": 7700,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQHihfgF17lung/mp4-720p-30fp-crf28/B4EZ0qxr7mG4CM-/0/1774539163923?e=1777111200&v=beta&t=CG2ls5IOH8gsBOloOBxdgKF53SknWG1sLo5MrKM98hA"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 8,
+        "num_comments": 82,
+        "num_empathy": 17,
+        "num_interests": 25,
+        "num_likes": 571,
+        "num_praises": 19,
+        "posted": "2026-03-20 16:04:07",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Don\u2019t let 2026 be the year you fall for a text scam on your work phone.\n\nBelow, we demoed two easy-to-use Google tools that can help you identify scam messages quickly. Watch and learn more \u2192 https://goo.gle/4dycwDb",
+        "time": "0 months ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_google-can-help-you-avoid-tax-scams-heres-activity-7440790288534552576-ter3",
+        "urn": "7440790288534552576",
+        "video": {
+          "duration": 33000,
+          "stream_url": "https://dms.licdn.com/playlist/vid/v2/D4E05AQG05EdQIpTcZQ/mp4-720p-30fp-crf28/B4EZ0L_RLHHUCE-/0/1774022633978?e=1777111200&v=beta&t=GONA6Dx_Y1mmfto6YLNh9slZKiwiAnxKJpIV_SRztO4"
+        }
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 3,
+        "num_comments": 76,
+        "num_empathy": 12,
+        "num_interests": 18,
+        "num_likes": 468,
+        "num_praises": 20,
+        "posted": "2026-04-07 20:56:56",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Tune in: Sundar Pichai joined the Cheeky Pint podcast to discuss why Google is built for this moment in AI, from our deep bench of talent to a culture that balances speed with capability (down to millisecond latency budgets!). During his conversation with entrepreneurs John Collison and Elad Gil, Sundar discussed the future of Search, how we think about capital and compute, and our big long-term bets like quantum, robotics, and more. Check out the full episode: https://lnkd.in/eufJcjw3",
+        "time": "1 week ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_the-history-and-future-of-ai-at-google-with-activity-7447386956889698304-R4X9",
+        "urn": "7447386956889698304"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E22AQFYZgmdaeJj0g/feedshare-shrink_1280/B4EZ0gOANjGkAM-/0/1774362035369?e=1778112000&v=beta&t=G9xwnNzhLUhBSSPAnPriRJ4OwV-11FDxYD9OeOVgnQ4"
+          }
+        ],
+        "num_appreciations": 25,
+        "num_comments": 220,
+        "num_empathy": 592,
+        "num_interests": 32,
+        "num_likes": 6512,
+        "num_praises": 751,
+        "posted": "2026-03-24 14:20:36",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Google was just named #1 on Fast Company's 2026 World\u2019s Most Innovative Companies list. Google is also #1 in their Artificial Intelligence category. \ud83c\udf89\n\nIn the story on Google's decade-long journey to becoming one of AI's biggest winners, Fast Company\u2019s Harry McCracken writes: \u201cEvery tech CEO claims to think 10 years into the future. Many move onto new grand pronouncements within a couple of years, well before making the old ones a reality. But when Sundar Pichai says he\u2019s taking a decade-long view of where the technology is going, it\u2019s not just a platitude. That universal assistant that he wrote about in that 2016 shareholder letter? Google is on the cusp of creating it.\u201d \n\nSee the full story: https://lnkd.in/ed3rGgqu",
+        "time": "3 weeks ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_google-was-just-named-1-on-fast-companys-activity-7442213786410737666-ioKT",
+        "urn": "7442213786410737666"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 6,
+        "num_comments": 73,
+        "num_empathy": 36,
+        "num_interests": 6,
+        "num_likes": 884,
+        "num_praises": 64,
+        "posted": "2026-03-11 13:13:18",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Today Google completed its acquisition of Wiz. Together, Google Cloud and Wiz will provide an end-to-end security platform that improves the speed with which organizations can detect, prevent and respond to threats. Learn more about what this means for Cloud customers and partners from Thomas Kurian.",
+        "time": "1 month ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_today-we-announced-that-google-has-completed-activity-7437485807881453568-k1vv",
+        "urn": "7437485807881453568"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E10AQEDQIOJ8U9eGg/image-shrink_1280/B4EZzoNsnTIsAc-/0/1773422431095?e=1777111200&v=beta&t=m9mzDoF9xsJTxbl56GjlPjuTYzYUp-uVOWu50fV_EwQ"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E10AQFPK1-QCCc8-g/image-shrink_1280/B4EZzoNsyvHEAc-/0/1773422431832?e=1777111200&v=beta&t=cvG30pISjStIV66R_5LAiLBZ_i8lrlK79xMkS9ugknI"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E10AQGptt8d26sIJA/image-shrink_1280/B4EZzoNs.WIsAc-/0/1773422432578?e=1777111200&v=beta&t=y_uREpaJIawZuyXCJo96Iuv-XHYeratDIr2vC2qHVUE"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D4E10AQFbE3uBYoRSCQ/image-shrink_1280/B4EZzoNtGUHsAc-/0/1773422432977?e=1777111200&v=beta&t=QsNsPEIXmVzUvYyPbFjVnncvooulmnTyrIouB8AWuCM"
+          }
+        ],
+        "num_appreciations": 12,
+        "num_comments": 69,
+        "num_empathy": 28,
+        "num_interests": 5,
+        "num_likes": 769,
+        "num_praises": 58,
+        "posted": "2026-03-13 17:20:34",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Bryan\u2019s career journey at Google started with the overnight shift in security. Today, he\u2019s a licensed attorney and Global Intelligence Manager who leads one of the teams responsible for keeping our employees safe. He used Google\u2019s Education Reimbursement Program to close the gap between where he was and where he wanted to be.\n\nWhile the financial support for his degrees was a game-changer, he credits his leadership for helping him manage the balance of working full-time while finishing law school. \"The support from my leadership at Google was what made the finish line possible,\u201d he explains. \u201cMy leadership didn't just 'allow' me to study; they supported me consistently throughout the five year process.\"\n\nBryan\u2019s advice for success at Google? \"The willingness to be vulnerable to feedback,\u201d he says. \u201cIn my experience, Googlers don\u2019t often offer feedback to find fault, they do it because of a collective desire to produce the best possible product.\"\n\nLooking for a culture that supports your long-term goals? Check out open roles \u2192 https://goo.gle/3Ebyc8z",
+        "time": "1 month ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_bryans-career-journey-at-google-started-activity-7438272809094549504-wcEr",
+        "urn": "7438272809094549504"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 6,
+        "num_comments": 0,
+        "num_empathy": 19,
+        "num_interests": 2,
+        "num_likes": 367,
+        "num_praises": 15,
+        "posted": "2026-03-09 15:22:57",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Watch Dr. Marian Croak, VP of Responsible AI, in \u201cThe Art of Possible,\u201d a new documentary that celebrates her legacy and ongoing work.",
+        "time": "1 month ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_shaping-the-limitless-possibilities-of-dr-activity-7436793660156956672-YIF5",
+        "urn": "7436793660156956672"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 8,
+        "num_comments": 117,
+        "num_empathy": 118,
+        "num_interests": 42,
+        "num_likes": 1573,
+        "num_praises": 115,
+        "posted": "2026-03-12 15:26:51",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "Today, Google Maps is fundamentally changing what a map can do with two major new features that unlock new ways to navigate and explore: Ask Maps and Immersive Navigation. \n\nAsk Maps lets you get answers to your complex, real-world questions with a simple conversation, and Immersive Navigation takes the guesswork out of driving with intuitive guidance. Here\u2019s your TLDR for the biggest Maps upgrade in over a decade.\n\n\u00a0Learn more \u2192 https://goo.gle/4s5JNKt",
+        "time": "1 month ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_how-were-reimagining-google-maps-with-gemini-activity-7437881803543240706-lWuF",
+        "urn": "7437881803543240706"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 14,
+        "num_comments": 143,
+        "num_empathy": 164,
+        "num_interests": 14,
+        "num_likes": 2261,
+        "num_praises": 224,
+        "posted": "2026-03-17 21:12:00",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/in/neal-mohan",
+          "name": "Neal Mohan"
+        },
+        "reshared": true,
+        "text": "YouTube will be an official Preferred Platform for the FIFA World Cup 2026 \ud83c\udfc6\u26bd\n\nWe\u2019ll give fans a new level of access to premium content, live match highlights, and historic archives, by teaming up with official broadcasters and launching a global YouTube creator program. \n\nExcited to unite the world, including the next generation of sports fans, around this massive cultural moment \ud83c\udf0e",
+        "time": "1 month ago \u2022 Edited \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/neal-mohan_fifa-and-youtube-team-up-in-game-changing-activity-7439761000570142720-7BKb",
+        "urn": "7439780604319010817"
+      },
+      {
+        "attributes": [],
+        "images": [],
+        "num_appreciations": 16,
+        "num_comments": 134,
+        "num_empathy": 49,
+        "num_interests": 29,
+        "num_likes": 1733,
+        "num_praises": 49,
+        "posted": "2026-03-09 16:23:38",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "We see AI as an enabling technology that can help people achieve their goals, whether you're a researcher, an entrepreneur or an athlete. \n\nLast month, at the AI Impact Summit in India, we demonstrated how our ongoing breakthroughs in AI are now solving real-world challenges for people everywhere \u2014 and we launched new partnerships and investments to make sure everyone benefits. \n\nBut that\u2019s just one example of our work to make AI more helpful for everyone. Here\u2019s our monthly look back at the rest \u2193",
+        "time": "1 month ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_we-see-ai-as-an-enabling-technology-that-activity-7436808930619625473-CS-x",
+        "urn": "7436808930619625473"
+      },
+      {
+        "attributes": [],
+        "images": [
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQHdz5jK2nJteg/image-shrink_1280/B56Zy5bVFgJQAg-/0/1772637475492?e=1777111200&v=beta&t=YDo6JwmHts3jVdDl1rFA8SynSK1GBFde3GdgxSSBhFI"
+          },
+          {
+            "url": "https://media.licdn.com/dms/image/v2/D5610AQHKSdod9olNiQ/image-shrink_1280/B56Zy5bVcLKcAg-/0/1772637476886?e=1777111200&v=beta&t=aMcYQDz6zvl4TcaiLEC4B89ESX0GJG7CYkHiurPuuaM"
+          }
+        ],
+        "num_appreciations": 8,
+        "num_comments": 124,
+        "num_empathy": 52,
+        "num_interests": 3,
+        "num_likes": 983,
+        "num_praises": 63,
+        "posted": "2026-03-04 15:17:58",
+        "poster": {
+          "linkedin_url": "https://www.linkedin.com/company/google/posts",
+          "name": "Google"
+        },
+        "reshared": false,
+        "text": "\u201cI\u2019ve been using Search and YouTube since I got my first computer,\u201d says Alexander, an Austin-based Googler on our Cloud Finance team. \u201cHowever, it wasn\u2019t until much later that I discovered the global reach of Google\u2019s products.\u201d For Alexander, that realization was the catalyst to apply to work here.  \n\nAlexander began his journey in Genesis, our finance rotational program. Today, he works on Cloud Compliance and Assurance, where he\u2019s currently leading a major data migration project. \u201cIn general, my work ensures Cloud business stays fast, efficient and safe,\u201d he explains. \n\nBeyond his core role, Alexander also mentors students. His advice? \u201cFirst: practice your interviews ahead of time so you feel comfortable without sounding robotic. Second: don\u2019t be afraid to ask questions. You can\u2019t learn anything until you start asking!\u201d\n\nExplore our open roles and career opportunities \u2192 https://goo.gle/3LY3x2Y",
+        "time": "1 month ago \u2022 Visible to anyone on or off LinkedIn",
+        "url": "https://www.linkedin.com/posts/google_ive-been-using-search-and-youtube-since-activity-7434980464903278592-gDTF",
+        "urn": "7434980464903278592"
+      }
+    ],
+    "message": "ok",
+    "paging": {
+      "count": 50,
+      "pagination_token": "1486810058-1776506271130-c83cb2982bc7910148489cbe6d8b546e",
+      "start": 0
+    }
+  }
+}

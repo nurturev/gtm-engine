@@ -3,7 +3,7 @@
 Covers:
     * `_build_login_url` — finalRedirect URL shape (state + cli_callback nested)
     * `_platform_origin` — CORS Allow-Origin derivation
-    * `get_platform_base_url` — config / env / default precedence
+    * `get_platform_base_url` / `get_api_base_url` — env / config / default precedence
     * Localhost callback handler — POST happy path, state mismatch, OPTIONS preflight
 """
 
@@ -29,6 +29,7 @@ from nrev_lite.cli.auth import (
 )
 from nrev_lite.utils.config import (
     DEFAULT_PLATFORM_BASE_URL,
+    get_api_base_url,
     get_platform_base_url,
 )
 
@@ -100,13 +101,40 @@ def test_get_platform_base_url_reads_env(monkeypatch):
         assert get_platform_base_url() == "https://staging.nrev.ai"
 
 
-def test_get_platform_base_url_config_takes_precedence_over_env(monkeypatch):
+def test_get_platform_base_url_env_takes_precedence_over_config(monkeypatch):
+    """Env var must win over persisted config so dev/staging/prod aliases
+    aren't silently overridden by a stale `platform.url` in config.toml."""
     monkeypatch.setenv("NREV_PLATFORM_URL", "https://staging.nrev.ai")
     with patch(
         "nrev_lite.utils.config.get_config",
         return_value="https://app.local.test/",
     ):
-        assert get_platform_base_url() == "https://app.local.test"
+        assert get_platform_base_url() == "https://staging.nrev.ai"
+
+
+# ---------------------------------------------------------------------------
+# API base URL precedence (same env > config > default ordering)
+# ---------------------------------------------------------------------------
+
+
+def test_get_api_base_url_env_takes_precedence_over_config(monkeypatch):
+    """Regression guard: the dev/staging/prod CLI alias pattern relies on
+    NREV_API_URL overriding a stale `server.url` in config.toml."""
+    monkeypatch.setenv("NREV_API_URL", "http://localhost:8000")
+    with patch(
+        "nrev_lite.utils.config.get_config",
+        return_value="https://nrv-api.public.staging.nurturev.com/",
+    ):
+        assert get_api_base_url() == "http://localhost:8000"
+
+
+def test_get_api_base_url_reads_config_when_env_unset(monkeypatch):
+    monkeypatch.delenv("NREV_API_URL", raising=False)
+    with patch(
+        "nrev_lite.utils.config.get_config",
+        return_value="https://my.custom.api/",
+    ):
+        assert get_api_base_url() == "https://my.custom.api"
 
 
 # ---------------------------------------------------------------------------

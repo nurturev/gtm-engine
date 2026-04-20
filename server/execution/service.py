@@ -29,10 +29,16 @@ import server.execution.providers.rocketreach  # noqa: F401
 import server.execution.providers.predictleads  # noqa: F401
 import server.execution.providers.parallel_web  # noqa: F401
 import server.execution.providers.rapidapi_google  # noqa: F401
+import server.execution.providers.fresh_linkedin  # noqa: F401
 
 from server.execution.providers import get_provider, list_providers
-from server.execution.retry import retry_with_backoff
-from server.execution.normalizer import normalize_person, normalize_company, normalize_predictleads
+from server.execution.retry import RetryConfig, retry_with_backoff
+from server.execution.normalizer import (
+    normalize_person,
+    normalize_company,
+    normalize_post,
+    normalize_predictleads,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -211,6 +217,9 @@ def _load_platform_keys() -> None:
         "rapidapi": settings.RAPIDAPI_KEY,
         "parallel_web": settings.PARALLEL_KEY,
         "rapidapi_google": settings.X_RAPIDAPI_KEY,
+        # Fresh LinkedIn uses a separate RapidAPI key (distinct listing,
+        # distinct negotiation) — intentionally NOT shared with rapidapi_google.
+        "fresh_linkedin": settings.LINKEDIN_RAPIDAPI_KEY,
     }
     for provider, val in _key_map.items():
         if val and val.strip():
@@ -230,6 +239,11 @@ _load_platform_keys()
 # Operations that should be normalized
 PERSON_OPERATIONS = {"enrich_person", "search_people", "bulk_enrich_people"}
 COMPANY_OPERATIONS = {"enrich_company", "search_companies", "bulk_enrich_companies"}
+POST_OPERATIONS = {
+    "fetch_profile_posts", "fetch_company_posts", "fetch_post_details",
+    "fetch_post_reactions", "fetch_post_comments",
+    "search_posts",
+}
 PREDICTLEADS_OPERATIONS = {
     "company_jobs", "company_technologies", "company_news",
     "company_financing", "similar_companies",
@@ -330,8 +344,10 @@ async def execute_single(
         )
 
     # ── Step 2: Check cache ───────────────────────────────────────────────
+    # Providers with `cacheable = False` bypass both read and write of the
+    # response cache. Used for realtime-sensitive providers (e.g. fresh_linkedin).
     cache = _get_cache()
-    if cache is not None:
+    if cache is not None and provider_cls.cacheable:
         try:
             cached = await cache.get(tenant_id, operation, params)
             if cached is not None:
@@ -376,15 +392,18 @@ async def execute_single(
         operation, provider_name, tenant_id, is_byok,
     )
 
+    # Providers can override the retry policy via a class-level RetryConfig;
+    # absent that, fall back to the standard 3-retry exponential backoff.
+    retry_config = provider_cls.retry_config or RetryConfig()
     raw_result = await retry_with_backoff(
         provider.execute,
         operation,
         params,
         api_key,
-        max_retries=3,
-        base_delay=1.0,
-        max_delay=30.0,
-        jitter=True,
+        max_retries=retry_config.max_retries,
+        base_delay=retry_config.base_delay,
+        max_delay=retry_config.max_delay,
+        jitter=retry_config.jitter,
         retryable_exceptions=(ProviderError,),
     )
 
@@ -393,14 +412,24 @@ async def execute_single(
         normalized = normalize_person(raw_result, provider_name)
     elif operation in COMPANY_OPERATIONS:
         normalized = normalize_company(raw_result, provider_name)
+    elif operation in POST_OPERATIONS:
+        normalized = normalize_post(raw_result, provider_name, operation)
     elif operation in PREDICTLEADS_OPERATIONS:
         normalized = normalize_predictleads(raw_result, operation)
     else:
         normalized = raw_result
 
     # ── Step 7: Store in cache ────────────────────────────────────────────
+    # Mirror of the read-gate above: providers with `cacheable = False` also
+    # skip the write so future calls don't get served stale data.
+    # Also skip the write when an async lookup is still in progress — caching
+    # a partial payload would serve stale in_progress data to the retry.
+    is_in_progress = (
+        isinstance(normalized, dict)
+        and normalized.get("lookup_status") == "in_progress"
+    )
     cache_payload = {"data": normalized, "is_byok": is_byok}
-    if cache is not None:
+    if cache is not None and provider_cls.cacheable and not is_in_progress:
         try:
             ttl = CACHE_TTLS.get(operation, 3600)
             await cache.set(tenant_id, operation, params, cache_payload, ttl=ttl)
@@ -409,11 +438,16 @@ async def execute_single(
             logger.warning("Cache write failed", exc_info=True)
 
     # ── Step 8: Return ────────────────────────────────────────────────────
+    # When an async lookup caps out (e.g. RocketReach enrich_person still in
+    # flight at 30s), the caller must retry to get complete data. Vendor-side
+    # re-lookups are free, so billing this first call would double-charge the
+    # tenant. Surface zero cost here; the retry bills normally on completion.
+    actual_cost = 0.0 if is_in_progress else calculate_cost(operation, params)
     return {
         "provider": provider_name,
         "operation": operation,
         "is_byok": is_byok,
         "cached": False,
-        "actual_cost": calculate_cost(operation, params),
+        "actual_cost": actual_cost,
         "data": normalized,
     }

@@ -1,0 +1,19 @@
+{
+  "__probe_meta__": {
+    "slug": "universal_person_lookup_name_employer",
+    "method": "GET",
+    "url": "https://api.rocketreach.co/api/v2/universal/person/lookup",
+    "path": "/api/v2/universal/person/lookup",
+    "status_code": 400,
+    "request_params": {
+      "name": "Satya Nadella",
+      "current_employer": "Microsoft"
+    },
+    "response_headers": {}
+  },
+  "response": {
+    "non_field_errors": [
+      "Please specify at least one enrichment type to perform a person lookup"
+    ]
+  }
+}

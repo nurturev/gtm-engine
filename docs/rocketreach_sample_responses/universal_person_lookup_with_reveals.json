@@ -1,0 +1,19 @@
+{
+  "__probe_meta__": {
+    "slug": "universal_person_lookup_with_reveals",
+    "method": "GET",
+    "url": "https://api.rocketreach.co/api/v2/universal/person/lookup",
+    "path": "/api/v2/universal/person/lookup",
+    "status_code": 404,
+    "request_params": {
+      "linkedin_url": "https://www.linkedin.com/in/satyanadella/",
+      "reveal_professional_email": "true",
+      "reveal_personal_email": "true",
+      "reveal_phone": "true"
+    },
+    "response_headers": {}
+  },
+  "response": {
+    "detail": "Could not find the person you were searching for!"
+  }
+}
