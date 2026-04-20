@@ -71,8 +71,50 @@ _SEARCH_FILTER_LIST_KEYS = (
 )
 
 _POST_URN_RE = re.compile(r"^\d{15,20}$")
+_NUMERIC_STRING_RE = re.compile(r"^\d+$")
 
 _REQUEST_TIMEOUT = 30.0
+
+
+def _coerce_numeric_string(value: Any, field_name: str) -> str:
+    """Accept int or numeric string; return str. Reject bool, negative, non-numeric."""
+    if isinstance(value, bool):
+        raise ProviderError(
+            "fresh_linkedin",
+            f"'{field_name}' must be a non-negative integer string; got bool",
+            status_code=400,
+        )
+    if isinstance(value, int):
+        if value < 0:
+            raise ProviderError(
+                "fresh_linkedin",
+                f"'{field_name}' must be a non-negative integer string; got {value}",
+                status_code=400,
+            )
+        return str(value)
+    if isinstance(value, str):
+        if not _NUMERIC_STRING_RE.match(value):
+            raise ProviderError(
+                "fresh_linkedin",
+                f"'{field_name}' must be a non-negative integer string; got '{value}'",
+                status_code=400,
+            )
+        return value
+    raise ProviderError(
+        "fresh_linkedin",
+        f"'{field_name}' must be a non-negative integer string; got type {type(value).__name__}",
+        status_code=400,
+    )
+
+
+def _require_paired(a: Any, b: Any, names: tuple[str, str]) -> None:
+    """Raise 400 if exactly one of a / b is truthy. Both truthy OR both falsy = OK."""
+    if bool(a) ^ bool(b):
+        raise ProviderError(
+            "fresh_linkedin",
+            f"'{names[0]}' and '{names[1]}' must be provided together",
+            status_code=400,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -523,11 +565,25 @@ class FreshLinkedInProvider(BaseProvider):
                 status_code=400,
             )
         canonical_url = _normalize_linkedin_profile_url(str(raw_url))
+
+        start = params.get("start")
+        token = params.get("pagination_token")
+        start_str = _coerce_numeric_string(start, "start") if start is not None and start != "" else None
+        _require_paired(start_str, token, ("start", "pagination_token"))
+
         qs: dict[str, Any] = {"linkedin_url": canonical_url}
-        cursor = params.get("cursor")
-        if cursor:
-            qs["cursor"] = str(cursor)
-        logger.info("fresh_linkedin fetch_profile_posts for %s", canonical_url)
+        type_val = params.get("type")
+        if type_val is not None and type_val != "":
+            qs["type"] = str(type_val)
+        if start_str:
+            qs["start"] = start_str
+        if token:
+            qs["pagination_token"] = str(token)
+
+        logger.info(
+            "fresh_linkedin fetch_profile_posts for %s start=%s token=%s",
+            canonical_url, bool(start_str), bool(token),
+        )
         resp = await self._get(ENDPOINT_PROFILE_POSTS, qs, api_key)
         return self._classify_response(resp)
 
@@ -548,11 +604,25 @@ class FreshLinkedInProvider(BaseProvider):
                 status_code=400,
             )
         canonical_url = _normalize_linkedin_company_url(str(raw_url))
+
+        start = params.get("start")
+        token = params.get("pagination_token")
+        start_str = _coerce_numeric_string(start, "start") if start is not None and start != "" else None
+        _require_paired(start_str, token, ("start", "pagination_token"))
+
         qs: dict[str, Any] = {"linkedin_url": canonical_url}
-        cursor = params.get("cursor")
-        if cursor:
-            qs["cursor"] = str(cursor)
-        logger.info("fresh_linkedin fetch_company_posts for %s", canonical_url)
+        sort_by = params.get("sort_by")
+        if sort_by is not None and sort_by != "":
+            qs["sort_by"] = str(sort_by)
+        if start_str:
+            qs["start"] = start_str
+        if token:
+            qs["pagination_token"] = str(token)
+
+        logger.info(
+            "fresh_linkedin fetch_company_posts for %s start=%s token=%s",
+            canonical_url, bool(start_str), bool(token),
+        )
         resp = await self._get(ENDPOINT_COMPANY_POSTS, qs, api_key)
         return self._classify_response(resp)
 
@@ -580,11 +650,21 @@ class FreshLinkedInProvider(BaseProvider):
         api_key: str,
     ) -> dict[str, Any]:
         urn = self._validate_post_urn(params.get("urn"))
+        page = params.get("page")
+        page_str = _coerce_numeric_string(page, "page") if page is not None and page != "" else None
+
         qs: dict[str, Any] = {"urn": urn}
-        cursor = params.get("cursor")
-        if cursor:
-            qs["cursor"] = str(cursor)
-        logger.info("fresh_linkedin fetch_post_reactions for urn=%s", urn)
+        type_val = params.get("type")
+        if type_val is not None and type_val != "":
+            qs["type"] = str(type_val)
+        if page_str:
+            qs["page"] = page_str
+        # pagination_token silently ignored — vendor endpoint accepts only `page`.
+
+        logger.info(
+            "fresh_linkedin fetch_post_reactions for urn=%s page=%s",
+            urn, bool(page_str),
+        )
         resp = await self._get(ENDPOINT_POST_REACTIONS, qs, api_key)
         return self._classify_response(resp)
 
@@ -598,11 +678,25 @@ class FreshLinkedInProvider(BaseProvider):
         api_key: str,
     ) -> dict[str, Any]:
         urn = self._validate_post_urn(params.get("urn"))
+
+        page = params.get("page")
+        token = params.get("pagination_token")
+        page_str = _coerce_numeric_string(page, "page") if page is not None and page != "" else None
+        _require_paired(page_str, token, ("page", "pagination_token"))
+
         qs: dict[str, Any] = {"urn": urn}
-        cursor = params.get("cursor") or params.get("pagination_token")
-        if cursor:
-            qs["pagination_token"] = str(cursor)
-        logger.info("fresh_linkedin fetch_post_comments for urn=%s", urn)
+        sort_by = params.get("sort_by")
+        if sort_by is not None and sort_by != "":
+            qs["sort_by"] = str(sort_by)
+        if page_str:
+            qs["page"] = page_str
+        if token:
+            qs["pagination_token"] = str(token)
+
+        logger.info(
+            "fresh_linkedin fetch_post_comments for urn=%s page=%s token=%s",
+            urn, bool(page_str), bool(token),
+        )
         resp = await self._get(ENDPOINT_POST_COMMENTS, qs, api_key)
         return self._classify_response(resp)
 

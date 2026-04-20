@@ -448,7 +448,7 @@ TOOLS: list[dict[str, Any]] = [
             },
         },
     },
-    # ---- Fresh LinkedIn posts (Phase 2.2 / 2.4) ----
+    # ---- Fresh LinkedIn posts (Phase 2.2 / 2.4 + pagination) ----
     {
         "name": "nrev_fetch_linkedin_posts",
         "description": (
@@ -457,7 +457,9 @@ TOOLS: list[dict[str, Any]] = [
             "'company' (posts by a company LinkedIn URL), "
             "'detail' (single post by bare activity URN), "
             "'search' (filter-driven search across LinkedIn — keyword, author URN, mentions). "
-            "Returns normalized Post objects. Freshness guaranteed — no caching. 3 credits/call."
+            "Pagination — profile/company: pass 'start' + 'pagination_token' together from prior "
+            "envelope.pagination; search: increment 'page'. Each page = 3 credits. "
+            "Freshness guaranteed — no caching."
         ),
         "inputSchema": {
             "type": "object",
@@ -486,17 +488,34 @@ TOOLS: list[dict[str, Any]] = [
                         "Required when source_type='detail'. Harvest from a prior posts response."
                     ),
                 },
-                "cursor": {
+                "start": {
                     "type": "string",
-                    "description": "Pagination cursor from a prior response (profile / company only).",
+                    "description": (
+                        "Pagination offset for profile/company posts. Echo envelope.pagination.start "
+                        "from prior response. Must be provided together with pagination_token."
+                    ),
+                },
+                "pagination_token": {
+                    "type": "string",
+                    "description": (
+                        "Pagination token for profile/company posts. Echo envelope.pagination.pagination_token "
+                        "from prior response. Must be provided together with start."
+                    ),
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Vendor filter for source_type='profile' (e.g. 'posts'). Pass-through.",
+                },
+                "sort_by": {
+                    "type": "string",
+                    "description": (
+                        "For source_type='company': vendor sort filter (e.g. 'top'). "
+                        "For source_type='search': 'Latest' (default) or 'Relevance'."
+                    ),
                 },
                 "search_keywords": {
                     "type": "string",
                     "description": "Keyword filter (source_type='search').",
-                },
-                "sort_by": {
-                    "type": "string",
-                    "description": "'Latest' (default) or 'Relevance' (source_type='search').",
                 },
                 "date_posted": {
                     "type": "string",
@@ -543,9 +562,11 @@ TOOLS: list[dict[str, Any]] = [
         "description": (
             "Fetch engagement on a LinkedIn post via Fresh LinkedIn. "
             "engagement_type='reactions' → reactors (name, headline, linkedin_url, reaction type). "
-            "engagement_type='comments' → comments (text, commenter, created_at, pagination cursor). "
-            "urn must be the bare numeric activity id. Reactor/commenter linkedin_url is URN-form — "
-            "to fully enrich, pass to enrich_person. 3 credits/call."
+            "engagement_type='comments' → comments (text, commenter, created_at). "
+            "Pagination — reactions: pass 'page' only. Comments: pass 'page' + 'pagination_token' "
+            "together from prior envelope.pagination. urn must be the bare numeric activity id. "
+            "Reactor/commenter linkedin_url is URN-form — to fully enrich, pass to enrich_person. "
+            "Each page = 3 credits."
         ),
         "inputSchema": {
             "type": "object",
@@ -559,9 +580,27 @@ TOOLS: list[dict[str, Any]] = [
                     "type": "string",
                     "description": "Bare activity id (e.g. '7450415215956987904') from a posts response.",
                 },
-                "cursor": {
+                "page": {
                     "type": "string",
-                    "description": "Pagination cursor from a prior response.",
+                    "description": (
+                        "Pagination page. Required for reactions beyond page 1. "
+                        "For comments: must be provided together with pagination_token."
+                    ),
+                },
+                "pagination_token": {
+                    "type": "string",
+                    "description": (
+                        "Pagination token (comments only). Must be provided together with page. "
+                        "Ignored for reactions (not supported upstream)."
+                    ),
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Reactions filter (e.g. 'ALL'). Pass-through.",
+                },
+                "sort_by": {
+                    "type": "string",
+                    "description": "Comments sort filter (e.g. 'Most relevant'). Pass-through.",
                 },
             },
             "required": ["engagement_type", "urn"],
@@ -1696,11 +1735,18 @@ def _handle_nrev_fetch_linkedin_posts(args: dict[str, Any]) -> dict[str, Any]:
         if not linkedin_url:
             return {"error": f"source_type='{source_type}' requires 'linkedin_url'"}
         params["linkedin_url"] = linkedin_url
-        if args.get("cursor"):
-            params["cursor"] = str(args["cursor"])
-        operation = (
-            "fetch_profile_posts" if source_type == "profile" else "fetch_company_posts"
-        )
+        if args.get("start") is not None and args.get("start") != "":
+            params["start"] = str(args["start"])
+        if args.get("pagination_token"):
+            params["pagination_token"] = str(args["pagination_token"])
+        if source_type == "profile":
+            if args.get("type"):
+                params["type"] = str(args["type"])
+            operation = "fetch_profile_posts"
+        else:
+            if args.get("sort_by"):
+                params["sort_by"] = str(args["sort_by"])
+            operation = "fetch_company_posts"
 
     body = {
         "operation": operation,
@@ -1720,12 +1766,21 @@ def _handle_nrev_fetch_post_engagement(args: dict[str, Any]) -> dict[str, Any]:
         return {"error": "'urn' is required (bare activity id)"}
 
     params: dict[str, Any] = {"urn": urn}
-    if args.get("cursor"):
-        params["cursor"] = str(args["cursor"])
+    if args.get("page") is not None and args.get("page") != "":
+        params["page"] = str(args["page"])
 
-    operation = (
-        "fetch_post_reactions" if engagement_type == "reactions" else "fetch_post_comments"
-    )
+    if engagement_type == "reactions":
+        if args.get("type"):
+            params["type"] = str(args["type"])
+        # pagination_token intentionally not forwarded for reactions.
+        operation = "fetch_post_reactions"
+    else:
+        if args.get("pagination_token"):
+            params["pagination_token"] = str(args["pagination_token"])
+        if args.get("sort_by"):
+            params["sort_by"] = str(args["sort_by"])
+        operation = "fetch_post_comments"
+
     body = {
         "operation": operation,
         "provider": "fresh_linkedin",

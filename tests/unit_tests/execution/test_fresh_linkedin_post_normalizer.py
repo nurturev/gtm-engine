@@ -22,6 +22,7 @@ import pytest
 
 from server.execution.normalizer import (
     _normalize_fresh_linkedin_post_item,
+    _normalize_fresh_linkedin_post_list,
     normalize_post,
 )
 
@@ -100,6 +101,86 @@ class TestProfilePostShape:
             _first_profile_post_raw(), operation="fetch_profile_posts",
         )
         assert post["reshared"] is False
+
+
+class TestProfilePostsEnvelopePagination:
+    """Phase 2.5 (HLD §6.2) — list-envelope emits a nested ``pagination`` sub-dict
+    carrying ``start`` + ``pagination_token`` (both ``str | None``). Old top-level
+    ``cursor`` key is gone (HLD §14 breaking change)."""
+
+    def test_pagination_sub_dict_present(self) -> None:
+        envelope = normalize_post(
+            profile_posts_response(),
+            provider="fresh_linkedin",
+            operation="fetch_profile_posts",
+        )
+        assert "pagination" in envelope
+        assert isinstance(envelope["pagination"], dict)
+
+    def test_pagination_keys_are_start_and_token(self) -> None:
+        envelope = normalize_post(
+            profile_posts_response(),
+            provider="fresh_linkedin",
+            operation="fetch_profile_posts",
+        )
+        assert set(envelope["pagination"].keys()) == {"start", "pagination_token"}
+
+    def test_token_and_start_lifted_from_vendor_response(self) -> None:
+        """HLD §10 — normalizer echoes ``pagination_token`` and ``start`` the
+        vendor ships in the response body onto ``envelope.pagination.*``.
+        Synthetic raw for determinism; fixture data is captured live and its
+        precise shape (top-level vs nested ``paging``) drifts — impl owns
+        where to look, the contract is just 'surface what the vendor sent'."""
+        raw = {
+            "data": [],
+            "total": 50,
+            "pagination_token": "tok1",
+            "start": "10",
+        }
+        envelope = _normalize_fresh_linkedin_post_list(raw, "fetch_profile_posts")
+        assert envelope["pagination"]["pagination_token"] == "tok1"
+        assert envelope["pagination"]["start"] == "10"
+
+    def test_legacy_top_level_cursor_removed(self) -> None:
+        envelope = normalize_post(
+            profile_posts_response(),
+            provider="fresh_linkedin",
+            operation="fetch_profile_posts",
+        )
+        assert "cursor" not in envelope
+
+
+class TestProfilePostsEndOfStreamShape:
+    """HLD §6.4 — when the vendor returns no pagination signals, envelope
+    surfaces both values as ``None`` so the caller knows to stop."""
+
+    def test_both_values_none_when_vendor_omits(self) -> None:
+        raw = {"data": [], "total": 0}
+        envelope = _normalize_fresh_linkedin_post_list(raw, "fetch_profile_posts")
+        assert envelope["pagination"]["start"] is None
+        assert envelope["pagination"]["pagination_token"] is None
+
+
+class TestCompanyPostsEnvelopePagination:
+    def test_pagination_sub_dict_present(self) -> None:
+        envelope = normalize_post(
+            company_posts_response(),
+            provider="fresh_linkedin",
+            operation="fetch_company_posts",
+        )
+        assert "pagination" in envelope
+        assert set(envelope["pagination"].keys()) == {"start", "pagination_token"}
+
+    def test_token_and_start_lifted_from_vendor_response(self) -> None:
+        raw = {
+            "data": [],
+            "total": 50,
+            "pagination_token": "company-tok",
+            "start": "50",
+        }
+        envelope = _normalize_fresh_linkedin_post_list(raw, "fetch_company_posts")
+        assert envelope["pagination"]["pagination_token"] == "company-tok"
+        assert envelope["pagination"]["start"] == "50"
 
 
 class TestProfilePostTopLevelBounded:
@@ -223,14 +304,48 @@ def _reshared_search_post() -> dict:
 
 
 class TestSearchPostsEnvelope:
-    def test_envelope_has_posts_and_page(self) -> None:
+    def test_envelope_has_posts_list(self) -> None:
         envelope = normalize_post(
             search_posts_response(),
             provider="fresh_linkedin",
             operation="search_posts",
         )
         assert isinstance(envelope.get("posts"), list)
-        assert "page" in envelope
+
+
+class TestSearchPostsPaginationEnvelope:
+    """Phase 2.5 — ``search_posts.page`` moves under the unified
+    ``pagination`` sub-dict (HLD §6.2). Top-level ``page`` is removed
+    (HLD §14 breaking change — staging-only, no BC concern)."""
+
+    def test_pagination_sub_dict_present(self) -> None:
+        envelope = normalize_post(
+            search_posts_response(),
+            provider="fresh_linkedin",
+            operation="search_posts",
+        )
+        assert "pagination" in envelope
+        assert isinstance(envelope["pagination"], dict)
+
+    def test_pagination_carries_page_as_int(self) -> None:
+        """Unlike the GET ops, search_posts.page stays ``int`` — matches
+        its input contract (HLD §6.2)."""
+        envelope = normalize_post(
+            search_posts_response(),
+            provider="fresh_linkedin",
+            operation="search_posts",
+        )
+        assert isinstance(envelope["pagination"]["page"], int)
+
+    def test_top_level_page_key_removed(self) -> None:
+        """Readers must pull ``envelope.pagination.page``, not a top-level
+        ``page`` key. HLD §14 breaking change."""
+        envelope = normalize_post(
+            search_posts_response(),
+            provider="fresh_linkedin",
+            operation="search_posts",
+        )
+        assert "page" not in envelope
 
 
 def _normalized_search_posts() -> list[dict]:

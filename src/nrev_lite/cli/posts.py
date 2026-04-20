@@ -37,12 +37,24 @@ def posts() -> None:
 
 @posts.command("fetch")
 @click.option("--linkedin", required=True, help="LinkedIn profile (/in/<slug>) or company (/company/<slug>) URL.")
-@click.option("--cursor", default=None, help="Pagination cursor from a prior response.")
+@click.option("--start", default=None, help="Pagination offset (from envelope.pagination.start). Pair with --pagination-token.")
+@click.option("--pagination-token", "pagination_token", default=None, help="Pagination token (from envelope.pagination.pagination_token). Pair with --start.")
+@click.option("--type", "type_", default=None, help="Vendor filter for profile posts (e.g. 'posts').")
+@click.option("--sort-by", "sort_by", default=None, help="Vendor filter for company posts (e.g. 'top').")
 @click.option("--json", "as_json", is_flag=True, help="Output raw JSON.")
-def fetch(linkedin: str, cursor: str | None, as_json: bool) -> None:
+def fetch(
+    linkedin: str,
+    start: str | None,
+    pagination_token: str | None,
+    type_: str | None,
+    sort_by: str | None,
+    as_json: bool,
+) -> None:
     """Recent posts by a LinkedIn profile or company URL.
 
-    Auto-detects profile vs company from the URL path. 3 credits/call.
+    Auto-detects profile vs company from the URL path. Pagination: pass --start
+    AND --pagination-token together from a prior response's envelope.pagination.
+    3 credits/call (per page).
     """
     _require_auth()
 
@@ -56,8 +68,14 @@ def fetch(linkedin: str, cursor: str | None, as_json: bool) -> None:
         sys.exit(2)
 
     params: dict[str, Any] = {"linkedin_url": linkedin}
-    if cursor:
-        params["cursor"] = cursor
+    if start is not None and start != "":
+        params["start"] = start
+    if pagination_token:
+        params["pagination_token"] = pagination_token
+    if operation == "fetch_profile_posts" and type_:
+        params["type"] = type_
+    if operation == "fetch_company_posts" and sort_by:
+        params["sort_by"] = sort_by
 
     _execute(operation, params, as_json)
 
@@ -76,17 +94,21 @@ def details(urn: str, as_json: bool) -> None:
 
 @posts.command("reactions")
 @click.option("--urn", required=True, help="Bare activity id from a prior posts response.")
-@click.option("--cursor", default=None, help="Pagination cursor from a prior response.")
+@click.option("--page", default=None, help="Page number (numeric string). Omit on page 1.")
+@click.option("--type", "type_", default=None, help="Vendor filter (e.g. 'ALL'). Pass-through.")
 @click.option("--json", "as_json", is_flag=True, help="Output raw JSON.")
-def reactions(urn: str, cursor: str | None, as_json: bool) -> None:
+def reactions(urn: str, page: str | None, type_: str | None, as_json: bool) -> None:
     """Reactors on a LinkedIn post by bare activity URN.
 
-    Returns name, headline, linkedin_url (URN-form), reaction type per reactor. 3 credits/call.
+    Returns name, headline, linkedin_url (URN-form), reaction type per reactor.
+    Pagination: --page only (no token for this endpoint). 3 credits/call (per page).
     """
     _require_auth()
     params: dict[str, Any] = {"urn": urn}
-    if cursor:
-        params["cursor"] = cursor
+    if page is not None and page != "":
+        params["page"] = page
+    if type_:
+        params["type"] = type_
     _execute("fetch_post_reactions", params, as_json)
 
 
@@ -144,15 +166,29 @@ def search(
 
 @posts.command("comments")
 @click.option("--urn", required=True, help="Bare activity id from a prior posts response.")
-@click.option("--cursor", default=None, help="Pagination cursor from a prior response.")
+@click.option("--page", default=None, help="Page number (numeric string). Pair with --pagination-token.")
+@click.option("--pagination-token", "pagination_token", default=None, help="Pagination token (from envelope.pagination.pagination_token). Pair with --page.")
+@click.option("--sort-by", "sort_by", default=None, help="Vendor sort filter (e.g. 'Most relevant').")
 @click.option("--json", "as_json", is_flag=True, help="Output raw JSON.")
-def comments(urn: str, cursor: str | None, as_json: bool) -> None:
+def comments(
+    urn: str,
+    page: str | None,
+    pagination_token: str | None,
+    sort_by: str | None,
+    as_json: bool,
+) -> None:
     """Comments on a LinkedIn post by bare activity URN.
 
-    Paginated via cursor. Returns text, commenter (URN-form linkedin_url), created_at, reply_count. 3 credits/call.
+    Pagination: pass --page AND --pagination-token together from a prior response's
+    envelope.pagination. Returns text, commenter (URN-form linkedin_url), created_at,
+    reply_count. 3 credits/call (per page).
     """
     _require_auth()
     params: dict[str, Any] = {"urn": urn}
-    if cursor:
-        params["cursor"] = cursor
+    if page is not None and page != "":
+        params["page"] = page
+    if pagination_token:
+        params["pagination_token"] = pagination_token
+    if sort_by:
+        params["sort_by"] = sort_by
     _execute("fetch_post_comments", params, as_json)
