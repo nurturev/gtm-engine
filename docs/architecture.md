@@ -1530,49 +1530,53 @@ Response:
 ```
 
 #### `POST /api/v1/execute/batch`
-Execute operations in batch (async).
+Execute up to `MAX_BATCH_SIZE` (25) same-type operations concurrently. The
+request blocks until the batch finishes and returns every result inline —
+no second call needed in the common path.
 
 ```json
 Request:
 {
-  "operation": "enrich_person",
-  "items": [
-    {"email": "john@acme.com"},
-    {"email": "jane@bigcorp.io"},
-    {"email": "alex@startup.co"}
-  ],
-  "strategy": "waterfall",
-  "providers": ["apollo", "rocketreach"],
-  "write_to_table": true
+  "operations": [
+    {"operation": "enrich_person", "params": {"email": "john@acme.com"}},
+    {"operation": "enrich_person", "params": {"email": "jane@bigcorp.io"}},
+    {"operation": "enrich_person", "params": {"email": "alex@startup.co"}}
+  ]
 }
 
 Response:
 {
   "batch_id": "batch_7c2e1a8f",
-  "status": "processing",
-  "total_items": 3,
-  "estimated_credits": 12,
-  "poll_url": "/api/v1/execute/batch/batch_7c2e1a8f"
+  "total": 3,
+  "status": "completed",
+  "completed": 3,
+  "failed": 0,
+  "results": [
+    {"execution_id": "exec_ab12", "status": "success", "operation": "enrich_person",
+     "provider": "apollo", "cached": false, "cost": 1.0, "data": {...}},
+    ...
+  ]
 }
 ```
 
+> `status` is `"completed"` today. `"processing"` is reserved for a future
+> async job queue that will handle larger batches.
+
 #### `GET /api/v1/execute/batch/{batch_id}`
-Poll batch status.
+Retry-recovery fallback. Returns the same `results` array that was included
+in the POST response. Use only if you lost the POST response (e.g. client
+timeout after server finished) — the primary consumption path is reading
+`results` directly off the POST response.
 
 ```json
 Response:
 {
   "batch_id": "batch_7c2e1a8f",
-  "status": "completed",           // "processing" | "completed" | "failed" | "partial"
-  "total_items": 3,
-  "completed_items": 3,
-  "failed_items": 0,
-  "credits_used": 10,
-  "results": [
-    {"email": "john@acme.com", "status": "success", "result": {...}},
-    {"email": "jane@bigcorp.io", "status": "success", "result": {...}},
-    {"email": "alex@startup.co", "status": "success", "result": {...}}
-  ]
+  "total": 3,
+  "completed": 3,
+  "failed": 0,
+  "status": "completed",
+  "results": [ ... ]
 }
 ```
 

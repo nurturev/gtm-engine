@@ -436,6 +436,9 @@ async def execute_batch_endpoint(
         results.append(entry)
 
     batch_id = checkpoint.batch_id
+    # Retained for the GET /execute/batch/{id} fallback. Existing pollers
+    # (e.g. workflow_studio consultant agent) keep working while they migrate
+    # to reading `results` inline from this POST response.
     _batches[batch_id] = {
         "total": checkpoint.total,
         "completed": checkpoint.completed,
@@ -452,6 +455,9 @@ async def execute_batch_endpoint(
         batch_id=batch_id,
         total=checkpoint.total,
         status="completed",
+        completed=checkpoint.completed,
+        failed=checkpoint.failed,
+        results=results,
     )
 
 
