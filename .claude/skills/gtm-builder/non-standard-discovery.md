@@ -43,8 +43,8 @@ Is the target in B2B databases?
 ```python
 # Search MULTIPLE platforms — cross-referencing gives better coverage
 # Yelp and Instagram are well-indexed; Google Maps site: does NOT work
-nrev_google_search("site:yelp.com bakeries San Jose")
-nrev_google_search("site:instagram.com bakery San Jose California")
+google_search("site:yelp.com bakeries San Jose")
+google_search("site:instagram.com bakery San Jose California")
 # This gives you: business names + Yelp/Instagram URLs
 ```
 **IMPORTANT:** `site:google.com/maps` does NOT work — Maps pages are not indexed in web search. Use Yelp + Instagram as primary discovery platforms.
@@ -56,15 +56,15 @@ nrev_google_search("site:instagram.com bakery San Jose California")
 # Batch all Yelp URLs into one Parallel Web Extract call
 # Yelp and Instagram BLOCK basic HTTP scraping (403 errors)
 # Parallel Web handles anti-bot pages that basic fetch tools can't
-nrev_scrape_page(url="https://www.yelp.com/biz/peters-bakery-san-jose-2",
-                objective="Extract business name, full address, phone, website, email, hours, rating, specialties")
+scrape_page(url="https://www.yelp.com/biz/peters-bakery-san-jose-2",
+            objective="Extract business name, full address, phone, website, email, hours, rating, specialties")
 ```
 
 **Approach B — Web search per business (fallback, always works):**
 ```python
 # Search each business by name for contact details
 # This pulls from multiple directory listings (Yelp, Yellow Pages, Facebook, etc.)
-nrev_google_search("[Business Name] [City] phone website email contact")
+google_search("[Business Name] [City] phone website email contact")
 ```
 **Real-world test results (10 bakeries in San Jose):**
 - Phone: 100% hit rate
@@ -76,19 +76,19 @@ nrev_google_search("[Business Name] [City] phone website email contact")
 ```python
 # For businesses missing email/website, use Parallel Web Task API
 # Task API does AI-powered research across multiple sources
-nrev_scrape_page(url="https://www.google.com/search?q=", objective="Find contact email, website, and owner name for [Business Name] at [Address] in [City]")
+scrape_page(url="https://www.google.com/search?q=", objective="Find contact email, website, and owner name for [Business Name] at [Address] in [City]")
 
 # For persistent gaps, try Facebook pages (often have email)
-nrev_google_search("site:facebook.com [Business Name] [City]")
+google_search("site:facebook.com [Business Name] [City]")
 ```
 
 ### Step 4: Find the decision maker
 ```python
 # For local businesses, the owner IS the decision maker
 # Try LinkedIn search for the owner
-nrev_google_search("site:linkedin.com/in [owner name] [business name] [city]")
+google_search("site:linkedin.com/in [owner name] [business name] [city]")
 # Or search Apollo if the company has a website domain
-nrev_search_people(company_domains=["businessdomain.com"], provider="apollo")
+search_people(company_domains=["businessdomain.com"], provider="apollo")
 ```
 
 ### Step 5: Always output structured data
@@ -122,13 +122,13 @@ Job postings reveal strategic priorities better than any press release.
 **How to find:**
 ```python
 # Greenhouse (most tech companies)
-nrev_google_search("site:boards.greenhouse.io/[company] sales OR SDR OR marketing")
+google_search("site:boards.greenhouse.io/[company] sales OR SDR OR marketing")
 
 # Lever
-nrev_google_search("site:jobs.lever.co/[company]")
+google_search("site:jobs.lever.co/[company]")
 
 # General
-nrev_google_search("[company name] careers hiring [role]")
+google_search("[company name] careers hiring [role]")
 ```
 
 ## Competitor Intelligence via Social
@@ -136,10 +136,10 @@ nrev_google_search("[company name] careers hiring [role]")
 **Track competitor sales reps' public activity:**
 ```python
 # Find their reps
-nrev_google_search("site:linkedin.com/in [competitor name] SDR OR 'account executive' OR sales")
+google_search("site:linkedin.com/in [competitor name] SDR OR 'account executive' OR sales")
 
 # Find their engagement (likes, comments on prospects' posts)
-nrev_google_search("site:linkedin.com/posts [rep name] commented")
+google_search("site:linkedin.com/posts [rep name] commented")
 ```
 
 **Identify accounts they're chasing:**
@@ -149,8 +149,8 @@ nrev_google_search("site:linkedin.com/posts [rep name] commented")
 
 **Track competitor content for market intelligence:**
 ```python
-nrev_google_search("site:linkedin.com/posts [competitor company] launched OR announced OR introducing")
-nrev_google_search("[competitor] blog [product area] site:[competitor-domain].com")
+google_search("site:linkedin.com/posts [competitor company] launched OR announced OR introducing")
+google_search("[competitor] blog [product area] site:[competitor-domain].com")
 ```
 
 ## Competitor Intelligence — Advanced Tools

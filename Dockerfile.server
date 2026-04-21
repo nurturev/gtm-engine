@@ -17,5 +17,11 @@ COPY migrations/ migrations/
 
 EXPOSE 8000
 
-# Production: multiple workers, no reload
-CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Production: gunicorn master preloads app so auto-instrumentation is inherited by workers
+CMD ["gunicorn", "server.app:app", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "2", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--preload", \
+     "--timeout", "120", \
+     "--keep-alive", "60"]

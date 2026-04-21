@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.6"]
 build-backend = "hatchling.build"
 
 [project]
 name = "nrev-lite"
-version = "2.0.0"
+version = "2.0.1"
 description = "nrev-lite — agent-native GTM execution platform"
 readme = "README.md"
 license = {text = "MIT"}
@@ -49,8 +49,21 @@ nrev-lite = "nrev_lite.cli.main:cli"
 Homepage = "https://nrev.ai"
 Repository = "https://github.com/nurturev/gtm-engine"
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/.claude/skills",
+    "/.claude/rules",
+    "/README.md",
+    "/pyproject.toml",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/nrev_lite"]
+
+[tool.hatch.build.targets.wheel.force-include]
+".claude/skills" = "src/nrev_lite/resources/claude_assets/skills"
+".claude/rules" = "src/nrev_lite/resources/claude_assets/rules"
 
 [tool.ruff]
 target-version = "py310"
