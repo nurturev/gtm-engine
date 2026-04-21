@@ -3,7 +3,7 @@
 Handles the complete setup flow:
 1. Authenticate (Google OAuth via browser)
 2. Register the MCP server via `claude mcp add`
-3. Install Claude Code skills and CLAUDE.md (so Claude knows WHEN to use nrev-lite)
+3. Install Claude Code skills, rules, and CLAUDE.md
 4. Verify everything works
 
 After `nrev-lite init`, every new Claude Code session automatically has access
@@ -15,10 +15,11 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
-from pathlib import Path
 
 import click
 
+from nrev_lite.cli._claude_install import ClaudeInstallError, install_claude_assets
+from nrev_lite.cli._install_shared import resolve_console_url, resolve_scope_paths
 from nrev_lite.client.auth import is_authenticated, load_credentials
 from nrev_lite.utils.config import get_api_base_url, get_platform_base_url
 from nrev_lite.utils.display import print_error, print_success, print_warning
@@ -75,7 +76,6 @@ def _register_mcp_server(scope: str) -> bool:
 
     nrev_bin = _find_nrev_executable()
 
-    # Build the command for `claude mcp add`
     if nrev_bin.endswith("nrev-lite"):
         cmd = [
             "claude", "mcp", "add",
@@ -124,297 +124,6 @@ def _verify_server_reachable() -> bool:
         return False
 
 
-def _install_claude_integration(scope_dir: Path, server_url: str, tenant_id: str) -> bool:
-    """Install CLAUDE.md so Claude knows WHEN and HOW to use nrev-lite.
-
-    This is the critical piece — without it, Claude has the tools but no
-    knowledge of when to invoke them, what the console is, or how credits work.
-
-    Args:
-        scope_dir: ~/.claude (global) or .claude (project-level)
-        server_url: The nrev-lite server URL (for console links)
-        tenant_id: The user's tenant ID (for console links)
-
-    Returns True if installation succeeded.
-    """
-    console_url = f"{server_url}/console/{tenant_id}"
-
-    # ── The CLAUDE.md content that teaches Claude about nrev-lite ─────
-    claude_md_content = f"""\
-# nrev-lite — Agent-Native GTM Execution Platform
-
-You have access to nrev-lite, a GTM (Go-To-Market) platform with 36 MCP tools
-for prospecting, enrichment, web intelligence, app integrations, and data management.
-
-## When to Use nrev-lite
-
-Activate nrev-lite tools whenever the user's request matches ANY of these categories.
-When in doubt, use nrev-lite — it covers the entire GTM workflow.
-
-### Prospecting & Lead Generation
-- "Find me [title] at [company type]" / "Build a list of..." / "Search for people..."
-- "Who works at [company]?" / "Get contact info for..." / "Find their email/phone"
-- "Target accounts in [industry/geo]" / "ICP matching" / "Look-alike companies"
-- Alumni search, past employer search, school network mapping
-- "Find companies like [company]" / "Similar companies to..."
-
-### Enrichment & Data Quality
-- "Enrich this list" / "Get emails and phones" / "Fill in missing data"
-- "Verify these emails" / "Check email deliverability" / "Bounce check"
-- "What's their LinkedIn?" / "Company size?" / "Tech stack?" / "Revenue?"
-- "Find the best email for [person]" / "Direct dial" / "Mobile number"
-- Waterfall enrichment across multiple providers
-
-### Market & Company Research
-- "Research [company]" / "What's happening at [company]?" / "Company deep dive"
-- "Funding news" / "Recent fundraise" / "Series B companies" / "Just raised"
-- "Hiring signals" / "Are they growing?" / "Job postings at [company]"
-- "Tech stack discovery" / "What tools do they use?" / "Built with"
-- "Competitor analysis" / "Who competes with [company]?" / "Competitive landscape"
-- "Market sizing" / "TAM analysis" / "Industry trends" / "Market map"
-
-### Web Intelligence & Scraping
-- "Search Google for..." / "Find [anything] online"
-- "Scrape this page" / "Extract data from [URL]" / "Pull info from this site"
-- "LinkedIn posts about [topic]" / "Twitter/X mentions of [brand]"
-- "Reddit discussions about [topic]" / "G2 reviews of [product]"
-- "Monitor [topic/company/person]" / "Track job changes"
-- "What are people saying about [product/company]?" (social listening)
-
-### Signal-Based Selling & Intent
-- "Who's hiring for [role]?" — buying signal for tools that role uses
-- "Companies using [competitor product]" — displacement opportunity
-- "Recent leadership changes at [company]" — new exec = new budget
-- "Companies that just raised funding" / "New office openings"
-- "Job postings mentioning [your product category]"
-- "Reddit/Twitter posts asking about [your category]" — active buyers
-- "Trigger events" / "Buying signals" / "Intent signals"
-
-### Outreach & Campaigns
-- "Set up a cold email campaign" / "Add leads to Instantly"
-- "Write a cold email to..." / "Personalize outreach for..."
-- "Humanize this" / "Remove AI tone" / "Make it sound natural"
-- "Email sequence" / "Follow-up cadence" / "Drip campaign"
-- "LinkedIn message" / "Connection request message"
-
-### Connected Apps & Integrations
-- "Send an email" / "Check my calendar" / "Create a CRM contact"
-- "Push leads to HubSpot/Salesforce" / "Update my CRM"
-- "Post to Slack" / "Create a task in Linear/ClickUp"
-- "What apps can I connect?" / "Connect my [app]" / "Show integrations"
-- Use `nrev_app_catalog` to browse all 22 available apps
-- Use `nrev_app_list` to see which are already connected
-
-### Data Management & Persistence
-- "Save these results" / "Create a dataset" / "Track this over time"
-- "Query my saved data" / "Show my datasets" / "Export to Sheets"
-- "Build a dashboard" / "Share these results" / "Deploy a site"
-- "Schedule this to run daily/weekly" / "Automate this workflow"
-
-### Account-Based Marketing (ABM)
-- "ABM workflow for [account]" / "Account plan for [company]"
-- "Map the buying committee at [company]" / "Org chart for [company]"
-- "Multi-threaded approach" / "Champion tracking" / "Find the decision maker"
-- "Account intelligence on [company]" / "Account deep dive"
-
-### GTM Strategy (Consultant Mode)
-- "What should I do?" / "Where do I start?" / "Help me figure out..."
-- "My reply rates are low" / "Pipeline is slow" / "Bad lead quality"
-- "Define my ICP" / "Who should I target?" / "Positioning advice"
-- "Go-to-market strategy" / "Channel strategy" / "Pricing strategy"
-
-## ⚠ CRITICAL: Exporting Data to External Apps
-
-When the user wants to send/export/push data to Google Sheets, HubSpot, Salesforce, Gmail,
-Slack, or ANY external tool — **use the nrev_app_* MCP tools, NOT bash or CLI commands.**
-
-**Correct flow:**
-1. `nrev_app_list` — check if the app is connected
-2. `nrev_app_actions(app_id="google_sheets")` — discover available actions
-3. `nrev_app_action_schema(action_name="GOOGLESHEETS_BATCH_UPDATE")` — get exact params
-4. `nrev_app_execute(app_id, action, params)` — execute the action
-
-**NEVER do any of these:**
-- Run bash commands to interact with apps
-- Use the CLI (`nrev-lite datasets export`) to push to external apps
-- Make raw HTTP calls to the nrev-lite API
-- Grep through source code to find endpoints
-- Use Python scripts with urllib/httpx to call APIs directly
-
-The CLI `datasets export` command exports to CSV/JSON files locally — it does NOT push to Google
-Sheets or any app. To push data to apps, ALWAYS use `nrev_app_execute`.
-
-**nrev-lite datasets ≠ external apps.** Datasets are nrev-lite's internal storage (like a database).
-Apps are external tools the user connects (Gmail, Sheets, CRM). Different systems, different tools.
-
-## Console — The User's Dashboard
-
-The nrev-lite console is the user's web dashboard at:
-**{console_url}**
-
-Direct the user to the console when they need to:
-- **See credit balance & top up**: {console_url}?tab=usage
-- **Manage API keys (BYOK)**: {console_url}?tab=keys
-- **Connect or manage apps**: {console_url}?tab=apps
-- **View workflow run history**: {console_url}?tab=runs
-- **Browse datasets**: {console_url}?tab=datasets
-- **View dashboards**: {console_url}?tab=dashboards
-
-Use `nrev_open_console` to open any tab directly in the user's browser.
-
-## ⛔ MANDATORY: Plan Before Execution
-
-**You MUST show a plan and get user approval before calling ANY tool that costs credits.**
-There are NO exceptions to this rule. Even single-operation requests require a plan.
-
-### How It Works
-
-**Step 1 — Silent balance check (user does NOT see this):**
-Call `nrev_credit_balance`. Note the balance and topup_url. Do NOT show this as a step.
-
-**Step 2 — Show the plan with cost estimate.**
-
-For multi-step workflows (balance sufficient):
-
-> Here's my plan:
->
-> 1. Search for VP Sales at Series B SaaS companies — ~2 credits
-> 2. Enrich top 20 results with email + phone — ~20 credits
-> 3. Verify email deliverability — ~20 credits
->
-> Estimated total: ~42 credits | Balance: 150 credits ✓
->
-> Shall I proceed?
-
-For multi-step workflows (balance insufficient):
-
-> Here's my plan:
->
-> 1. Search for VP Sales at Series B SaaS companies — ~2 credits
-> 2. Enrich top 20 results with email + phone — ~20 credits
->
-> Estimated total: ~22 credits
-> ⚠ You have 5 credits — need ~22.
->
-> Add credits: [topup_url from nrev_credit_balance]
-> Or add your own API keys (free): `nrev-lite keys add apollo`
-
-For single operations:
-
-> This will use ~1 credit to enrich this person. Balance: 50 credits ✓ Proceed?
-
-**Step 3 — WAIT. Do NOT proceed until the user explicitly confirms.**
-
-### Plan Rules
-- Every credit-costing tool call needs a plan. No exceptions.
-- Single operations: one-line plan is fine (no need for bullet list)
-- Multi-step workflows: 3-5 bullet points max, non-technical language
-- Always include estimated credits per step AND total
-- Always include current balance with ✓ (sufficient) or ⚠ (insufficient)
-- If insufficient: ALWAYS include the topup_url — never just say "add credits"
-- For batches >10 records: pilot 5 records first, show hit rate, then ask to continue
-- BYOK operations are free — say "Free (using your own [provider] key)" instead of credit count
-- If the user asks a follow-up question, answer it and ask again before proceeding
-
-### Credit Costs Per Operation
-- People search: ~2 credits per search
-- Person enrichment: ~1 credit per person
-- Company enrichment: ~1 credit per company
-- Google search: ~1 credit per query
-- Web scrape: ~1 credit per URL
-- Email verification: ~1 credit per email
-- Email finder: ~1 credit per lookup
-- Company signals: ~1 credit per company
-- AI research: ~1 credit per query
-- BYOK calls: always free
-
-### Tools That Do NOT Require a Plan (free)
-nrev_health, nrev_credit_balance, nrev_estimate_cost, nrev_app_list,
-nrev_app_catalog, nrev_app_connect, nrev_open_console, nrev_app_actions,
-nrev_app_action_schema, nrev_app_execute (all app actions are free),
-nrev_list_tables, nrev_list_datasets, nrev_query_dataset,
-nrev_search_patterns, nrev_get_knowledge, nrev_new_workflow,
-nrev_get_run_log, nrev_save_script, nrev_list_scripts, nrev_get_script
-
-## Apps — Connected Tools (Free, No Credits)
-
-Apps are external tools the user connects via OAuth (Gmail, Slack, HubSpot, etc.).
-App actions are **free** — no credits charged.
-
-**When the user mentions any app keyword:**
-1. Check for system MCP tools first (e.g., `slack_send_message`) — use directly if available
-2. If no system MCP tool, call `nrev_app_list()` to check connected apps
-3. If not connected, call `nrev_app_catalog()` to show available apps, then `nrev_app_connect(app_id)` to set it up
-4. Use the discovery flow: `nrev_app_actions` → `nrev_app_action_schema` → `nrev_app_execute`
-
-**Never hardcode action names or parameters — always discover via `nrev_app_action_schema`.**
-
-| User says... | app_id |
-|---|---|
-| email, Gmail, inbox, send email, draft | `gmail` |
-| Slack, message, channel, DM | `slack` |
-| Teams, Microsoft Teams | `microsoft_teams` |
-| calendar, meeting, schedule, events | `google_calendar` |
-| Calendly, booking link | `calendly` |
-| Cal.com, scheduling | `cal_com` |
-| spreadsheet, Google Sheet, add row | `google_sheets` |
-| document, Google Doc, write doc | `google_docs` |
-| Drive, upload file, Google Drive | `google_drive` |
-| Airtable, base, airtable record | `airtable` |
-| CRM, deal, contact record, pipeline, HubSpot | `hubspot` |
-| Salesforce, opportunity, lead, SFDC | `salesforce` |
-| Attio, CRM record | `attio` |
-| cold email, outreach campaign, Instantly | `instantly` |
-| task, ticket, issue, Linear | `linear` |
-| Notion, notion page, notion doc | `notion` |
-| ClickUp, clickup task | `clickup` |
-| Asana, asana task | `asana` |
-| Zoom, video call, webinar, recording | `zoom` |
-| meeting notes, transcript, Fireflies | `fireflies` |
-| product analytics, feature flags, PostHog | `posthog` |
-
-## Data Providers vs Apps
-
-| Need | Use |
-|------|-----|
-| Read/send user's emails | **Apps** (gmail) — free |
-| Enrich contacts with phone/email | **Data Providers** (apollo) — credits |
-| Push leads to user's CRM | **Apps** (hubspot) — free |
-| Google search for company info | **Data Providers** (rapidapi) — credits |
-| Scrape a website | **Data Providers** (parallel) — credits |
-| Send cold email campaigns | **Apps** (instantly) — free |
-| Check user's calendar | **Apps** (google_calendar) — free |
-| AI research on a topic | **Data Providers** (perplexity) — credits |
-
-## Troubleshooting
-
-- `"Not authenticated"` → Run `nrev-lite auth login` in the terminal
-- `"No active connection for 'X'"` → Connect the app: `nrev_app_connect(app_id="X")`
-- `"Insufficient credits"` → Top up at {console_url}?tab=usage or add BYOK keys
-- `"Cannot connect to server"` → Check if server is running, or run `nrev-lite status`
-"""
-
-    # ── Write CLAUDE.md ───────────────────────────────────────────────
-    if scope_dir == Path.home() / ".claude":
-        claude_md_path = scope_dir / "CLAUDE.md"
-    else:
-        claude_md_path = scope_dir.parent / "CLAUDE.md"
-
-    scope_dir.mkdir(parents=True, exist_ok=True)
-
-    if claude_md_path.exists():
-        existing = claude_md_path.read_text()
-        if "nrev-lite" in existing.lower() or "nrev_lite" in existing.lower():
-            # Already has nrev-lite content — skip to avoid duplicates
-            pass
-        else:
-            claude_md_path.write_text(existing.rstrip() + "\n\n" + claude_md_content)
-    else:
-        claude_md_path.write_text(claude_md_content)
-
-    return True
-
-
 # ---------------------------------------------------------------------------
 # Main command
 # ---------------------------------------------------------------------------
@@ -448,7 +157,7 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
     This command:
       1. Authenticates you via Google (opens browser)
       2. Registers the nrev-lite MCP server with Claude Code
-      3. Installs Claude Code knowledge (so Claude knows when to use nrev-lite)
+      3. Installs Claude Code skills, rules, and CLAUDE.md
       4. Verifies the connection works
 
     \b
@@ -506,7 +215,6 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
         from nrev_lite.cli.auth import _browser_oauth_flow
         _browser_oauth_flow(get_platform_base_url())
 
-    # Verify auth succeeded
     if not is_authenticated():
         print_error("Authentication failed. Run `nrev-lite auth login` manually.")
         sys.exit(1)
@@ -538,23 +246,51 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
 
     click.echo()
 
-    # ── Step 3: Install Claude Code knowledge ─────────────────────────
+    # ── Step 3: Install Claude Code skills, rules, and CLAUDE.md ─────
     click.secho("  Step 3/4 — Install Claude Code Knowledge", bold=True)
-    click.echo("  Teaching Claude when and how to use nrev-lite...")
+    click.echo("  Installing skills, rules, and CLAUDE.md...")
 
-    base_url = get_api_base_url()
-    scope_dir = (Path.cwd() / ".claude") if project else (Path.home() / ".claude")
+    console_url = resolve_console_url()
+    if not console_url:
+        print_error(
+            "Could not resolve console URL — run `nrev-lite auth login` first."
+        )
+        sys.exit(1)
 
-    if _install_claude_integration(scope_dir, base_url, tenant):
-        print_success("CLAUDE.md installed — Claude now knows when to use nrev-lite")
+    scope_dir, claude_md_path = resolve_scope_paths(project)
+    install_outcome: str
+    try:
+        summary = install_claude_assets(scope_dir, claude_md_path, console_url)
+    except ClaudeInstallError as exc:
+        print_error(
+            f"Setup failed: {exc}.\n"
+            "  Re-run `nrev-lite init` after resolving the issue, "
+            "or run `nrev-lite setup-claude` to retry just the skills install."
+        )
+        sys.exit(1)
+
+    if summary.claude_md_action == "skipped":
+        install_outcome = "partial"
+        print_warning(
+            f"Setup partially complete. "
+            f"{summary.skills_written} skills and {summary.rules_written} rules installed, "
+            f"but CLAUDE.md could not be updated. "
+            f"CLI and MCP will work; you can re-run `nrev-lite init` to retry."
+        )
     else:
-        print_warning("Could not install CLAUDE.md. Run `nrev-lite setup-claude` manually.")
+        install_outcome = "complete"
+        print_success(
+            f"Installed {summary.skills_written} skills and "
+            f"{summary.rules_written} rules. "
+            f"CLAUDE.md {summary.claude_md_action}."
+        )
 
     click.echo()
 
     # ── Step 4: Verify connection ─────────────────────────────────────
     click.secho("  Step 4/4 — Verify Connection", bold=True)
 
+    base_url = get_api_base_url()
     if _verify_server_reachable():
         print_success("Server is reachable")
     else:
@@ -563,11 +299,12 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
             "  That's OK — the MCP server will connect when the API is running."
         )
 
-    # ── Done ──────────────────────────────────────────────────────────
-    console_url = f"{base_url}/console/{tenant}"
     click.echo()
     click.secho("  ─────────────────────────────────", fg="green")
-    click.secho("  Setup complete!", fg="green", bold=True)
+    if install_outcome == "partial":
+        click.secho("  Setup partially complete.", fg="yellow", bold=True)
+    else:
+        click.secho("  Setup complete!", fg="green", bold=True)
     click.echo()
     click.echo("  What happens now:")
     click.echo("  • Open a new Claude Code session (or restart the current one)")
@@ -581,3 +318,6 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
     click.echo()
     click.echo(f"  Your dashboard: {console_url}")
     click.echo()
+
+    if install_outcome == "partial":
+        sys.exit(2)
