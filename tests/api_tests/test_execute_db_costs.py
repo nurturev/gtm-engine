@@ -45,6 +45,21 @@ def _svc_headers(tenant_id: str = RICH_TENANT_ID) -> dict[str, str]:
     }
 
 
+def _assert_inline_results(body: dict, *, expected_count: int) -> None:
+    """POST /execute/batch must return full results inline, not just a batch_id."""
+    results = body.get("results")
+    assert isinstance(results, list), f"results missing or not a list: {results!r}"
+    assert len(results) == expected_count, (
+        f"expected {expected_count} inline results, got {len(results)}"
+    )
+    assert body.get("completed") is not None, "completed count missing"
+    assert body.get("failed") is not None, "failed count missing"
+    required_keys = {"status", "operation", "provider", "cached", "cost"}
+    for i, entry in enumerate(results):
+        missing = required_keys - entry.keys()
+        assert not missing, f"result[{i}] missing keys: {missing}"
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -141,6 +156,7 @@ async def test_batch_without_provider(client: httpx.AsyncClient) -> None:
     print(f"batch_id={body.get('batch_id')} total={body.get('total')} status={body.get('status')}")
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text[:200]}"
     assert body.get("total") == 2
+    _assert_inline_results(body, expected_count=2)
     print("PASS")
 
 
@@ -172,6 +188,7 @@ async def test_batch_with_provider(client: httpx.AsyncClient) -> None:
     print(f"batch_id={body.get('batch_id')} total={body.get('total')} status={body.get('status')}")
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text[:200]}"
     assert body.get("total") == 2
+    _assert_inline_results(body, expected_count=2)
     print("PASS")
 
 
@@ -203,6 +220,7 @@ async def test_batch_mixed_providers(client: httpx.AsyncClient) -> None:
     print(f"batch_id={body.get('batch_id')} total={body.get('total')} status={body.get('status')}")
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text[:200]}"
     assert body.get("total") == 2
+    _assert_inline_results(body, expected_count=2)
     print("PASS")
 
 

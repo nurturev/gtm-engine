@@ -133,15 +133,6 @@ def _get_recent_ledger(tenant_id: str, limit: int = 10) -> list[dict]:
         conn.close()
 
 
-def _get_batch_detail(batch_data: dict) -> dict:
-    """Extract completed/failed/cost from batch status response."""
-    return {
-        "completed": batch_data.get("completed", 0),
-        "failed": batch_data.get("failed", 0),
-        "total_cost": batch_data.get("total_cost", 0),
-    }
-
-
 def flush_execution_cache() -> int:
     r = redis.from_url(REDIS_URL)
     keys = r.keys(CACHE_PREFIX)
@@ -176,16 +167,14 @@ async def test_all_succeed(client: httpx.AsyncClient) -> None:
     )
     print(f"Status: {resp.status_code}")
     body = resp.json()
-    print(f"Batch: total={body.get('total')}, status={body.get('status')}")
+    print(f"Batch: total={body.get('total')}, status={body.get('status')}, "
+          f"completed={body.get('completed')}, failed={body.get('failed')}")
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {body}"
 
-    # Get batch detail
-    batch_id = body.get("batch_id")
-    if batch_id:
-        sr = await client.get(f"{BASE_URL}/api/v1/execute/batch/{batch_id}", headers=_svc_headers())
-        if sr.status_code == 200:
-            detail = _get_batch_detail(sr.json())
-            print(f"Batch detail: {detail}")
+    # Inline results from POST — no follow-up GET needed
+    results = body.get("results") or []
+    assert len(results) == 3, f"Expected 3 inline results, got {len(results)}"
+    print(f"Inline results: {[r.get('status') for r in results]}")
 
     balance_after = _get_local_balance(TENANT_ID)
     diff = balance_before - balance_after
@@ -227,22 +216,27 @@ async def test_partial_failure(client: httpx.AsyncClient) -> None:
     body = resp.json()
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {body}"
 
-    batch_id = body.get("batch_id")
-    completed = 0
-    failed = 0
-    total_cost = 0
-    if batch_id:
-        sr = await client.get(f"{BASE_URL}/api/v1/execute/batch/{batch_id}", headers=_svc_headers())
-        if sr.status_code == 200:
-            bd = sr.json()
-            completed = bd.get("completed", 0)
-            failed = bd.get("failed", 0)
-            total_cost = bd.get("total_cost", 0)
-            print(f"Batch detail: completed={completed}, failed={failed}, total_cost={total_cost}")
+    # Primary: read inline from POST body
+    completed = body.get("completed", 0)
+    failed = body.get("failed", 0)
+    inline_results = body.get("results") or []
+    print(f"Inline: completed={completed}, failed={failed}, results={len(inline_results)}")
+    for r in inline_results:
+        print(f"  [{r.get('status')}] cost={r.get('cost')} cached={r.get('cached')} {r.get('error', '')}")
 
-            # Print individual results to understand what succeeded/failed
-            for r in bd.get("results", []):
-                print(f"  [{r.get('status')}] cost={r.get('cost')} cached={r.get('cached')} {r.get('error', '')}")
+    # Regression check: GET fallback still serves the same batch for pollers
+    # that haven't migrated (e.g. workflow_studio consultant agent).
+    batch_id = body.get("batch_id")
+    total_cost = 0
+    assert batch_id, "batch_id missing from POST response"
+    sr = await client.get(f"{BASE_URL}/api/v1/execute/batch/{batch_id}", headers=_svc_headers())
+    assert sr.status_code == 200, f"GET fallback broken: {sr.status_code}"
+    bd = sr.json()
+    total_cost = bd.get("total_cost", 0)
+    assert bd.get("completed") == completed and bd.get("failed") == failed, (
+        f"GET diverges from inline: POST ({completed}/{failed}) vs GET "
+        f"({bd.get('completed')}/{bd.get('failed')})"
+    )
 
     balance_after = _get_local_balance(TENANT_ID)
     diff = balance_before - balance_after
@@ -284,14 +278,10 @@ async def test_all_cached_free(client: httpx.AsyncClient) -> None:
     body = resp.json()
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {body}"
 
-    batch_id = body.get("batch_id")
-    if batch_id:
-        sr = await client.get(f"{BASE_URL}/api/v1/execute/batch/{batch_id}", headers=_svc_headers())
-        if sr.status_code == 200:
-            bd = sr.json()
-            print(f"Batch detail: completed={bd.get('completed')}, cached results:")
-            for r in bd.get("results", []):
-                print(f"  [{r.get('status')}] cached={r.get('cached')} cost={r.get('cost')}")
+    # Inline results from POST — no follow-up GET needed
+    print(f"Batch detail: completed={body.get('completed')}, cached results:")
+    for r in body.get("results") or []:
+        print(f"  [{r.get('status')}] cached={r.get('cached')} cost={r.get('cost')}")
 
     balance_after = _get_local_balance(TENANT_ID)
     diff = balance_before - balance_after
