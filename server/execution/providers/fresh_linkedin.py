@@ -41,6 +41,7 @@ RAPIDAPI_BASE = f"https://{RAPIDAPI_HOST}"
 
 # RapidAPI endpoint paths — one-line fixes if the vendor renames.
 ENDPOINT_PROFILE_BY_URL      = "/get-linkedin-profile"
+ENDPOINT_ENRICH_LEAD         = "/enrich-lead"
 ENDPOINT_COMPANY_BY_URL      = "/get-company-by-linkedinurl"
 ENDPOINT_COMPANY_BY_DOMAIN   = "/get-company-by-domain"
 ENDPOINT_PROFILE_POSTS       = "/get-profile-posts"
@@ -436,7 +437,11 @@ class FreshLinkedInProvider(BaseProvider):
                 status_code=403,
             )
         if status == 404:
-            return {"match_found": False, "data": None}
+            raise ProviderError(
+                self.name,
+                "Profile not found on upstream (404)",
+                status_code=404,
+            )
         if status == 429:
             raise ProviderError(
                 self.name,
@@ -481,8 +486,12 @@ class FreshLinkedInProvider(BaseProvider):
         canonical_url = _normalize_linkedin_profile_url(str(raw_url))
         logger.info("fresh_linkedin enrich_person for %s", canonical_url)
         resp = await self._get(
-            ENDPOINT_PROFILE_BY_URL,
-            {"linkedin_url": canonical_url},
+            ENDPOINT_ENRICH_LEAD,
+            {
+                "linkedin_url": canonical_url,
+                "include_skills": "true",
+                "include_certifications": "true",
+            },
             api_key,
         )
         return self._classify_response(resp)
