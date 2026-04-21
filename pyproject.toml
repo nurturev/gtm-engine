@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.6"]
 build-backend = "hatchling.build"
 
 [project]
@@ -51,6 +51,10 @@ Repository = "https://github.com/nurturev/gtm-engine"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nrev_lite"]
+
+[tool.hatch.build.force-include]
+".claude/skills" = "src/nrev_lite/resources/claude_assets/skills"
+".claude/rules" = "src/nrev_lite/resources/claude_assets/rules"
 
 [tool.ruff]
 target-version = "py310"

@@ -29,6 +29,8 @@ Tools are namespaced `nrev_*`. Use them for search, enrichment, scraping, datase
 
 Detailed usage patterns (params, quirks, error handling) are in the relevant skill — do not hardcode, discover via the schema tool.
 
+- **Dashboard:** {{console_url}}
+
 ## ⛔ MANDATORY: Plan Approval Before Credit Spend
 
 **Before any tool that costs credits (search, enrich, scrape, verify, AI research), you MUST:**
@@ -77,3 +79,4 @@ After any multi-step workflow producing structured results, offer to:
 - `"No active connection for '<app>'"` → call `nrev_app_connect(app_id)` and walk the user through OAuth
 - `"Session expired"` → `nrev-lite auth login` again
 - `"Following fields are missing"` on an app action → you skipped `nrev_app_action_schema`; fetch the schema and retry
+- `"Insufficient credits"` → top up at {{console_url}}?tab=usage, or add BYOK keys (`nrev-lite keys add <provider>`)
