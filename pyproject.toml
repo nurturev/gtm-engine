@@ -49,10 +49,19 @@ nrev-lite = "nrev_lite.cli.main:cli"
 Homepage = "https://nrev.ai"
 Repository = "https://github.com/nurturev/gtm-engine"
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/.claude/skills",
+    "/.claude/rules",
+    "/README.md",
+    "/pyproject.toml",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/nrev_lite"]
 
-[tool.hatch.build.force-include]
+[tool.hatch.build.targets.wheel.force-include]
 ".claude/skills" = "src/nrev_lite/resources/claude_assets/skills"
 ".claude/rules" = "src/nrev_lite/resources/claude_assets/rules"
 
