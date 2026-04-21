@@ -177,6 +177,11 @@ async def test_batch_execute_event_name(client: httpx.AsyncClient) -> None:
     print(f"Body: batch_id={body.get('batch_id')}, total={body.get('total')}")
 
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    results = body.get("results")
+    assert isinstance(results, list) and len(results) == len(domains), (
+        f"expected {len(domains)} inline results, got {results!r}"
+    )
+    assert body.get("completed") is not None and body.get("failed") is not None
 
     # Wait for fire-and-forget debit
     await asyncio.sleep(2)

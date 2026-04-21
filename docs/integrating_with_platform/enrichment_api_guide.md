@@ -112,21 +112,36 @@ Authorization: Bearer <token>
 {
     "batch_id": "batch_xyz",
     "total": 2,
-    "status": "completed"
+    "status": "completed",
+    "completed": 2,
+    "failed": 0,
+    "results": [
+        { "execution_id": "exec_1", "status": "success", "operation": "enrich_person",
+          "provider": "apollo", "cached": false, "cost": 1.0, "data": { "...": "..." } },
+        { "execution_id": "exec_2", "status": "success", "operation": "enrich_person",
+          "provider": "apollo", "cached": false, "cost": 1.0, "data": { "...": "..." } }
+    ]
 }
 ```
+
+The POST blocks until all records finish and returns every result inline —
+no polling needed in the common path.
 
 **Constraints:**
 - Maximum 25 records per batch.
 - All operations in the batch must be the same type and provider.
 - Records are processed concurrently (5 at a time).
 
-### 2.3 Poll Batch Status
+### 2.3 Poll Batch Status (retry-recovery fallback)
 
 ```
 GET /api/v1/execute/batch/{batch_id}
 Authorization: Bearer <token>
 ```
+
+Use this only if you lost the POST response (e.g. client-side timeout after
+the server finished). Otherwise read `results` directly off the POST
+response — it contains the same payload.
 
 **Response (200):**
 ```json

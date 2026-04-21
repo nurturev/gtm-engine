@@ -63,7 +63,10 @@ class BatchExecuteRequest(BaseModel):
 class BatchExecuteResponse(BaseModel):
     batch_id: str
     total: int
-    status: str  # "processing" | "completed"
+    status: str  # "completed" today; "processing" reserved for future async queue
+    completed: int
+    failed: int
+    results: list[dict[str, Any]]
 
 
 class BatchStatusResponse(BaseModel):
