@@ -30,6 +30,7 @@ from typing import Any
 
 import httpx
 
+from nrev_lite import __version__
 from nrev_lite.client.auth import load_credentials, refresh_token_if_needed, force_refresh, get_token
 from nrev_lite.utils.config import get_api_base_url
 
@@ -51,7 +52,7 @@ logger.setLevel(logging.INFO)
 # ---------------------------------------------------------------------------
 
 SERVER_NAME = "nrev-lite"
-SERVER_VERSION = "0.1.0"
+SERVER_VERSION = __version__
 PROTOCOL_VERSION = "2024-11-05"
 
 # Unique ID for this MCP server session — groups all tool calls into one workflow.
