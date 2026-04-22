@@ -69,6 +69,14 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     CORS_ALLOWED_ORIGINS: str = ""
 
+    # --- Slack failure alerting (SNS → Slack) ---
+    # Empty ARN disables alerting. Different ARN per environment — staging and
+    # production point at different SNS topics / Slack channels. Dev is
+    # silenced by the ENVIRONMENT gate even if an ARN is set.
+    SLACK_ALERT_TOPIC_ARN: str = ""
+    ALERT_DEDUP_WINDOW_SECONDS: int = 60
+    ALERT_BODY_PREVIEW_BYTES: int = 500
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
