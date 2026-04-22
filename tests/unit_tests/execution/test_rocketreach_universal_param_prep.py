@@ -24,6 +24,8 @@ the sibling test modules.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from server.core.exceptions import ProviderError
@@ -40,22 +42,23 @@ from server.execution.providers.rocketreach import (
 # ---------------------------------------------------------------------------
 
 
-class TestEnrichPersonPinsUniversalRevealFlags:
-    """Per requirements §5.1, the provider pins four flags on every
-    ``enrich_person`` call so clients get a predictable default: professional
-    email on, personal email and phone off, cached emails on."""
+class TestEnrichPersonRevealFlagDefaults:
+    """Per requirements §5.1, when the caller does not set reveal flags, the
+    provider applies a predictable default: professional email on, personal
+    email and phone off, cached emails on. Universal rejects any call with
+    zero reveal_* flags, so these defaults also guarantee validity."""
 
-    def test_pins_reveal_professional_email_true(self) -> None:
+    def test_defaults_reveal_professional_email_true(self) -> None:
         params = _prepare_enrich_person({"linkedin_url": "https://linkedin.com/in/jane"})
 
         assert params["reveal_professional_email"] == "true"
 
-    def test_pins_reveal_personal_email_false(self) -> None:
+    def test_defaults_reveal_personal_email_false(self) -> None:
         params = _prepare_enrich_person({"linkedin_url": "https://linkedin.com/in/jane"})
 
         assert params["reveal_personal_email"] == "false"
 
-    def test_pins_reveal_phone_false(self) -> None:
+    def test_defaults_reveal_phone_false(self) -> None:
         params = _prepare_enrich_person({"linkedin_url": "https://linkedin.com/in/jane"})
 
         assert params["reveal_phone"] == "false"
@@ -64,7 +67,8 @@ class TestEnrichPersonPinsUniversalRevealFlags:
         """Pins today's default against the vendor flip scheduled for
         2026-05-01 (requirements §5.1). Without this the migration would
         silently bump cost + change behaviour the day the vendor default
-        changes."""
+        changes. Also required to keep the call synchronous — see the
+        override-ignored test below."""
         params = _prepare_enrich_person({"linkedin_url": "https://linkedin.com/in/jane"})
 
         assert params["return_cached_emails"] == "true"
@@ -86,37 +90,77 @@ class TestEnrichPersonPinsUniversalRevealFlags:
             )
 
 
-class TestEnrichPersonClientCannotOverrideRevealFlags:
-    """Requirements §5.1: pinned flags are silent. A client passing their
-    own ``reveal_phone=true`` must not be able to flip the policy. This is
-    a policy guarantee, not ergonomic."""
+class TestEnrichPersonClientCanOverrideRevealFlags:
+    """Requirements §5.1 (updated): for reveal_professional_email,
+    reveal_personal_email, and reveal_phone, caller-supplied values are
+    honored. return_cached_emails remains hard-pinned (see the separate
+    override-ignored test) because the alternative forces an async SMTP
+    flow we do not support."""
 
     @pytest.mark.parametrize(
-        "flag_key, client_value",
+        "flag_key, client_value, expected",
         [
-            ("reveal_professional_email", "false"),
-            ("reveal_personal_email", "true"),
-            ("reveal_phone", "true"),
-            ("return_cached_emails", "false"),
+            ("reveal_professional_email", False, "false"),
+            ("reveal_professional_email", "false", "false"),
+            ("reveal_personal_email", True, "true"),
+            ("reveal_personal_email", "true", "true"),
+            ("reveal_phone", True, "true"),
+            ("reveal_phone", "true", "true"),
         ],
     )
-    def test_client_values_are_overwritten_by_pinned_defaults(
-        self, flag_key: str, client_value: str
+    def test_caller_values_pass_through_as_strings(
+        self, flag_key: str, client_value: Any, expected: str
     ) -> None:
         params = _prepare_enrich_person({
             "linkedin_url": "https://linkedin.com/in/jane",
             flag_key: client_value,
         })
 
-        expected = {
-            "reveal_professional_email": "true",
-            "reveal_personal_email": "false",
-            "reveal_phone": "false",
-            "return_cached_emails": "true",
-        }
-        assert params[flag_key] == expected[flag_key], (
-            f"client-supplied {flag_key}={client_value} leaked past the pin"
-        )
+        assert params[flag_key] == expected
+
+    def test_enrich_phone_number_alias_flips_reveal_phone(self) -> None:
+        params = _prepare_enrich_person({
+            "linkedin_url": "https://linkedin.com/in/jane",
+            "enrich_phone_number": True,
+        })
+
+        assert params["reveal_phone"] == "true"
+
+
+class TestEnrichPersonReturnCachedEmailsIsHardPinned:
+    """Requirements §5.1 (updated): return_cached_emails is forced to
+    ``"true"`` regardless of caller input. Setting it to false forces the
+    vendor into live SMTP verification, which returns status="searching"
+    and requires polling /universal/person/check_status. Our synchronous
+    call contract does not support per-call polling."""
+
+    def test_caller_false_is_overridden_to_true(self) -> None:
+        params = _prepare_enrich_person({
+            "linkedin_url": "https://linkedin.com/in/jane",
+            "return_cached_emails": False,
+        })
+
+        assert params["return_cached_emails"] == "true"
+
+    def test_caller_false_string_is_overridden_to_true(self) -> None:
+        params = _prepare_enrich_person({
+            "linkedin_url": "https://linkedin.com/in/jane",
+            "return_cached_emails": "false",
+        })
+
+        assert params["return_cached_emails"] == "true"
+
+    def test_override_attempt_logs_warning(self, caplog) -> None:
+        import logging
+        with caplog.at_level(logging.WARNING, logger="server.execution.providers.rocketreach"):
+            _prepare_enrich_person({
+                "linkedin_url": "https://linkedin.com/in/jane",
+                "return_cached_emails": False,
+            })
+
+        assert any(
+            "return_cached_emails=false" in rec.message for rec in caplog.records
+        ), "expected a warning when caller tries to override return_cached_emails"
 
 
 # ---------------------------------------------------------------------------
