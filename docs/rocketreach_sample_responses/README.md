@@ -87,34 +87,46 @@ already uses `/company/search` for legacy — which is **wrong for legacy v2**
 flip the prefix to `/universal/`, that same `/company/search` suffix becomes
 correct. Pre-existing bug that self-resolves during the migration.
 
-### 2. `reveal_*` flags — always pass true by default
+### 2. `reveal_*` flags — defaults applied when caller absent; `return_cached_emails` hard-pinned
 
-Universal person lookup gates contact data behind per-field flags. Default
-state on the docs today is `false`; from **2026-05-01** `return_cached_emails`
-default also flips to `false`.
+Universal person lookup gates contact data behind per-field flags and
+**requires at least one `reveal_*` flag on every call** — a request with
+none fails with `400 {"non_field_errors": ["Please specify at least one
+enrichment type to perform a person lookup"]}`. The vendor default is
+`false` for every flag today; `return_cached_emails` vendor default also
+flips to `false` on **2026-05-01**.
 
-To preserve current behavior on our client surface, the provider will
-hard-code:
+The provider fills in defaults when the caller did not set a flag and
+honors caller-supplied values on the three cost/data flags. Values travel
+as lowercase strings (`"true"`/`"false"`) because they ship as GET query
+parameters and httpx would render Python `True` as `"True"`, which the
+vendor rejects:
 
 ```python
-params.update({
-    "reveal_professional_email": True,
-    "reveal_personal_email": True,
-    "reveal_phone": True,
-    "return_cached_emails": True,  # lock the pre-2026-05-01 default
-})
+# ~ _prepare_enrich_person — illustrative
+p.setdefault("reveal_professional_email", "true")    # caller can override
+p.setdefault("reveal_personal_email",     "false")   # caller can override
+p.setdefault("reveal_phone",              "false")   # caller can override (also via enrich_phone_number)
+p["return_cached_emails"] = "true"                   # HARD PIN — caller override is logged and ignored
 ```
 
-Client-visible impact: **none**. Lookup responses continue to include
-emails and phones exactly as today.
+Why `return_cached_emails` is hard-pinned: setting it to `false` forces
+RocketReach into live SMTP verification, which returns `status="searching"`
+and requires polling `/universal/person/check_status`. Our synchronous
+call contract cannot absorb that on every lookup. The 2026-05-01 vendor
+flip makes this time-critical — without the pin, every `enrich_person`
+call would silently go async that day.
+
+Client-visible impact with default caller input: **none**. Lookup
+responses continue to include professional emails exactly as today.
+Personal emails and phones are `null` unless the caller explicitly opts
+in per request.
 
 **Business caveat worth flagging** (not a contract change): each `reveal_*`
 flag is metered separately in Universal billing. Average cost per
 `enrich_person` lookup will change — likely upward from today's single-credit
 model to a multi-sub-credit lookup. This is a pricing/cost call for the
-product/finance side, not an API-surface call. We may later want to expose
-opt-outs (e.g. skip `reveal_personal_email` to save credits) but that's
-additive and optional on top of today's surface.
+product/finance side, not an API-surface call.
 
 ### 3. Async polling — absorbed inside the provider call
 

@@ -190,19 +190,19 @@ class TestPrepareEnrichPerson:
 
     def test_reveal_phone(self):
         result = _prepare_enrich_person({"email": "a@b.com", "reveal_phone": True})
-        assert result["reveal_phone"] is True
+        assert result["reveal_phone"] == "true"
 
     def test_enrich_phone_number_alias(self):
         result = _prepare_enrich_person({"email": "a@b.com", "enrich_phone_number": True})
-        assert result["reveal_phone"] is True
+        assert result["reveal_phone"] == "true"
 
     def test_reveal_professional_email(self):
         result = _prepare_enrich_person({"email": "a@b.com", "reveal_professional_email": True})
-        assert result["reveal_professional_email"] is True
+        assert result["reveal_professional_email"] == "true"
 
     def test_reveal_personal_email(self):
         result = _prepare_enrich_person({"email": "a@b.com", "reveal_personal_email": False})
-        assert result["reveal_personal_email"] is False
+        assert result["reveal_personal_email"] == "false"
 
     def test_webhook_id(self):
         result = _prepare_enrich_person({"email": "a@b.com", "webhook_id": "99"})
