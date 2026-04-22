@@ -1,10 +1,9 @@
-"""Unit tests for ``FreshLinkedInProvider`` entry-gate validation.
+"""Unit tests for ``FreshLinkedInProvider`` entry-gate validation and
+response classification.
 
-Scope: parameter validation at the entry of ``execute``. No HTTP happens on
-these paths — validation must fail-fast before any network call.
-
-Wire-level / response-handling tests (200, 404, 429 retry, 5xx) are API tests
-per ``fresh_linkedin_lld.md`` §11.2 and live in
+Scope: parameter validation at the entry of ``execute`` (no HTTP) plus
+``_classify_response`` branches driven by stubbed ``httpx.Response`` objects
+(no network). End-to-end retry behaviour (429 → wait → retry) still lives in
 ``tests/api_tests/test_execution_router_wiring.py``.
 
 Contract (from ``fresh_linkedin_hld.md`` §7 and ``fresh_linkedin_lld.md`` §2):
@@ -19,6 +18,7 @@ Contract (from ``fresh_linkedin_hld.md`` §7 and ``fresh_linkedin_lld.md`` §2):
 
 from __future__ import annotations
 
+import httpx
 import pytest
 
 from server.core.exceptions import ProviderError
@@ -158,3 +158,48 @@ class TestValidationFailuresDoNotRequireApiKey:
 
         assert exc_info.value.status_code == 400
         assert "linkedin_url" in str(exc_info.value).lower()
+
+
+class TestClassifyResponse:
+    """``_classify_response`` is the single funnel for upstream HTTP results.
+    A 404 used to be laundered into ``{"match_found": False}`` on a 2xx — which
+    meant the caller got billed for empty responses. The fix: every non-2xx
+    raises ``ProviderError``. The router then releases the credit hold and
+    surfaces the error to the client."""
+
+    def test_404_raises_provider_error(self) -> None:
+        provider = FreshLinkedInProvider()
+        resp = httpx.Response(status_code=404, text="not found")
+
+        with pytest.raises(ProviderError) as exc_info:
+            provider._classify_response(resp)
+
+        assert exc_info.value.status_code == 404
+        assert exc_info.value.provider == "fresh_linkedin"
+
+    def test_401_raises_provider_error(self) -> None:
+        provider = FreshLinkedInProvider()
+        resp = httpx.Response(status_code=401, text="unauthorized")
+
+        with pytest.raises(ProviderError) as exc_info:
+            provider._classify_response(resp)
+
+        assert exc_info.value.status_code == 401
+
+    def test_500_raises_provider_error(self) -> None:
+        provider = FreshLinkedInProvider()
+        resp = httpx.Response(status_code=500, text="upstream down")
+
+        with pytest.raises(ProviderError) as exc_info:
+            provider._classify_response(resp)
+
+        assert exc_info.value.status_code == 500
+
+    def test_200_returns_payload_unchanged(self) -> None:
+        provider = FreshLinkedInProvider()
+        payload = {"name": "Jane Doe", "headline": "Founder", "skills": ["python"]}
+        resp = httpx.Response(status_code=200, json=payload)
+
+        result = provider._classify_response(resp)
+
+        assert result == payload

@@ -143,7 +143,7 @@ def _verify_server_reachable() -> bool:
 @click.option(
     "--server-url",
     default=None,
-    help="nrev-lite server URL (default: http://localhost:8000 or configured value)."
+    help="nrev-lite server URL (default: https://nrev-lite-api.public.prod.nurturev.com, or configured value)."
 )
 @click.option(
     "--force",
@@ -170,7 +170,7 @@ def init(project: bool, skip_auth: bool, server_url: str | None, force: bool) ->
         nrev-lite init --project          # Project-level only
         nrev-lite init --skip-auth        # Already logged in, just register MCP
         nrev-lite init --force            # Re-register even if already set up
-        nrev-lite init --server-url https://api.nrev.dev
+        nrev-lite init --server-url https://nrev-lite-api.public.prod.nurturev.com
     """
     click.echo()
     click.secho("  nrev-lite — Agent-Native GTM Platform", fg="cyan", bold=True)

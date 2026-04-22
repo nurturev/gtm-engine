@@ -29,6 +29,7 @@ Scenarios intentionally deferred (require server-side upstream injection, not in
 this script's remit — they live in the wiring-level mock tests per LLD §11.2):
   - 429 single retry then 200 (observe one retry, 3 credits debited)
   - 429 exhausted after one retry (429 surfaced, no debit)
+  - Upstream 404 (404 surfaced, no debit)
   - Upstream 5xx after retries (5xx surfaced, no debit)
   - 503 missing platform key + no BYOK
 
@@ -86,20 +87,33 @@ FRESH_LINKEDIN_COST = 3.0
 # Canonical Person shape per unique_entity_fields.csv + HLD §3.1. The response
 # envelope (inside result.data) must carry ONLY these keys at top level,
 # alongside `enrichment_sources` and `additional_data`.
-CANONICAL_PERSON_KEYS = frozenset({
-    "name", "first_name", "last_name",
-    "title", "headline",
-    "experiences",
-    "linkedin_url", "email", "phone",
-    "location",
-    "company_name", "company_domain",
-})
+CANONICAL_PERSON_KEYS = frozenset(
+    {
+        "name",
+        "first_name",
+        "last_name",
+        "title",
+        "headline",
+        "experiences",
+        "linkedin_url",
+        "email",
+        "phone",
+        "location",
+        "company_name",
+        "company_domain",
+    }
+)
 # Metadata / envelope keys also permitted at top level. ``people`` appears on
 # the no-match path; ``additional_data`` on the match path.
-META_PERSON_KEYS = frozenset({"enrichment_sources", "additional_data", "match_found", "people"})
+META_PERSON_KEYS = frozenset(
+    {"enrichment_sources", "additional_data", "match_found", "people"}
+)
 ALLOWED_TOP_LEVEL_PERSON = CANONICAL_PERSON_KEYS | META_PERSON_KEYS
 
-# Inputs pulled from env so CI / local runs can supply real values
+# Inputs pulled from env so CI / local runs can supply real values.
+# Default is a known-stable profile the owner controls — guarantees upstream
+# returns real data so S1's "populated canonical + additional_data" assertion
+# fires against something concrete rather than a shape-only check.
 TEST_LINKEDIN_URL = os.environ.get(
     "TEST_LINKEDIN_URL",
     "https://www.linkedin.com/in/satyanadella",
@@ -189,24 +203,24 @@ def _assert_canonical_person_shape(data: dict, provider: str) -> None:
     """
     top_level = set(data.keys())
     stray = top_level - ALLOWED_TOP_LEVEL_PERSON
-    assert stray == set(), (
-        f"non-canonical keys leaked to top level from {provider}: {sorted(stray)}"
-    )
+    assert (
+        stray == set()
+    ), f"non-canonical keys leaked to top level from {provider}: {sorted(stray)}"
 
     # additional_data is required on the match path; omitted on no-match.
     if data.get("match_found") is not False:
-        assert isinstance(data.get("additional_data"), dict), (
-            f"{provider} match-found response must carry additional_data as a dict"
-        )
+        assert isinstance(
+            data.get("additional_data"), dict
+        ), f"{provider} match-found response must carry additional_data as a dict"
 
     sources = (data.get("enrichment_sources") or {}).get(provider)
-    assert isinstance(sources, list), (
-        f"enrichment_sources['{provider}'] must be a list (got {type(sources).__name__})"
-    )
+    assert isinstance(
+        sources, list
+    ), f"enrichment_sources['{provider}'] must be a list (got {type(sources).__name__})"
     for key in sources:
-        assert key in CANONICAL_PERSON_KEYS, (
-            f"enrichment_sources['{provider}'] must list only canonical keys; saw '{key}'"
-        )
+        assert (
+            key in CANONICAL_PERSON_KEYS
+        ), f"enrichment_sources['{provider}'] must list only canonical keys; saw '{key}'"
 
 
 # ---------------------------------------------------------------------------
@@ -220,9 +234,10 @@ async def _add_byok_key(client: httpx.AsyncClient, provider: str, key: str) -> N
         headers=_svc_headers(),
         json={"provider": provider, "api_key": key},
     )
-    assert resp.status_code in (200, 201), (
-        f"Failed to add BYOK for {provider}: {resp.status_code} {resp.text[:200]}"
-    )
+    assert resp.status_code in (
+        200,
+        201,
+    ), f"Failed to add BYOK for {provider}: {resp.status_code} {resp.text[:200]}"
 
 
 async def _remove_byok_key(client: httpx.AsyncClient, provider: str) -> None:
@@ -231,9 +246,11 @@ async def _remove_byok_key(client: httpx.AsyncClient, provider: str) -> None:
         headers=_svc_headers(),
     )
     # 200 or 204 on success; 404 means nothing to delete — both fine for cleanup.
-    assert resp.status_code in (200, 204, 404), (
-        f"Unexpected status while removing BYOK for {provider}: {resp.status_code}"
-    )
+    assert resp.status_code in (
+        200,
+        204,
+        404,
+    ), f"Unexpected status while removing BYOK for {provider}: {resp.status_code}"
 
 
 # ===========================================================================
@@ -259,44 +276,61 @@ async def test_accepts_valid_linkedin_url_and_charges_three_credits(
     print(f"Status: {resp.status_code}  cached={body.get('result', {}).get('cached')}")
 
     # Then — wrapper contract: 200 + 3 credits debited.
-    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text[:300]}"
+    assert (
+        resp.status_code == 200
+    ), f"Expected 200, got {resp.status_code}: {resp.text[:300]}"
     assert body["status"] == "success"
-    assert body["credits_charged"] == FRESH_LINKEDIN_COST, (
-        f"Expected {FRESH_LINKEDIN_COST} credits, got {body.get('credits_charged')}"
-    )
+    assert (
+        body["credits_charged"] == FRESH_LINKEDIN_COST
+    ), f"Expected {FRESH_LINKEDIN_COST} credits, got {body.get('credits_charged')}"
 
     # Canonical-shape contract (v2.0 refactor). `result` IS the Person data.
     data = body["result"]
     _assert_canonical_person_shape(data, "fresh_linkedin")
 
-    # Either the vendor matched (populated canonical fields + additional_data)
-    # or it didn't (match_found: false). Both are legitimate 200 responses.
-    if data.get("match_found") is False:
-        print("(no upstream match — shape-only assertions)")
-    else:
-        assert any(data.get(k) for k in ("name", "first_name", "headline", "title")), (
-            f"Expected at least one identity/role canonical field populated; "
-            f"got top-level keys: {list(data.keys())}"
-        )
-        extras = data["additional_data"]
-        print(f"additional_data keys: {sorted(extras.keys())}")
-        fresh_linkedin_expected_extras = {
-            "about", "photo_url", "city", "state", "country",
-            "connections_count", "follower_count",
-            "skills", "languages", "education", "certifications",
-            "company_industry", "company_size",
-        }
-        overlap = set(extras.keys()) & fresh_linkedin_expected_extras
-        assert overlap, (
-            f"fresh_linkedin response must populate at least one known additional_data key; "
-            f"got {sorted(extras.keys())}"
-        )
+    # Real data contract: a 200 must carry actual profile data. An upstream
+    # no-match now raises (ProviderError 404) rather than returning a silent
+    # match_found:false — so S1 requires populated canonical + extras fields.
+    # The 404-no-debit scenario is deferred to wiring-level mocks in
+    # tests/api_tests/test_execution_router_wiring.py (see the deferred-
+    # scenarios block at the top of this file).
+    assert data.get("match_found") is not False, (
+        f"Upstream returned match_found:false for a known profile URL; "
+        f"post-fix enrich_person must raise (ProviderError 404) rather than "
+        f"return an empty 200. data={data}"
+    )
+    assert any(data.get(k) for k in ("name", "first_name", "headline", "title")), (
+        f"Expected at least one identity/role canonical field populated; "
+        f"got top-level keys: {list(data.keys())}"
+    )
+    extras = data["additional_data"]
+    print(f"additional_data keys: {sorted(extras.keys())}")
+    fresh_linkedin_expected_extras = {
+        "about",
+        "photo_url",
+        "city",
+        "state",
+        "country",
+        "connections_count",
+        "follower_count",
+        "skills",
+        "languages",
+        "education",
+        "certifications",
+        "company_industry",
+        "company_size",
+    }
+    overlap = set(extras.keys()) & fresh_linkedin_expected_extras
+    assert overlap, (
+        f"fresh_linkedin response must populate at least one known additional_data key; "
+        f"got {sorted(extras.keys())}"
+    )
 
     diff = await _balance_delta_after(client, balance_before)
     print(f"Credits deducted: {diff}")
-    assert abs(diff - FRESH_LINKEDIN_COST) < 0.01, (
-        f"Expected ~{FRESH_LINKEDIN_COST} credit debit, got {diff}"
-    )
+    assert (
+        abs(diff - FRESH_LINKEDIN_COST) < 0.01
+    ), f"Expected ~{FRESH_LINKEDIN_COST} credit debit, got {diff}"
     print("PASS")
 
 
@@ -321,16 +355,16 @@ async def test_normalizes_url_variants_before_calling_upstream(
 
     # Then — the server normalises and fulfils the call the same way as scenario 1
     print(f"Status: {resp.status_code}")
-    assert resp.status_code == 200, (
-        f"Expected 200 after URL normalisation, got {resp.status_code}: {resp.text[:300]}"
-    )
+    assert (
+        resp.status_code == 200
+    ), f"Expected 200 after URL normalisation, got {resp.status_code}: {resp.text[:300]}"
     data = resp.json()["result"]
     # Either the vendor resolved the profile or it didn't — both reach the
     # normalizer and produce a valid response. The invariant here is that
     # noisy URLs don't 400 at the validator.
-    assert isinstance(data.get("enrichment_sources"), dict), (
-        "Normalisation must succeed end-to-end — enrichment_sources dict must exist"
-    )
+    assert isinstance(
+        data.get("enrichment_sources"), dict
+    ), "Normalisation must succeed end-to-end — enrichment_sources dict must exist"
     print("PASS")
 
 
@@ -349,14 +383,14 @@ async def _assert_validation_400_no_debit(
     resp = await _post_execute(client, body)
     print(f"[{label}] status={resp.status_code}  detail={str(resp.json())[:200]}")
 
-    assert resp.status_code == 400, (
-        f"[{label}] expected 400, got {resp.status_code}: {resp.text[:300]}"
-    )
+    assert (
+        resp.status_code == 400
+    ), f"[{label}] expected 400, got {resp.status_code}: {resp.text[:300]}"
 
     diff = await _balance_delta_after(client, balance_before)
-    assert abs(diff) < 0.01, (
-        f"[{label}] rejected request must not debit credits; delta={diff}"
-    )
+    assert (
+        abs(diff) < 0.01
+    ), f"[{label}] rejected request must not debit credits; delta={diff}"
 
 
 async def test_rejects_missing_linkedin_url_with_400(client: httpx.AsyncClient) -> None:
@@ -418,13 +452,14 @@ async def test_rejects_unsupported_operation_without_debit(
         },
     )
     print(f"Status: {resp.status_code}  body={resp.text[:200]}")
-    assert resp.status_code in (400, 502), (
-        f"Expected 400 or 502 for unsupported op, got {resp.status_code}"
-    )
+    assert resp.status_code in (
+        400,
+        502,
+    ), f"Expected 400 or 502 for unsupported op, got {resp.status_code}"
     # Error body must name the reason so the caller can re-plan.
-    assert "support" in resp.text.lower(), (
-        f"Error must reference operation support; got: {resp.text[:200]}"
-    )
+    assert (
+        "support" in resp.text.lower()
+    ), f"Error must reference operation support; got: {resp.text[:200]}"
 
     diff = await _balance_delta_after(client, balance_before)
     assert abs(diff) < 0.01, f"Unsupported-op rejection must not debit; delta={diff}"
@@ -450,8 +485,12 @@ async def test_two_identical_calls_hit_upstream_twice_and_debit_twice(
     body = _execute_body("fresh_linkedin", linkedin_url=TEST_LINKEDIN_URL)
     first = await _post_execute(client, body)
     second = await _post_execute(client, body)
-    print(f"First  status={first.status_code}  credits={first.json().get('credits_charged')}")
-    print(f"Second status={second.status_code}  credits={second.json().get('credits_charged')}")
+    print(
+        f"First  status={first.status_code}  credits={first.json().get('credits_charged')}"
+    )
+    print(
+        f"Second status={second.status_code}  credits={second.json().get('credits_charged')}"
+    )
 
     # Then — both succeed, and the TOTAL debit is 2 × FRESH_LINKEDIN_COST.
     # A cached second call would charge 0; observing 6 credits proves bypass.
@@ -466,9 +505,9 @@ async def test_two_identical_calls_hit_upstream_twice_and_debit_twice(
     diff = await _balance_delta_after(client, balance_before, settle_seconds=3.0)
     expected = 2 * FRESH_LINKEDIN_COST
     print(f"Credits deducted over two calls: {diff}  (expected {expected})")
-    assert abs(diff - expected) < 0.01, (
-        f"Expected {expected} credits across two uncached calls, got {diff}"
-    )
+    assert (
+        abs(diff - expected) < 0.01
+    ), f"Expected {expected} credits across two uncached calls, got {diff}"
     print("PASS")
 
 
@@ -495,15 +534,17 @@ async def test_byok_call_costs_zero_credits(client: httpx.AsyncClient) -> None:
             _execute_body("fresh_linkedin", linkedin_url=TEST_LINKEDIN_URL),
         )
         body = resp.json()
-        print(f"Status: {resp.status_code}  credits_charged={body.get('credits_charged')}")
+        print(
+            f"Status: {resp.status_code}  credits_charged={body.get('credits_charged')}"
+        )
 
         # Then — 200 and zero credits debited. The response envelope doesn't
         # carry an explicit is_byok flag; `credits_charged == 0` is the
         # observable contract (and the balance delta double-checks it).
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
-        assert body["credits_charged"] == 0, (
-            f"BYOK must not consume credits; got {body['credits_charged']}"
-        )
+        assert (
+            body["credits_charged"] == 0
+        ), f"BYOK must not consume credits; got {body['credits_charged']}"
 
         diff = await _balance_delta_after(client, balance_before)
         assert abs(diff) < 0.01, f"BYOK path debited {diff} credits — expected 0"
@@ -536,22 +577,23 @@ async def test_enrich_person_without_provider_still_routes_to_apollo(
         },
     )
     print(f"Status: {resp.status_code}")
-    assert resp.status_code in (200, 404), (
-        f"Expected 200 or 404 (no-match), got {resp.status_code}: {resp.text[:300]}"
-    )
+    assert resp.status_code in (
+        200,
+        404,
+    ), f"Expected 200 or 404 (no-match), got {resp.status_code}: {resp.text[:300]}"
 
     # Then — the response's enrichment_sources identifies the provider that ran.
     # The response envelope flattens `result` to the normalized Person, so
     # `enrichment_sources` is where attribution lives.
     data = resp.json().get("result", {}) or {}
-    sources = (data.get("enrichment_sources") or {})
+    sources = data.get("enrichment_sources") or {}
     print(f"enrichment_sources keys: {list(sources.keys())}")
-    assert "apollo" in sources, (
-        f"Default routing must stay on apollo (D18); saw sources {list(sources.keys())}"
-    )
-    assert "fresh_linkedin" not in sources, (
-        f"Default route must NOT hit fresh_linkedin; saw sources {list(sources.keys())}"
-    )
+    assert (
+        "apollo" in sources
+    ), f"Default routing must stay on apollo (D18); saw sources {list(sources.keys())}"
+    assert (
+        "fresh_linkedin" not in sources
+    ), f"Default route must NOT hit fresh_linkedin; saw sources {list(sources.keys())}"
     print("PASS")
 
 
@@ -598,12 +640,12 @@ async def test_mixed_apollo_and_fresh_linkedin_rows_serialise_correctly(
     print(f"Apollo sources keys: {list(apollo_sources.keys())}")
     print(f"Fresh sources keys:  {list(fresh_sources.keys())}")
 
-    assert "apollo" in apollo_sources and "fresh_linkedin" not in apollo_sources, (
-        "Apollo row must only reference apollo in enrichment_sources"
-    )
-    assert "fresh_linkedin" in fresh_sources and "apollo" not in fresh_sources, (
-        "Fresh LinkedIn row must only reference fresh_linkedin in enrichment_sources"
-    )
+    assert (
+        "apollo" in apollo_sources and "fresh_linkedin" not in apollo_sources
+    ), "Apollo row must only reference apollo in enrichment_sources"
+    assert (
+        "fresh_linkedin" in fresh_sources and "apollo" not in fresh_sources
+    ), "Fresh LinkedIn row must only reference fresh_linkedin in enrichment_sources"
     print("PASS")
 
 
@@ -612,7 +654,9 @@ async def test_mixed_apollo_and_fresh_linkedin_rows_serialise_correctly(
 # ===========================================================================
 
 
-async def test_apollo_response_follows_canonical_shape(client: httpx.AsyncClient) -> None:
+async def test_apollo_response_follows_canonical_shape(
+    client: httpx.AsyncClient,
+) -> None:
     print(
         "\n--- S11: Apollo response — canonical top level, extras under additional_data ---"
     )
@@ -638,13 +682,19 @@ async def test_apollo_response_follows_canonical_shape(client: httpx.AsyncClient
     # additional_data depends on what the upstream payload carried for this test
     # email, so we don't require every extra key.
     for previously_top_level in (
-        "id", "photo_url", "seniority", "departments",
-        "city", "state", "country",
-        "company_industry", "company_size",
+        "id",
+        "photo_url",
+        "seniority",
+        "departments",
+        "city",
+        "state",
+        "country",
+        "company_industry",
+        "company_size",
     ):
-        assert previously_top_level not in data, (
-            f"'{previously_top_level}' leaked to top level — Apollo retrofit incomplete"
-        )
+        assert (
+            previously_top_level not in data
+        ), f"'{previously_top_level}' leaked to top level — Apollo retrofit incomplete"
 
     print("PASS")
 
@@ -684,13 +734,17 @@ async def test_rocketreach_response_follows_canonical_shape(
     _assert_canonical_person_shape(data, "rocketreach")
 
     for previously_top_level in (
-        "id", "photo_url", "skills",
-        "city", "state", "country",
+        "id",
+        "photo_url",
+        "skills",
+        "city",
+        "state",
+        "country",
         "lookup_status",
     ):
-        assert previously_top_level not in data, (
-            f"'{previously_top_level}' leaked to top level — RocketReach retrofit incomplete"
-        )
+        assert (
+            previously_top_level not in data
+        ), f"'{previously_top_level}' leaked to top level — RocketReach retrofit incomplete"
 
     print("PASS")
 
