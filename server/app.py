@@ -152,7 +152,11 @@ class _SuccessfulHealthcheckFilter(logging.Filter):
 
 logging.getLogger("uvicorn.access").addFilter(_SuccessfulHealthcheckFilter())
 from server.core.database import engine
-from server.core.middleware import request_id_middleware, tenant_context_middleware
+from server.core.middleware import (
+    request_id_middleware,
+    response_alert_middleware,
+    tenant_context_middleware,
+)
 
 # ---------------------------------------------------------------------------
 # Lifespan: startup / shutdown
@@ -213,9 +217,32 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception:
         pass  # Table may not exist yet during initial setup
 
+    # Alerter readiness log — one line per worker at boot so misconfiguration
+    # is visible in CloudWatch without triggering a real alert.
+    try:
+        from server.core.alerting import _ENVS_THAT_ALERT
+
+        _arn = settings.SLACK_ALERT_TOPIC_ARN
+        _enabled = settings.ENVIRONMENT in _ENVS_THAT_ALERT and bool(_arn)
+        logging.getLogger(__name__).info(
+            "alerter.ready env=%s enabled=%s topic_arn_suffix=%s "
+            "dedup_window_s=%d body_preview_bytes=%d",
+            settings.ENVIRONMENT, _enabled, _arn[-40:] if _arn else "",
+            settings.ALERT_DEDUP_WINDOW_SECONDS,
+            settings.ALERT_BODY_PREVIEW_BYTES,
+        )
+    except Exception:
+        pass  # Never let alerter readiness logging block startup.
+
     yield
 
     # Shutdown
+    try:
+        from server.core.alerting import get_dispatcher
+
+        await get_dispatcher().close()
+    except Exception:
+        pass  # Never let alerter drain block shutdown.
     if redis_pool:
         await redis_pool.aclose()
     await engine.dispose()
@@ -259,6 +286,11 @@ app.middleware("http")(tenant_context_middleware)
 from server.execution.run_logger import RunStepMiddleware  # noqa: E402
 
 app.add_middleware(RunStepMiddleware)
+
+# Response alerting — outermost wrapper on the response path so it observes
+# the final status produced by all inner middleware + the handler. See
+# docs/hld_response_alert_middleware.md.
+app.middleware("http")(response_alert_middleware)
 
 # ---------------------------------------------------------------------------
 # Routers
