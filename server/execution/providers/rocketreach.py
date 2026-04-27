@@ -131,11 +131,18 @@ def _prepare_enrich_person(params: dict[str, Any]) -> dict[str, Any]:
         - id (RocketReach profile ID)
         - npi_number (US healthcare)
 
-    Reveal flags control returned data and cost:
-        - reveal_phone: bumps cost from 3 to 18 credits
-        - reveal_professional_email, reveal_personal_email
-        - reveal_detailed_person_enrichment
-        - reveal_healthcare_enrichment
+    Reveal flags control returned data and cost. Universal requires at least
+    one reveal_* flag on every call. nRev policy (requirements §5.1):
+        - reveal_professional_email: defaults to "true", caller can override
+        - reveal_personal_email: defaults to "false", caller can override
+        - reveal_phone: defaults to "false", caller can override (also via
+          the `enrich_phone_number` alias); bumps cost from 3 to 18 credits
+        - reveal_detailed_person_enrichment: off by default, caller-settable
+        - reveal_healthcare_enrichment: off by default, caller-settable
+        - return_cached_emails: hard-pinned "true". Caller override ignored
+          because return_cached_emails=false forces the vendor into live SMTP
+          verification (async status="searching") and our synchronous-call
+          contract does not support per-call polling.
     """
     p: dict[str, Any] = {}
 
@@ -177,21 +184,51 @@ def _prepare_enrich_person(params: dict[str, Any]) -> dict[str, Any]:
     if params.get("npi_number"):
         p["npi_number"] = int(params["npi_number"])
 
-    # Reveal flags — control what data is returned and cost
-    if params.get("reveal_phone") or params.get("enrich_phone_number"):
-        p["reveal_phone"] = True
-    if params.get("reveal_professional_email") is not None:
-        p["reveal_professional_email"] = bool(params["reveal_professional_email"])
-    if params.get("reveal_personal_email") is not None:
-        p["reveal_personal_email"] = bool(params["reveal_personal_email"])
-    if params.get("reveal_detailed_person_enrichment") is not None:
-        p["reveal_detailed_person_enrichment"] = bool(params["reveal_detailed_person_enrichment"])
-    if params.get("reveal_healthcare_enrichment") is not None:
-        p["reveal_healthcare_enrichment"] = bool(params["reveal_healthcare_enrichment"])
+    # Reveal flags — strings ("true"/"false") per RocketReach Universal docs;
+    # httpx would render Python True as "True" in GET query strings and the
+    # vendor rejects that. Defaults applied when caller didn't set, caller
+    # override honored per requirements §5.1.
+    def _as_flag(v: Any) -> str:
+        if isinstance(v, str):
+            return "true" if v.strip().lower() == "true" else "false"
+        return "true" if bool(v) else "false"
 
-    # Cached emails — default true, changing to false after May 2026
-    if params.get("return_cached_emails") is not None:
-        p["return_cached_emails"] = bool(params["return_cached_emails"])
+    if params.get("reveal_professional_email") is not None:
+        p["reveal_professional_email"] = _as_flag(params["reveal_professional_email"])
+    else:
+        p["reveal_professional_email"] = "true"
+
+    if params.get("reveal_personal_email") is not None:
+        p["reveal_personal_email"] = _as_flag(params["reveal_personal_email"])
+    else:
+        p["reveal_personal_email"] = "false"
+
+    if params.get("reveal_phone") is not None or params.get("enrich_phone_number") is not None:
+        explicit = (
+            params.get("reveal_phone")
+            if params.get("reveal_phone") is not None
+            else params.get("enrich_phone_number")
+        )
+        p["reveal_phone"] = _as_flag(explicit)
+    else:
+        p["reveal_phone"] = "false"
+
+    if params.get("reveal_detailed_person_enrichment") is not None:
+        p["reveal_detailed_person_enrichment"] = _as_flag(params["reveal_detailed_person_enrichment"])
+    if params.get("reveal_healthcare_enrichment") is not None:
+        p["reveal_healthcare_enrichment"] = _as_flag(params["reveal_healthcare_enrichment"])
+
+    # return_cached_emails is FORCED to "true". Setting it to false forces
+    # RocketReach into live SMTP verification, which returns status="searching"
+    # and requires async polling via /universal/person/check_status. Our
+    # synchronous-call contract can't absorb that on every lookup. Vendor
+    # default flips to false on 2026-05-01, making this pin time-critical.
+    if params.get("return_cached_emails") is not None and _as_flag(params["return_cached_emails"]) == "false":
+        logger.warning(
+            "rocketreach: caller requested return_cached_emails=false; "
+            "overriding to true (async SMTP flow not supported)."
+        )
+    p["return_cached_emails"] = "true"
 
     # Webhook for async delivery
     if params.get("webhook_id"):
