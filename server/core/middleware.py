@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 # Per-request identifiers, read by the JSON log formatter so every log line
 # carries tenant/user/request context automatically.
 request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
+# Defined now but populated only once the async request/response flow lands —
+# today the alerter falls back to request_id when trace_id is None.
+trace_id_var: ContextVar[str | None] = ContextVar("trace_id", default=None)
 tenant_id_var: ContextVar[str | None] = ContextVar("tenant_id", default=None)
 user_id_var: ContextVar[str | None] = ContextVar("user_id", default=None)
 internal_service_var: ContextVar[str | None] = ContextVar("internal_service", default=None)
@@ -109,4 +112,55 @@ async def tenant_context_middleware(request: Request, call_next) -> Response:
     workflow_id_var.set(request.headers.get("X-Workflow-Id"))
 
     response: Response = await call_next(request)
+    return response
+
+
+async def response_alert_middleware(request: Request, call_next) -> Response:
+    """Emit a Slack alert (via SNS) for any non-2xx response or raised exception.
+
+    Observational only — never modifies the response, never blocks on the
+    publish. Alert dispatch is off-loop via ``asyncio.create_task``; any
+    alerter failure is swallowed and logged. See ``docs/hld_response_alert_middleware.md``
+    and ``docs/lld_response_alert_middleware.md`` for the full contract.
+    """
+    # Local imports: `alerting` imports ContextVars from this module, so we
+    # defer its import to avoid a circular load during module init.
+    from server.core.alerting import (
+        get_dispatcher,
+        is_alertable,
+        is_excluded_path,
+    )
+
+    if request.method == "OPTIONS" or is_excluded_path(request.url.path):
+        return await call_next(request)
+
+    start = time.monotonic()
+    dispatcher = get_dispatcher()
+    try:
+        response: Response = await call_next(request)
+    except Exception as exc:
+        duration_ms = int((time.monotonic() - start) * 1000)
+        try:
+            await dispatcher.schedule(
+                request=request, response=None, exc=exc,
+                duration_ms=duration_ms,
+            )
+        except Exception as alerter_exc:
+            logger.error(
+                "alerter.error phase=middleware error.type=%s error.message=%s",
+                type(alerter_exc).__name__, str(alerter_exc),
+            )
+        raise
+    duration_ms = int((time.monotonic() - start) * 1000)
+    if is_alertable(response.status_code, None):
+        try:
+            await dispatcher.schedule(
+                request=request, response=response, exc=None,
+                duration_ms=duration_ms,
+            )
+        except Exception as alerter_exc:
+            logger.error(
+                "alerter.error phase=middleware error.type=%s error.message=%s",
+                type(alerter_exc).__name__, str(alerter_exc),
+            )
     return response
