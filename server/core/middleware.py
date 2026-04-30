@@ -8,9 +8,12 @@ import uuid
 from contextvars import ContextVar
 
 from fastapi import Request, Response
+from fastapi.responses import JSONResponse
 from jose import jwt
 
 from server.core.config import settings
+
+_MCP_BLOCKED_PREFIX = "/api/v1/connections"
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +69,26 @@ async def request_id_middleware(request: Request, call_next) -> Response:
         )
     response.headers["X-Request-ID"] = request_id
     return response
+
+
+async def mcp_kill_switch_middleware(request: Request, call_next) -> Response:
+    # Why: incident 2026-04-30 — connected-app credentials leaking across
+    # tenants via /api/v1/connections/*. Held off until the cross-tenant
+    # scoping bug is fixed; flip MCP_DISABLED=false to re-enable.
+    if settings.MCP_DISABLED and request.url.path.startswith(_MCP_BLOCKED_PREFIX):
+        client_host = request.client.host if request.client else "unknown"
+        logger.warning(
+            "MCP kill switch blocked request: %s %s from=%s",
+            request.method, request.url.path, client_host,
+        )
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "service_unavailable",
+                "message": "Connections/MCP are temporarily disabled.",
+            },
+        )
+    return await call_next(request)
 
 
 async def tenant_context_middleware(request: Request, call_next) -> Response:
