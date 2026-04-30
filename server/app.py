@@ -153,6 +153,7 @@ class _SuccessfulHealthcheckFilter(logging.Filter):
 logging.getLogger("uvicorn.access").addFilter(_SuccessfulHealthcheckFilter())
 from server.core.database import engine
 from server.core.middleware import (
+    mcp_kill_switch_middleware,
     request_id_middleware,
     response_alert_middleware,
     tenant_context_middleware,
@@ -287,10 +288,16 @@ from server.execution.run_logger import RunStepMiddleware  # noqa: E402
 
 app.add_middleware(RunStepMiddleware)
 
-# Response alerting — outermost wrapper on the response path so it observes
-# the final status produced by all inner middleware + the handler. See
-# docs/hld_response_alert_middleware.md.
+# Response alerting — wraps the handler + inner middleware so it observes the
+# final status produced by them. Registered before the kill switch so the
+# kill switch (outermost) can short-circuit blocked /api/v1/connections/*
+# requests without flooding the alerter with expected 503s.
+# See docs/hld_response_alert_middleware.md.
 app.middleware("http")(response_alert_middleware)
+
+# Front-gate kill switch — registered last so it sits outermost in the stack
+# and short-circuits blocked requests before any other middleware runs.
+app.middleware("http")(mcp_kill_switch_middleware)
 
 # ---------------------------------------------------------------------------
 # Routers

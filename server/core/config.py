@@ -77,6 +77,11 @@ class Settings(BaseSettings):
     ALERT_DEDUP_WINDOW_SECONDS: int = 60
     ALERT_BODY_PREVIEW_BYTES: int = 500
 
+    # --- Incident kill switches ---
+    # Blocks /api/v1/connections/* at the front gate. Set to false to re-enable
+    # once the cross-tenant scoping bug in the connections layer is fixed.
+    MCP_DISABLED: bool = True
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
