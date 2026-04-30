@@ -69,6 +69,11 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     CORS_ALLOWED_ORIGINS: str = ""
 
+    # --- Incident kill switches ---
+    # Blocks /api/v1/connections/* at the front gate. Set to false to re-enable
+    # once the cross-tenant scoping bug in the connections layer is fixed.
+    MCP_DISABLED: bool = True
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

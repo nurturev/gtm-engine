@@ -152,7 +152,11 @@ class _SuccessfulHealthcheckFilter(logging.Filter):
 
 logging.getLogger("uvicorn.access").addFilter(_SuccessfulHealthcheckFilter())
 from server.core.database import engine
-from server.core.middleware import request_id_middleware, tenant_context_middleware
+from server.core.middleware import (
+    mcp_kill_switch_middleware,
+    request_id_middleware,
+    tenant_context_middleware,
+)
 
 # ---------------------------------------------------------------------------
 # Lifespan: startup / shutdown
@@ -259,6 +263,10 @@ app.middleware("http")(tenant_context_middleware)
 from server.execution.run_logger import RunStepMiddleware  # noqa: E402
 
 app.add_middleware(RunStepMiddleware)
+
+# Front-gate kill switch — registered last so it sits outermost in the stack
+# and short-circuits blocked requests before any other middleware runs.
+app.middleware("http")(mcp_kill_switch_middleware)
 
 # ---------------------------------------------------------------------------
 # Routers
