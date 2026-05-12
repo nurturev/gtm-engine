@@ -14,7 +14,7 @@ from server.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-_TIMEOUT = httpx.Timeout(5.0, connect=3.0)
+_TIMEOUT = httpx.Timeout(30.0, connect=3.0)
 
 FLEXPRICE_EVENT_NAME = "data_enrichment_api"
 
