@@ -155,7 +155,7 @@ RocketReach has consolidated on the **Universal API**. Use ONLY these endpoints 
 | `previous_company_id` | string[] | More reliable than free text |
 | `previous_title` | string[] | Filter by what they did at previous company |
 | `current_or_previous_title` | string[] | Matches either current or past |
-| `job_change_range_days` | string[] | Filter by recent job changes — find fresh alumni |
+| `job_change_signal` | string[] | Recent job changes / promotions. Format `Signal::Window` (e.g. `Company Change::three_months`). Signal ∈ {`Company Change`, `Promotion`}; Window ∈ {`one_week`, `one_month`, `three_months`}. Multiple entries are OR'd; the compound `AND` literal in RR docs is broken — issue two queries and intersect for AND semantics. |
 
 ### Company Firmographics (applied to current employer)
 | Parameter | Type | Notes |
@@ -260,7 +260,7 @@ RocketReach's `previous_employer` filter is **unique** — Apollo and most other
 1. **Champion tracking** — Find people who left a customer company (they know your product, may bring it to new company)
 2. **Competitor alumni** — People who left a competitor may be frustrated with that product
 3. **Network leverage** — "We work with [previous company], and since you were there..."
-4. **Recent departures** — Combine with `job_change_range_days` to find fresh alumni
+4. **Recent departures** — Combine with `job_change_signal: ["Company Change::three_months"]` to find fresh alumni
 
 ### Alumni Search Pattern
 ```json
@@ -409,7 +409,7 @@ These are RocketReach's public plans — provided for awareness, not billing. nR
 | LinkedIn URL enrichment | 99% match rate |
 | Database size | 700M+ vs Apollo's ~275M |
 | Healthcare (NPI) | Built-in NPI, credentials, specialization filters |
-| Job change detection | `job_change_range_days` filter |
+| Job change detection | `job_change_signal` filter (`Signal::Window` format) |
 | CRM integrations | Native Salesforce, HubSpot, Outreach, Salesloft |
 
 ## When Apollo Beats RocketReach
