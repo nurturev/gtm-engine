@@ -66,11 +66,17 @@ WORKFLOW_LABEL: str = ""  # Optional human-readable label for the current workfl
 
 
 def _get_auth_headers() -> dict[str, str]:
-    """Return Authorization header, refreshing the token if needed."""
+    """Return base headers for nrev-lite API calls.
+
+    Always stamps the client-source header (``nrev-lite-mcp`` — distinct from
+    the CLI's ``nrev-lite`` via NrvClient) so prod-alert triage attributes MCP /
+    Claude-Code traffic deterministically. Adds Authorization when a token exists.
+    """
+    headers: dict[str, str] = {"X-Nrev-Client": "nrev-lite-mcp"}
     token = refresh_token_if_needed() or get_token()
     if token:
-        return {"Authorization": f"Bearer {token}"}
-    return {}
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
 
 
 def _api_url(path: str) -> str:

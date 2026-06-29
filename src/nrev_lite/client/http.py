@@ -39,7 +39,7 @@ class NrvClient:
     def client(self) -> httpx.Client:
         if self._client is None or self._client.is_closed:
             token = refresh_token_if_needed() or get_token()
-            headers: dict[str, str] = {}
+            headers: dict[str, str] = {"X-Nrev-Client": "nrev-lite"}
             if token:
                 headers["Authorization"] = f"Bearer {token}"
             self._client = httpx.Client(
