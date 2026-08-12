@@ -275,7 +275,6 @@ def _prepare_search_people(params: dict[str, Any]) -> dict[str, Any]:
         degree                      -> query.degree
         major                       -> query.major
         years_experience            -> query.years_experience
-        job_change_range_days       -> query.job_change_range_days
         growth                      -> query.growth
         company_tag                 -> query.company_tag
         company_publicly_traded     -> query.company_publicly_traded
@@ -356,11 +355,6 @@ def _prepare_search_people(params: dict[str, Any]) -> dict[str, Any]:
     prev_company_id = params.get("previous_company_id")
     if prev_company_id:
         query["previous_company_id"] = _ensure_list(prev_company_id)
-
-    # Recently moved in
-    job_change_days = params.get("job_change_range_days")
-    if job_change_days:
-        query["job_change_range_days"] = _ensure_list(job_change_days)
 
     # --- Company Attributes ---
 
@@ -464,7 +458,14 @@ def _prepare_search_people(params: dict[str, Any]) -> dict[str, Any]:
     if growth:
         query["growth"] = _ensure_list(growth)
 
-    # Job change signal
+    # Job change signal — format: "<Signal>::<Window>" where
+    #   Signal in {"Company Change", "Promotion"}
+    #   Window in {"one_week", "one_month", "three_months"}
+    # List entries are OR'd by RocketReach. The docs' compound literal
+    # "Company Change AND Promotion::<window>" does NOT parse — RR returns
+    # {"error": "Search Query Construction"}. For AND across signals, callers
+    # should issue two requests and intersect client-side; for OR, pass both
+    # values as separate array entries.
     if params.get("job_change_signal"):
         query["job_change_signal"] = _ensure_list(params["job_change_signal"])
 

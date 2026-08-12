@@ -1307,6 +1307,19 @@ TOOLS: list[dict[str, Any]] = [
                         "better matching (e.g. ['Yellow.ai', 'yellow.ai', 'Yellow AI'])."
                     ),
                 },
+                "job_change_signal": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "RocketReach only: filter by recent job changes / promotions. "
+                        "Format '<Signal>::<Window>' where Signal in {'Company Change', 'Promotion'} "
+                        "and Window in {'one_week', 'one_month', 'three_months'}. "
+                        "Example: ['Company Change::three_months']. "
+                        "Array entries are OR'd by RocketReach. The compound "
+                        "'Company Change AND Promotion::<window>' literal does NOT parse — "
+                        "for AND across signals, issue two requests and intersect client-side."
+                    ),
+                },
                 "provider": {
                     "type": "string",
                     "description": (
@@ -2319,10 +2332,11 @@ def _handle_nrev_search_people(args: dict[str, Any]) -> dict[str, Any]:
     """Search for people across B2B databases."""
     # Determine provider based on filters
     has_previous_employer = bool(args.get("previous_employer"))
+    has_job_change_signal = bool(args.get("job_change_signal"))
     provider = args.get("provider")
 
-    if has_previous_employer and not provider:
-        provider = "rocketreach"  # Only RocketReach has previous_employer filter
+    if (has_previous_employer or has_job_change_signal) and not provider:
+        provider = "rocketreach"  # Both filters are RocketReach-only
     elif not provider:
         provider = "apollo"  # Default to Apollo for standard B2B search
 
@@ -2364,6 +2378,8 @@ def _handle_nrev_search_people(args: dict[str, Any]) -> dict[str, Any]:
             query["company_industry"] = args["industries"]
         if args.get("seniority_levels"):
             query["management_levels"] = args["seniority_levels"]
+        if args.get("job_change_signal"):
+            query["job_change_signal"] = args["job_change_signal"]
         params["query"] = query
         params["page_size"] = min(args.get("limit", 25), 100)
 

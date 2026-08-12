@@ -65,7 +65,7 @@ Used via: `nrev_search_people` (auto-selects RocketReach for alumni/school/depar
 | Parameter | API Field | Type | Notes |
 |-----------|-----------|------|-------|
 | Previous Employer | `previous_employer` | string | Free-text, comma-separated. Variables allowed. |
-| Recently Moved In? | `job_change_range_days` | single-select | Last Month, Last 3 Months, Last 6 Months, Last Year |
+| Job Change Signal | `job_change_signal` | string[] | Format `Signal::Window`. Signal ∈ {`Company Change`, `Promotion`}; Window ∈ {`one_week`, `one_month`, `three_months`}. Array entries are OR'd. The compound `Company Change AND Promotion::<window>` literal does **not** parse — for AND semantics, run two queries and intersect upstream. |
 
 **Query filters — Company Attributes:**
 
@@ -255,7 +255,7 @@ Always apply this expansion — never send a single school name variant.
 | Alumni/previous employer search | `previous_employer` filter — unique to RocketReach |
 | School/education search | `school` filter works reliably |
 | Department-level targeting | `department` filter (Apollo lacks this) |
-| Recently changed jobs | `job_change_range_days` filter |
+| Recently changed jobs / promotions | `job_change_signal` filter (`Signal::Window` format) |
 | Department growth signals | `growth` structured filter |
 | Name+company lookup (no email/LinkedIn) | Only provider supporting this combo |
 

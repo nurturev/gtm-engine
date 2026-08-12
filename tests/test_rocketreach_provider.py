@@ -271,10 +271,6 @@ class TestPrepareSearchPeople:
         result = _prepare_search_people({"past_company": "Amazon", "title": "PM"})
         assert result["query"]["previous_employer"] == ["Amazon"]
 
-    def test_job_change_range_days(self):
-        result = _prepare_search_people({"job_change_range_days": "90", "title": "SDR"})
-        assert result["query"]["job_change_range_days"] == ["90"]
-
     def test_company_industry(self):
         result = _prepare_search_people({"industry": "SaaS", "title": "Sales"})
         assert result["query"]["company_industry"] == ["SaaS"]
@@ -371,8 +367,23 @@ class TestPrepareSearchPeople:
         assert result["query"]["growth"] == ["10-50::Engineering", "6m"]
 
     def test_job_change_signal(self):
-        result = _prepare_search_people({"job_change_signal": "true", "title": "Sales"})
-        assert result["query"]["job_change_signal"] == ["true"]
+        result = _prepare_search_people(
+            {"job_change_signal": "Company Change::three_months", "title": "Sales"}
+        )
+        assert result["query"]["job_change_signal"] == ["Company Change::three_months"]
+
+    def test_job_change_signal_multi(self):
+        result = _prepare_search_people({
+            "job_change_signal": [
+                "Company Change::three_months",
+                "Promotion::three_months",
+            ],
+            "title": "Sales",
+        })
+        assert result["query"]["job_change_signal"] == [
+            "Company Change::three_months",
+            "Promotion::three_months",
+        ]
 
     def test_company_publicly_traded(self):
         result = _prepare_search_people({"company_publicly_traded": True, "title": "CFO"})
